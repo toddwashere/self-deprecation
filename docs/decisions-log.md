@@ -79,3 +79,8 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Greenhouse's public Job Board API remains an unauthenticated `GET /v1/boards/{board_token}/jobs`; `content=true` adds full HTML descriptions. The verified `anthropic` token returns the official jobs shape, while the speculative `openai` token returns 404. Foundation uses Anthropic without descriptions for a bounded sub-1 MB cron response; P0-A owns broader verified board coverage and description-rich batches. Source: [Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html).
 - `src/sources/registry.ts` predeclares all planned job and news source IDs before its F9 freeze. Only `greenhouse_anthropic` performs network I/O in Foundation; the remaining adapters are intentional no-op seams for their P0/P1 owners.
 - The required local scheduled run completed with `outcome: ok`, inserted 100 normalized Anthropic jobs, and recorded successful `fetch_runs` rows. A fixture test also proves one failing adapter records `error` while a peer still upserts successfully.
+
+## 2026-10-24 01:24 — F9 onboarding gate feedback
+
+- The empty dashboard is not an acceptable first-run experience. Before the Foundation freeze, `open_dashboard` may add first-run Profile routing and `src/mcp/server.ts` may add server instructions. P0-B remains the owner of all criteria tools, Profile onboarding UI, and `skills/onboarding/`; this logged exception prevents later agents from editing frozen registry, bridge, or tab contracts.
+- Chosen experience: an empty Profile offers **Get started** (conversational criteria setup) or **See demo** (public-safe demo load). Do not auto-run on connection. Natural-language setup requests and future `NEEDS_CRITERIA` results enter the same flow.

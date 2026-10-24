@@ -7,6 +7,7 @@
 - F3–F4: define the complete Drizzle/D1 schema, migrations and isolation helper, then move MCP registration behind frozen feature/result/registry contracts with shared HTTP/log/error utilities.
 - F5–F6: replace the spike HTML with a single-file React panel and host bridge, then implement core profile/dashboard/demo/reset tools through the core repository.
 - F7–F8: add the capped Decisions batching/fallback wrapper, then the cron/source contracts and one Greenhouse ingestion path with `fetch_runs` observability.
+- F9 feedback: before freezing MCP contracts, make an empty workspace open the Profile onboarding surface and add server guidance so ordinary phrases such as “get started” select the onboarding tools once P0-B lands.
 - Use strict TDD for T1–T5, commit every working slice, deploy/push at milestones, and stop before F9 for the shared gate review.
 
 ## Files
@@ -21,6 +22,7 @@
 
 - `get_profile`: `{}` → `{ id, name, email?, nickname? }`; read-only; `openai/profile` metadata.
 - `open_dashboard`: `{ tab? }` → dashboard state; read-only; opens the shared panel.
+- With no explicit tab, `open_dashboard` opens Profile for an empty criteria record and Today for a configured profile.
 - `reset_my_data`: `{ confirm: literal("RESET") }` → `{ reset: true }`; destructive and caller-scoped.
 - `load_demo_data`: `{}` → inserted/updated counts; idempotent and caller-scoped.
 - `get_task_status`: `{ taskId }` → `{ stage, done, total }`; read-only.
