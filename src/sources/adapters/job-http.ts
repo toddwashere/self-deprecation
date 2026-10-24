@@ -18,8 +18,8 @@ export async function jobJson<T>(
     : await fetchWithTimeout(url, {
         allowedHosts: [url.hostname],
         timeoutMs: options.timeoutMs ?? 5_000,
-        maxBytes: 20_000_000,
-        redirect: "error",
+        maxBytes: 2_000_000,
+        redirect: "manual",
       });
   if (skip404 && response.status === 404) return null;
   if (!response.ok) throw new Error(`Source request failed (${response.status})`);

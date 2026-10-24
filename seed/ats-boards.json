@@ -5,7 +5,8 @@
     "company": "Lucid Software",
     "group": "utah",
     "verifiedAt": "2026-10-24",
-    "jobCount": 31
+    "jobCount": 31,
+    "responseBytes": 257885
   },
   {
     "source": "greenhouse",
@@ -13,7 +14,8 @@
     "company": "BILL",
     "group": "utah",
     "verifiedAt": "2026-10-24",
-    "jobCount": 45
+    "jobCount": 45,
+    "responseBytes": 533917
   },
   {
     "source": "greenhouse",
@@ -21,7 +23,8 @@
     "company": "SoFi",
     "group": "utah",
     "verifiedAt": "2026-10-24",
-    "jobCount": 57
+    "jobCount": 57,
+    "responseBytes": 738175
   },
   {
     "source": "greenhouse",
@@ -29,7 +32,8 @@
     "company": "Qualtrics",
     "group": "utah",
     "verifiedAt": "2026-10-24",
-    "jobCount": 87
+    "jobCount": 87,
+    "responseBytes": 1128850
   },
   {
     "source": "greenhouse",
@@ -37,7 +41,8 @@
     "company": "Anthropic",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 681
+    "jobCount": 681,
+    "responseBytes": 8529976
   },
   {
     "source": "greenhouse",
@@ -45,7 +50,8 @@
     "company": "Scale AI",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 171
+    "jobCount": 171,
+    "responseBytes": 1756807
   },
   {
     "source": "greenhouse",
@@ -53,7 +59,8 @@
     "company": "Together AI",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 85
+    "jobCount": 85,
+    "responseBytes": 614289
   },
   {
     "source": "greenhouse",
@@ -61,7 +68,8 @@
     "company": "CoreWeave",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 316
+    "jobCount": 316,
+    "responseBytes": 4427949
   },
   {
     "source": "greenhouse",
@@ -69,7 +77,8 @@
     "company": "GitLab",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 239
+    "jobCount": 239,
+    "responseBytes": 3272702
   },
   {
     "source": "greenhouse",
@@ -77,7 +86,8 @@
     "company": "Canonical",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 314
+    "jobCount": 314,
+    "responseBytes": 3132703
   },
   {
     "source": "greenhouse",
@@ -85,7 +95,8 @@
     "company": "Elastic",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 402
+    "jobCount": 402,
+    "responseBytes": 6784593
   },
   {
     "source": "greenhouse",
@@ -93,7 +104,8 @@
     "company": "Grafana Labs",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 145
+    "jobCount": 145,
+    "responseBytes": 1938712
   },
   {
     "source": "greenhouse",
@@ -101,7 +113,8 @@
     "company": "Cloudflare",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 454
+    "jobCount": 454,
+    "responseBytes": 6993506
   },
   {
     "source": "greenhouse",
@@ -109,7 +122,8 @@
     "company": "Datadog",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 433
+    "jobCount": 433,
+    "responseBytes": 4741441
   },
   {
     "source": "greenhouse",
@@ -117,7 +131,8 @@
     "company": "MongoDB",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 382
+    "jobCount": 382,
+    "responseBytes": 3990129
   },
   {
     "source": "greenhouse",
@@ -125,7 +140,8 @@
     "company": "Stripe",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 719
+    "jobCount": 719,
+    "responseBytes": 5038123
   },
   {
     "source": "greenhouse",
@@ -133,7 +149,8 @@
     "company": "Figma",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 138
+    "jobCount": 138,
+    "responseBytes": 1431201
   },
   {
     "source": "lever",
@@ -141,7 +158,8 @@
     "company": "Wealthfront",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 22
+    "jobCount": 22,
+    "responseBytes": 463724
   },
   {
     "source": "ashby",
@@ -149,7 +167,8 @@
     "company": "OpenAI",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 796
+    "jobCount": 796,
+    "responseBytes": 14057127
   },
   {
     "source": "ashby",
@@ -157,7 +176,8 @@
     "company": "Perplexity",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 132
+    "jobCount": 132,
+    "responseBytes": 1266488
   },
   {
     "source": "ashby",
@@ -165,7 +185,8 @@
     "company": "Cohere",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 116
+    "jobCount": 116,
+    "responseBytes": 2135487
   },
   {
     "source": "ashby",
@@ -173,7 +194,8 @@
     "company": "Cursor",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 126
+    "jobCount": 126,
+    "responseBytes": 1226519
   },
   {
     "source": "ashby",
@@ -181,7 +203,8 @@
     "company": "Replit",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 37
+    "jobCount": 37,
+    "responseBytes": 602959
   },
   {
     "source": "ashby",
@@ -189,7 +212,8 @@
     "company": "Ramp",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 167
+    "jobCount": 167,
+    "responseBytes": 3076474
   },
   {
     "source": "ashby",
@@ -197,7 +221,8 @@
     "company": "Linear",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 34
+    "jobCount": 34,
+    "responseBytes": 462497
   },
   {
     "source": "ashby",
@@ -205,7 +230,8 @@
     "company": "Notion",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 140
+    "jobCount": 140,
+    "responseBytes": 2613437
   },
   {
     "source": "ashby",
@@ -213,7 +239,8 @@
     "company": "Supabase",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 61
+    "jobCount": 61,
+    "responseBytes": 860972
   },
   {
     "source": "ashby",
@@ -221,7 +248,8 @@
     "company": "Ashby",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 67
+    "jobCount": 67,
+    "responseBytes": 2247113
   },
   {
     "source": "ashby",
@@ -229,7 +257,8 @@
     "company": "PostHog",
     "group": "remote",
     "verifiedAt": "2026-10-24",
-    "jobCount": 10
+    "jobCount": 10,
+    "responseBytes": 204147
   },
   {
     "source": "ashby",
@@ -237,6 +266,7 @@
     "company": "Synthesia",
     "group": "ai",
     "verifiedAt": "2026-10-24",
-    "jobCount": 34
+    "jobCount": 34,
+    "responseBytes": 439033
   }
 ]
