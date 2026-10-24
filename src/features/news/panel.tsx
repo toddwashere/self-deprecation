@@ -64,10 +64,7 @@ export function NewsContent({
       {loading ? <Loading line={newsCopy.loading} /> : null}
       {data?.progress.stage === "fetching" ? (
         <div role="status">
-          <p>
-            Updating sources: {data.progress.done} of {data.progress.total} complete
-          </p>
-          <progress value={data.progress.done} max={Math.max(1, data.progress.total)} />
+          <p>Updating news sources…</p>
         </div>
       ) : null}
       {data ? (
