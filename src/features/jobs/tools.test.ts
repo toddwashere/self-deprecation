@@ -71,7 +71,7 @@ it("T4 validates all owned tool outputs and rejects invalid input without accept
     const invalid = await selected.handler({ ...valid, userId: "b" }, ctx);
     expect(invalid).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "INVALID_INPUT" } },
+      _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
     });
     expect(selected.annotations).toMatchObject({ destructiveHint: false });
     expect(selected.status.invoking.length).toBeLessThanOrEqual(64);
@@ -88,11 +88,11 @@ it("T1 reads only the caller's status and requires their own criteria for search
   expect(other.structuredContent).toMatchObject({ job: { status: "new", fitScore: null } });
   expect(await tool("search_jobs").handler({}, { ...ctx, userId: "b" })).toMatchObject({
     isError: true,
-    structuredContent: { error: { code: "NEEDS_CRITERIA" } },
+    _meta: { "self-deprecation/error": { code: "NEEDS_CRITERIA" } },
   });
   expect(await tool("get_job").handler({ jobId: "missing" }, ctx)).toMatchObject({
     isError: true,
-    structuredContent: { error: { code: "NOT_FOUND" } },
+    _meta: { "self-deprecation/error": { code: "NOT_FOUND" } },
   });
 });
 

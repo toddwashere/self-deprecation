@@ -1,6 +1,6 @@
 import { applyD1Migrations, env } from "cloudflare:test";
 import type { D1Migration } from "@cloudflare/vitest-plugin";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createDb } from "../db/client";
 import { fetchRuns, jobs } from "../db/schema";
 import type { Env } from "../env";
@@ -24,6 +24,25 @@ beforeEach(async () => {
 });
 
 describe("cron dispatcher", () => {
+  it("uses the bounded rotating catalog for the production jobs cron", async () => {
+    const runJobBatch = vi.fn(async () => ({
+      tab: "jobs" as const,
+      itemsUpserted: 42,
+      sources: [
+        { source: "greenhouse", status: "ok" as const, itemsUpserted: 42 },
+        { source: "lever", status: "error" as const, itemsUpserted: 0 },
+      ],
+      progress: { stage: "done" as const, done: 2, total: 2 },
+      fallback: false,
+      skipped: [],
+    }));
+
+    const result = await dispatchCron(testEnv, "0 */4 * * *", { adapters: [], runJobBatch });
+
+    expect(runJobBatch).toHaveBeenCalledWith(testEnv);
+    expect(result).toEqual({ attempted: 2, succeeded: 1, failed: 1, itemsUpserted: 42 });
+  });
+
   it("upserts successful jobs and records one failed source without aborting others", async () => {
     const good: SourceAdapter<NormalizedJob> = {
       id: "good",

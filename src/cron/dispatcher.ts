@@ -1,6 +1,7 @@
 import { createDb } from "../db/client";
 import type { Env } from "../env";
 import { finishFetchRun, startFetchRun, upsertJobs } from "../features/jobs/repo";
+import { runRotatingJobBatch } from "../features/jobs/service";
 import { upsertNews } from "../features/news/repo";
 import { SOURCES } from "../sources/registry";
 import type {
@@ -20,6 +21,17 @@ export interface CronSummary {
 interface DispatchOptions {
   adapters?: readonly AnySourceAdapter[];
   now?: () => number;
+  runJobBatch?: typeof runRotatingJobBatch;
+}
+
+function jobBatchSummary(result: Awaited<ReturnType<typeof runRotatingJobBatch>>): CronSummary {
+  const failed = result.sources.filter((source) => source.status === "error").length;
+  return {
+    attempted: result.sources.length,
+    succeeded: result.sources.length - failed,
+    failed,
+    itemsUpserted: result.itemsUpserted,
+  };
 }
 
 function adaptersForCron(cron: string, adapters: readonly AnySourceAdapter[]) {
@@ -42,6 +54,10 @@ export async function dispatchCron(
   cron: string,
   options: DispatchOptions = {},
 ): Promise<CronSummary> {
+  if (cron === "0 */4 * * *" && (options.runJobBatch || !options.adapters)) {
+    const runJobBatch = options.runJobBatch ?? runRotatingJobBatch;
+    return jobBatchSummary(await runJobBatch(env));
+  }
   const db = createDb(env.DB);
   const now = options.now ?? Date.now;
   const adapters = adaptersForCron(cron, options.adapters ?? SOURCES);
