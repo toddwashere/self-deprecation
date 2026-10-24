@@ -88,3 +88,7 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 ## 2026-10-24 01:42 — Cloudflare types compatibility repair
 
 - `@cloudflare/workers-types@5.20261024.1` publishes both a module-style `index.ts` and a global `index.d.ts` without a package `types` entry. TypeScript's bundler resolution selected `index.ts`, so the Foundation globals `D1Database` and `KVNamespace` disappeared even though the declaration file was installed. Pinning both compiler projects to `@cloudflare/workers-types/index.d.ts` restores the intended Worker globals when a web panel imports its tool output type, without weakening type safety or changing runtime code. This is a Foundation dependency compatibility repair made before the F9 tag.
+
+## 2026-10-24 01:46 — Initial MCP App tool-result routing
+
+- MCP Inspector proved that the panel can render before `ui/notifications/tool-result` arrives, so synchronous initial-output routing fell back to Today even when `start_onboarding` returned `tab: profile`. The shared bridge now exposes a read-only tool-output subscription and the shell routes when that notification arrives. This repairs all tool-selected tabs before the F9 freeze without adding a timer or host-specific API.

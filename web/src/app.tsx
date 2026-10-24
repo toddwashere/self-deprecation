@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Bridge } from "./bridge";
 import { COPY } from "./copy";
 import { TABS, type TabId } from "./tabs";
@@ -15,6 +15,17 @@ export function App({ bridge }: { bridge: Bridge }) {
   const [activeId, setActiveId] = useState<TabId>(() => initialTab(bridge));
   const active = useMemo(() => TABS.find((tab) => tab.id === activeId) ?? TABS[0], [activeId]);
   const Panel = active.component;
+
+  useEffect(
+    () =>
+      bridge.onToolOutput((output) => {
+        const tab = (output as { tab?: TabId } | undefined)?.tab;
+        if (tab && TABS.some((candidate) => candidate.id === tab && candidate.enabled)) {
+          setActiveId(tab);
+        }
+      }),
+    [bridge],
+  );
 
   const chooseTab = (tab: (typeof TABS)[number]) => {
     if (!tab.enabled) return;

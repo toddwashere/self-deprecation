@@ -7,6 +7,7 @@ export interface Bridge {
   callTool<T>(name: string, args?: object): Promise<BridgeResult<T>>;
   sendPrompt(text: string): Promise<void>;
   initialToolOutput<T>(): T | undefined;
+  onToolOutput(listener: (output: unknown) => void): () => void;
   theme(): "light" | "dark";
   saveViewState(state: object): void;
   openExternal(url: string): void;
@@ -51,6 +52,7 @@ class McpAppClient {
   >();
   private initialized = false;
   private context: HostContext = {};
+  private toolOutputListeners = new Set<(output: unknown) => void>();
   initialOutput: unknown;
 
   constructor() {
@@ -80,6 +82,11 @@ class McpAppClient {
 
   getContext() {
     return this.context;
+  }
+
+  onToolOutput(listener: (output: unknown) => void) {
+    this.toolOutputListeners.add(listener);
+    return () => this.toolOutputListeners.delete(listener);
   }
 
   callTool(name: string, args: object) {
@@ -131,7 +138,8 @@ class McpAppClient {
       return;
     }
     if (message.method === "ui/notifications/tool-result" && message.params?.structuredContent) {
-      this.initialOutput ??= message.params.structuredContent;
+      this.initialOutput = message.params.structuredContent;
+      for (const listener of this.toolOutputListeners) listener(this.initialOutput);
     }
     if (message.method === "ui/notifications/host-context-changed") {
       this.context = { ...this.context, ...(message.params as HostContext) };
@@ -193,6 +201,9 @@ export const bridge: Bridge = {
   },
   initialToolOutput<T>() {
     return (app.initialOutput ?? window.openai?.toolOutput) as T | undefined;
+  },
+  onToolOutput(listener) {
+    return app.onToolOutput(listener);
   },
   theme() {
     return app.getContext().theme ?? window.openai?.theme ?? "light";
