@@ -66,29 +66,25 @@ beforeEach(async () => {
     { userId: "prep-a", skills: ["typescript"], resumeText: "Private resume", updatedAt: now },
     { userId: "prep-b", skills: ["go"], updatedAt: now },
   ]);
-  await db
-    .insert(jobs)
-    .values({
-      id: "prep-job",
-      source: "seed",
-      sourceJobId: "prep-job",
-      company: "Migration Labs",
-      title: "Senior Engineer",
-      url: "https://example.com/job",
-      descriptionText: "Build reliable systems",
-      fetchedAt: now,
-      lastSeenAt: now,
-    });
-  await db
-    .insert(jobMatches)
-    .values({
-      id: "prep-match-a",
-      userId: "prep-a",
-      jobId: "prep-job",
-      status: "saved",
-      criteriaVersion: 1,
-      updatedAt: now,
-    });
+  await db.insert(jobs).values({
+    id: "prep-job",
+    source: "seed",
+    sourceJobId: "prep-job",
+    company: "Migration Labs",
+    title: "Senior Engineer",
+    url: "https://example.com/job",
+    descriptionText: "Build reliable systems",
+    fetchedAt: now,
+    lastSeenAt: now,
+  });
+  await db.insert(jobMatches).values({
+    id: "prep-match-a",
+    userId: "prep-a",
+    jobId: "prep-job",
+    status: "saved",
+    criteriaVersion: 1,
+    updatedAt: now,
+  });
 });
 
 async function call(name: string, args: Record<string, unknown>, userId = "prep-a") {
@@ -179,16 +175,14 @@ describe("prep isolation and contracts", () => {
       (await call("get_interview_intel", { company: "Migration Labs" }, "prep-b"))
         .structuredContent,
     ).toMatchObject({ intel: [] });
-    await db
-      .insert(jobMatches)
-      .values({
-        id: "prep-match-b",
-        userId: "prep-b",
-        jobId: "prep-job",
-        status: "saved",
-        criteriaVersion: 1,
-        updatedAt: now,
-      });
+    await db.insert(jobMatches).values({
+      id: "prep-match-b",
+      userId: "prep-b",
+      jobId: "prep-job",
+      status: "saved",
+      criteriaVersion: 1,
+      updatedAt: now,
+    });
     expect(
       errorCode(
         await call(
@@ -253,18 +247,16 @@ describe("prep isolation and contracts", () => {
       report: { ...report, company: " migration labs ", tips: ["Updated"] },
     });
     await call("save_interview_intel", { report: { ...report, role: "Staff Engineer" } });
-    await db
-      .insert(notes)
-      .values({
-        id: "legacy",
-        userId: "prep-a",
-        subjectType: "company",
-        subjectId: "migration labs",
-        kind: "interview_intel",
-        body: "legacy text",
-        createdAt: now,
-        updatedAt: now,
-      });
+    await db.insert(notes).values({
+      id: "legacy",
+      userId: "prep-a",
+      subjectType: "company",
+      subjectId: "migration labs",
+      kind: "interview_intel",
+      body: "legacy text",
+      createdAt: now,
+      updatedAt: now,
+    });
     const result = await call("get_interview_intel", {
       company: "Migration Labs",
       role: "Senior Engineer",
