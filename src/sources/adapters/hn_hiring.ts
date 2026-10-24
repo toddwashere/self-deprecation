@@ -1,2 +1,13 @@
-import { emptyJobSource } from "./placeholder";
-export const hnHiringAdapter = emptyJobSource("hn_hiring");
+import { createHnContractAdapter, type HnAdapterOptions, includesContractWork } from "./hn_common";
+
+export function createHnHiringAdapter(options: HnAdapterOptions = {}) {
+  return createHnContractAdapter({
+    id: "hn_hiring",
+    query: "Ask HN: Who is hiring?",
+    title: /^Ask HN: Who is hiring\?/i,
+    include: includesContractWork,
+    options,
+  });
+}
+
+export const hnHiringAdapter = createHnHiringAdapter();
