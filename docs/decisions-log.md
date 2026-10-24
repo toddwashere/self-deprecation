@@ -92,3 +92,7 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 ## 2026-10-24 01:46 — Initial MCP App tool-result routing
 
 - MCP Inspector proved that the panel can render before `ui/notifications/tool-result` arrives, so synchronous initial-output routing fell back to Today even when `start_onboarding` returned `tab: profile`. The shared bridge now exposes a read-only tool-output subscription and the shell routes when that notification arrives. This repairs all tool-selected tabs before the F9 freeze without adding a timer or host-specific API.
+
+## 2026-10-24 01:49 — Generated panel freeze exception
+
+- `src/mcp/panel-html.generated.ts` is the deterministic output of `npm run build:web`; every feature panel must refresh it for deployment. It is the sole build-only exception to the frozen `src/mcp/*` ownership rule: feature branches may commit changes produced by `scripts/embed-panel.mjs`, but must never hand-edit the file. Foundation tool tests assert the six core tools remain present instead of freezing the total tool count as P0/P1 features register their own tools.

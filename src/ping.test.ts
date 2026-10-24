@@ -73,7 +73,16 @@ describe("F1 Worker", () => {
       }>;
     }>(1, "tools/list", {});
 
-    expect(result.tools).toHaveLength(6);
+    expect(result.tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining([
+        "ping",
+        "get_profile",
+        "get_task_status",
+        "open_dashboard",
+        "reset_my_data",
+        "load_demo_data",
+      ]),
+    );
     for (const tool of result.tools) {
       expect(tool.name).toMatch(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/);
       expect(tool.description).toContain("Do not");
