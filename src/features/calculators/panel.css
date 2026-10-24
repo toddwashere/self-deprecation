@@ -1,0 +1,9 @@
+.money-panel .money-switch { margin: 0; }
+.money-panel .money-switch button[aria-selected="true"] { color: white; background: var(--accent); }
+.money-panel .money-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.money-panel .money-grid .actions { align-items: end; }
+.money-panel .money-summary { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(0, 1.5fr); gap: 8px 14px; margin: 16px 0 0; }
+.money-panel .money-summary dt, .money-panel .money-disclaimer { color: var(--muted); }
+.money-panel .money-summary dd { margin: 0; overflow-wrap: anywhere; }
+.money-panel .money-disclaimer { font-size: 12px; }
+@media (max-width: 620px) { .money-panel .money-grid { grid-template-columns: 1fr; } }
