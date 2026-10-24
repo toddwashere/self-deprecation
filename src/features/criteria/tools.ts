@@ -78,6 +78,13 @@ const onboardingOutputSchema = z.object({
   missing: z.array(z.string()),
   questionGroups: z.array(questionGroupSchema).max(6),
 });
+export const productTourOutputSchema = z.object({
+  tab: z.literal("profile"),
+  mode: z.literal("tour"),
+  configured: z.boolean(),
+});
+
+export type ProductTourOutput = z.infer<typeof productTourOutputSchema>;
 
 function onboardingState(criteria: CriteriaOutput) {
   const configured = criteria.targetTitles.length > 0 || criteria.skills.length > 0;
@@ -222,6 +229,25 @@ export const criteriaTools: ToolDef[] = [
         ctx.now().getTime(),
       );
       return ok("Your resume and supported extracted criteria were saved.", { ...criteria });
+    },
+  },
+  {
+    name: "show_product_tour",
+    title: "Show the Self-Deprecation tour",
+    description:
+      "Use this when someone asks what Self-Deprecation does, wants a guided tour, or is presenting the product. Do not use it to change job-search criteria or load demo data. Next, let the person choose Get started or See demo from the tour.",
+    input: {},
+    output: productTourOutputSchema,
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    status: { invoking: "Preparing the tasteful existential crisis…", invoked: "Tour ready." },
+    opensPanel: true,
+    handler: async (_args, ctx) => {
+      const criteria = await getCriteria(ctx.db, ctx.userId);
+      const configured = criteria.targetTitles.length > 0 || criteria.skills.length > 0;
+      return ok(
+        "The product tour is open. Let the person choose whether to set up their search or explore the public demo.",
+        { tab: "profile" as const, mode: "tour" as const, configured },
+      );
     },
   },
 ];

@@ -16,6 +16,7 @@ server/panel contract.
 | `get_criteria` | criteria | read-only | no | Return the caller's current criteria; resume text is opt-in. |
 | `update_criteria` | criteria | write | no | Partially update only the caller's confirmed criteria. |
 | `save_resume` | criteria | write | no | Save ≤50 KB resume text and supported extracted fields. |
+| `show_product_tour` | criteria | read-only | yes | Open the replayable product tour without changing criteria. |
 
 Feature folders are predeclared in `src/mcp/registry.ts`. Adding a tool to a feature's exported
 `tools` array registers it automatically with annotations, status text, OAuth metadata, and optional

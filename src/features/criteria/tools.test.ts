@@ -142,4 +142,37 @@ describe("criteria tools", () => {
       ]),
     });
   });
+
+  it("opens the product tour without changing configured criteria", async () => {
+    await seedProfile("criteria-tour", {
+      targetTitles: ["Staff Engineer"],
+      skills: ["typescript"],
+      criteriaVersion: 7,
+    });
+    const before = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, "criteria-tour"))
+      .get();
+    const tool = criteriaFeature.tools.find((candidate) => candidate.name === "show_product_tour");
+
+    const result = await call("show_product_tour", {}, "criteria-tour");
+    const after = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, "criteria-tour"))
+      .get();
+
+    expect(result.structuredContent).toEqual({
+      tab: "profile",
+      mode: "tour",
+      configured: true,
+    });
+    expect(tool?.annotations).toEqual({
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    });
+    expect(after).toEqual(before);
+  });
 });
