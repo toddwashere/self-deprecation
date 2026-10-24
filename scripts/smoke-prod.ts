@@ -58,7 +58,10 @@ async function checkAuthenticatedMcp(token: string) {
       throw new Error("Authenticated MCP discovery did not include ping");
     }
     const ping = await client.callTool({ name: "ping", arguments: {} });
-    if (ping.isError || (ping.structuredContent as { status?: string } | undefined)?.status !== "ok") {
+    if (
+      ping.isError ||
+      (ping.structuredContent as { status?: string } | undefined)?.status !== "ok"
+    ) {
       throw new Error("Authenticated ping did not return status=ok");
     }
     return listed.tools.length;
