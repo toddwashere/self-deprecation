@@ -53,7 +53,10 @@ async function seedProfile(userId: string, values: Partial<typeof profiles.$infe
 describe("criteria tools", () => {
   it("derives profile ownership from context for reads and partial updates", async () => {
     await seedProfile("criteria-a", { targetTitles: ["Staff Engineer"], skills: ["typescript"] });
-    await seedProfile("criteria-b", { targetTitles: ["Designer"], skills: ["figma"] });
+    const now = 1_700_000_000_000;
+    await db
+      .insert(users)
+      .values({ id: "criteria-b", displayName: "criteria-b", createdAt: now, updatedAt: now });
 
     const forgedRead = await call("get_criteria", { userId: "criteria-a" }, "criteria-b");
     const forgedUpdate = await call(
@@ -72,7 +75,7 @@ describe("criteria tools", () => {
       .where(eq(profiles.userId, "criteria-b"))
       .get();
 
-    expect(forgedRead.structuredContent).toMatchObject({ targetTitles: ["Designer"] });
+    expect(forgedRead.structuredContent).toMatchObject({ targetTitles: [], skills: [] });
     expect(forgedUpdate.structuredContent).toMatchObject({ salaryMin: 200_000 });
     expect(profileA?.salaryMin).toBeNull();
     expect(profileB?.salaryMin).toBe(200_000);

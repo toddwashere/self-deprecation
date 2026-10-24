@@ -4,7 +4,7 @@
 
 - Add a user-scoped criteria repository over the frozen `profiles` table; every read/update filters `user_id`, partial updates preserve omitted fields, and every write bumps `criteria_version` once.
 - Expose `start_onboarding`, `get_criteria`, `update_criteria`, and `save_resume` with zod result contracts and the shared MCP result helpers.
-- Replace the Profile placeholder with a bridge-only panel: empty users choose **Get started** or **See demo**; configured users see a concise summary and can update through chat.
+- Replace the Profile placeholder with a bridge-only panel: empty users choose **Get started** or **See demo**; configured users edit title/skill chips, work mode, compensation, and Bridge mode directly or update through chat.
 - Package `skills/onboarding/SKILL.md`; server instructions added during F9 provide the same trigger guidance for direct custom-MCP installations.
 
 ## Files

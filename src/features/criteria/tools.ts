@@ -179,7 +179,6 @@ export const criteriaTools: ToolDef[] = [
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: false,
-      idempotentHint: true,
     },
     status: { invoking: "Updating your migration plan…", invoked: "Criteria updated." },
     handler: async (args, ctx) => {
@@ -208,7 +207,6 @@ export const criteriaTools: ToolDef[] = [
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: false,
-      idempotentHint: true,
     },
     status: { invoking: "Reading the old release notes…", invoked: "Resume saved." },
     handler: async (args, ctx) => {
