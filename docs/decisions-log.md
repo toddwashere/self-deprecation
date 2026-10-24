@@ -42,3 +42,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Authorization-server discovery advertises DCR, CIMD, authorization code plus refresh-token grants, public clients (`token_endpoint_auth_methods_supported` includes `none`), S256-only PKCE, and authorization-response issuer protection. The resource and issuer are exact HTTPS URLs; no origin-only audience shortcut is used.
 - `DEV_AUTH_BYPASS` is accepted only when `ENVIRONMENT=development`; production refuses it. `ToolContext.userId` is derived only from verified provider grant props. GitHub identity find-or-create persists the internal user and `auth_identities` mapping before completing authorization.
 - The six authorized production credentials (GitHub client ID/secret, cookie key, OpenAI key, and Adzuna ID/key) are stored as Cloudflare `secret_text` bindings. Development-only flags were not uploaded. OAuth consent remains the shared F9 ChatGPT gate so F3–F8 can proceed without interrupting Todd.
+
+## 2026-10-24 00:46 — F3 schema contract established
+
+- The complete §7 schema is represented in `src/db/schema.ts` and migration `0002_foundation.sql`; both local and production D1 applied the migration successfully. JSON columns use typed Drizzle JSON mode and user-owned rows have cascading internal-user foreign keys.
+- Future feature repositories must run the shared T1 isolation assertion, which verifies cross-user list, update-by-ID, and delete-by-ID behavior. The helper itself passed against real Miniflare D1.
+- `db:reset:local` is intentionally local-only: it drops the known Foundation tables and reapplies recorded migrations. It never accepts a remote flag.
