@@ -226,3 +226,28 @@ it("replaces snapshot content in place when the corresponding live job returns",
   expect(rows[0].title).toBe("Fresh live title");
   expect(rows[0].tags).not.toContain("snapshot");
 });
+
+it("shares one Adzuna request when two users refresh the same query/location concurrently", async () => {
+  await db
+    .insert(users)
+    .values(["room-a", "room-b"].map((id) => ({ id, createdAt: now, updatedAt: now })));
+  await db.insert(profiles).values(
+    ["room-a", "room-b"].map((userId) => ({
+      userId,
+      targetTitles: ["Engineer"],
+      locations: ["Utah"],
+      updatedAt: now,
+    })),
+  );
+  let adzunaRequests = 0;
+  vi.stubGlobal("fetch", async (url: URL) => {
+    if (url.hostname === "api.adzuna.com") {
+      adzunaRequests++;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return new Response(JSON.stringify({ results: [] }));
+    }
+    return new Response(JSON.stringify(url.hostname === "api.lever.co" ? [] : { jobs: [] }));
+  });
+  await Promise.all([refreshJobs(ctx("room-a")), refreshJobs(ctx("room-b"))]);
+  expect(adzunaRequests).toBe(1);
+});

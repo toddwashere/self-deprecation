@@ -12,6 +12,7 @@ import { SNAPSHOT_CAPTURED_AT, seedJobsAdapter } from "../../sources/adapters/se
 import type { NormalizedJob, SourceAdapter } from "../../sources/types";
 import { getCriteria } from "../criteria/repo";
 import {
+  claimFreshFetch,
   finishFetchRun,
   getCatalogStats,
   hasLiveJobs,
@@ -67,13 +68,20 @@ export async function fetchJobSources(
   db: DB,
   env: Env,
   adapters: readonly SourceAdapter<NormalizedJob>[],
-  options: { now?: () => number; budgetMs?: number; maxSources?: number; limit?: number } = {},
+  options: {
+    now?: () => number;
+    budgetMs?: number;
+    maxSources?: number;
+    limit?: number;
+    runIds?: ReadonlyMap<string, string>;
+  } = {},
 ): Promise<CatalogRefresh> {
   const now = options.now ?? Date.now;
   const chosen = adapters.slice(0, Math.min(options.maxSources ?? 3, 10));
   const fetched = await Promise.all(
     chosen.map(async (adapter) => {
-      const id = await startFetchRun(db, adapter.id, "jobs", now());
+      const id =
+        options.runIds?.get(adapter.id) ?? (await startFetchRun(db, adapter.id, "jobs", now()));
       try {
         const items = await bounded(
           adapter.fetch(env, { limit: options.limit ?? 100 }),
@@ -145,14 +153,25 @@ export async function refreshJobs(ctx: ToolContext): Promise<CatalogRefresh> {
   );
   const adapters = fastBoards.map((board) => boardAdapter(board));
   const cached: SourceOutcome[] = [];
+  const runIds = new Map<string, string>();
   const skipped: CatalogRefresh["skipped"] = [];
   if (criteria.locations.length && ctx.env.ADZUNA_APP_ID && ctx.env.ADZUNA_APP_KEY) {
     const query = criteria.targetTitles[0];
     const location = criteria.locations[0];
     const key = await queryKey(query, location);
-    if (await hasRecentFetch(ctx.db, key, now - 6 * 60 * 60 * 1_000))
-      cached.push({ source: "adzuna", status: "cached", itemsUpserted: 0 });
-    else adapters.push({ ...createAdzunaAdapter({ query, location, timeoutMs: 4_500 }), id: key });
+    const claimed = await claimFreshFetch(ctx.db, key, now, 6 * 60 * 60 * 1_000);
+    if (!claimed) {
+      const fresh = await hasRecentFetch(ctx.db, key, now - 6 * 60 * 60 * 1_000);
+      cached.push({
+        source: "adzuna",
+        status: "cached",
+        itemsUpserted: 0,
+        ...(fresh ? {} : { reason: "FETCH_IN_PROGRESS" }),
+      });
+    } else {
+      runIds.set(key, claimed);
+      adapters.push({ ...createAdzunaAdapter({ query, location, timeoutMs: 4_500 }), id: key });
+    }
   } else {
     skipped.push({
       source: "adzuna",
@@ -164,6 +183,7 @@ export async function refreshJobs(ctx: ToolContext): Promise<CatalogRefresh> {
   const result = await fetchJobSources(ctx.db, ctx.env, adapters, {
     now: () => now,
     maxSources: 3,
+    runIds,
   });
   result.sources.push(...cached);
   result.skipped = skipped;
