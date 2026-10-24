@@ -51,8 +51,12 @@ export const newsOutputSchema = z.object({
   ),
   progress: z.object({
     stage: z.enum(["fetching", "done"]),
-    done: z.number().int().nonnegative(),
-    total: z.number().int().nonnegative(),
+    done: z
+      .number()
+      .int()
+      .nonnegative()
+      .describe("Shared cron has no refresh batch ID; completion counts are unavailable."),
+    total: z.number().int().nonnegative().describe("0 when a refresh batch total is unavailable."),
   }),
 });
 export type NewsOutput = z.infer<typeof newsOutputSchema>;
@@ -101,8 +105,8 @@ export const newsTools: ToolDef[] = [
           stale: catalog.updatedAt === null || now - catalog.updatedAt > 36 * 3600000,
           progress: {
             stage: running ? "fetching" : "done",
-            done: catalog.sources.length - running,
-            total: catalog.sources.length,
+            done: 0,
+            total: 0,
           },
         };
         return ok(

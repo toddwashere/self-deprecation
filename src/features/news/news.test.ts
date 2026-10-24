@@ -168,7 +168,7 @@ describe("get_ai_news contract (T4)", () => {
     });
     expect(JSON.stringify(result)).not.toContain("private detail");
   });
-  it("reports active ingestion but stops polling an abandoned run", async () => {
+  it("reports ingestion status without counting unstarted sources, then expires abandoned runs", async () => {
     const tool = newsFeature.tools.find((tool) => tool.name === "get_ai_news");
     expect(tool).toBeDefined();
     if (!tool) return;
@@ -181,7 +181,7 @@ describe("get_ai_news contract (T4)", () => {
     });
     const active = await tool.handler({}, ctx);
     expect(active.structuredContent).toMatchObject({
-      progress: { stage: "fetching", done: 3, total: 4 },
+      progress: { stage: "fetching", done: 0, total: 0 },
     });
     const later = await tool.handler({}, { ...ctx, now: () => new Date(now + 180000) });
     expect(later.structuredContent).toMatchObject({

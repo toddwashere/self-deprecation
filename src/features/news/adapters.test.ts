@@ -4,6 +4,7 @@ import { deepMindNewsAdapter } from "../../sources/adapters/news_deepmind";
 import { huggingFaceNewsAdapter } from "../../sources/adapters/news_huggingface";
 import { openAiNewsAdapter } from "../../sources/adapters/news_openai";
 import { simonWillisonNewsAdapter } from "../../sources/adapters/news_simon";
+import { plainNewsText } from "./adapters";
 import { recordedFeeds } from "./fixtures/feeds";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -91,5 +92,25 @@ describe("public news normalization (T7)", () => {
         }),
     );
     await expect(openAiNewsAdapter.fetch({} as Env, {})).rejects.toThrow("302");
+  });
+  it("retains normalized Atom term categories alongside extracted skill tags", async () => {
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        new Response(`<feed xmlns="http://www.w3.org/2005/Atom">${recordedFeeds.simon}</feed>`),
+    );
+    const [item] = await simonWillisonNewsAdapter.fetch({} as Env, {});
+    expect(item.tags).toEqual(expect.arrayContaining(["ai", "claude", "projects", "game-design"]));
+  });
+
+  it.each([
+    ["&amp;lt;p&amp;gt;Hello &amp;amp; welcome&amp;lt;/p&amp;gt;", "Hello & welcome"],
+    [
+      "&amp;amp;lt;script&amp;amp;gt;bad()&amp;amp;lt;/script&amp;amp;gt;&amp;amp;lt;p&amp;amp;gt;Safe&amp;amp;lt;/p&amp;amp;gt;",
+      "Safe",
+    ],
+    ["<![CDATA[<style>bad()</style><p>Plain text</p>]]>", "Plain text"],
+  ])("normalizes escaped markup to plain text: %s", (input, expected) => {
+    expect(plainNewsText(input)).toBe(expected);
   });
 });

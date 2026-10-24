@@ -40,13 +40,15 @@ function decode(text: string): string {
 }
 
 export function plainNewsText(text: string): string {
-  return decode(
-    decode(text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1"))
+  let plain = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
+  for (let pass = 0; pass < 4; pass += 1) {
+    const next = decode(plain)
       .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
-      .replace(/<[^>]*>/g, " "),
-  )
-    .replace(/\s+/g, " ")
-    .trim();
+      .replace(/<[^>]*>/g, " ");
+    if (next === plain) break;
+    plain = next;
+  }
+  return plain.replace(/\s+/g, " ").trim();
 }
 
 export function canonicalNewsUrl(raw: string): string | undefined {
@@ -115,7 +117,12 @@ export function parseNewsFeed(
     const categories = [
       ...entry.matchAll(/<(?:[\w-]+:)?category\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?category>/gi),
     ].map((match) => plainNewsText(match[1]).toLowerCase());
-    const tags = [...new Set([...extractSkills(`${title} ${snippet}`), ...categories])]
+    const termCategories = [...entry.matchAll(/<(?:[\w-]+:)?category\b([^>]*)>/gi)]
+      .map((match) => match[1].match(/(?:^|\s)term\s*=\s*["']([^"']*)["']/i)?.[1] ?? "")
+      .map((term) => plainNewsText(term).toLowerCase());
+    const tags = [
+      ...new Set([...extractSkills(`${title} ${snippet}`), ...categories, ...termCategories]),
+    ]
       .filter(Boolean)
       .slice(0, 15);
     seen.add(url);
