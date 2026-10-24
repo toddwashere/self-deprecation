@@ -10,7 +10,7 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "@cloudflare/workers-types/index.d.ts"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "../src/features/**/*.tsx"]
 }
