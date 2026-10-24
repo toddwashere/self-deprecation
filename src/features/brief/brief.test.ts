@@ -29,15 +29,13 @@ beforeEach(async () => {
   await db
     .insert(users)
     .values(["brief-a", "brief-b"].map((id) => ({ id, createdAt: now, updatedAt: now })));
-  await db
-    .insert(profiles)
-    .values({
-      userId: "brief-a",
-      skills: ["typescript"],
-      criteriaVersion: 2,
-      timezone: "America/Denver",
-      updatedAt: now,
-    });
+  await db.insert(profiles).values({
+    userId: "brief-a",
+    skills: ["typescript"],
+    criteriaVersion: 2,
+    timezone: "America/Denver",
+    updatedAt: now,
+  });
 });
 function context(userId = "brief-a", database = db): ToolContext {
   return {
@@ -112,22 +110,23 @@ async function seed() {
       updatedAt: now,
     })),
   );
-  await db
-    .insert(newsItems)
-    .values(
-      Array.from({ length: 7 }, (_, i) => ({
-        id: `news-${i}`,
-        source: "seed",
-        title: `News ${i}`,
-        url: `https://example.com/news-${i}`,
-        publishedAt: now - i,
-        fetchedAt: now,
-      })),
-    );
+  await db.insert(newsItems).values(
+    Array.from({ length: 7 }, (_, i) => ({
+      id: `news-${i}`,
+      source: "seed",
+      title: `News ${i}`,
+      url: `https://example.com/news-${i}`,
+      publishedAt: now - i,
+      fetchedAt: now,
+    })),
+  );
 }
 
 it("T1 isolates personal sections and seen state while sharing public headlines", async () => {
   await seed();
+  await db
+    .insert(profiles)
+    .values({ userId: "brief-b", skills: ["typescript"], criteriaVersion: 2, updatedAt: now });
   await call("mark_brief_seen", { asOf: seen });
   expect((await call("get_brief_data")).structuredContent).toMatchObject({
     lastSeenAt: seen,
@@ -138,14 +137,14 @@ it("T1 isolates personal sections and seen state while sharing public headlines"
   const other = await call("get_brief_data", {}, context("brief-b"));
   expect(other.structuredContent).toMatchObject({
     lastSeenAt: null,
-    needsCriteria: true,
+    needsCriteria: false,
     matches: [],
     contractLeads: [],
     events: [],
     followUps: [],
     headlines: expect.any(Array),
   });
-  expect((other.structuredContent?.headlines as unknown[]).length).toBe(5);
+  expect((other.structuredContent?.headlines as unknown[] | undefined)?.length).toBe(5);
   await call("mark_brief_seen", { asOf: now }, context("brief-b"));
   expect((await call("get_brief_data")).structuredContent?.lastSeenAt).toBe(seen);
 });
@@ -169,7 +168,7 @@ it("aggregates current new matches, contract leads, upcoming events, due contact
     unavailable: [],
     progress: { stage: "done" },
   });
-  expect((result?.headlines as { id: string }[]).map((item) => item.id)).toEqual([
+  expect((result?.headlines as { id: string }[] | undefined)?.map((item) => item.id)).toEqual([
     "news-0",
     "news-1",
     "news-2",
@@ -193,18 +192,16 @@ it("advances only to the viewed snapshot, never backwards, and rejects future or
 
 it("keeps ready personal sections when public news cannot be read and returns scoring progress", async () => {
   await seed();
-  await db
-    .insert(userState)
-    .values({
-      userId: "brief-a",
-      key: "task.jobs-v2",
-      value: {
-        taskId: "jobs-v2",
-        status: "running",
-        progress: { stage: "scoring", done: 2, total: 10 },
-      },
-      updatedAt: now,
-    });
+  await db.insert(userState).values({
+    userId: "brief-a",
+    key: "task.jobs-v2",
+    value: {
+      taskId: "jobs-v2",
+      status: "running",
+      progress: { stage: "scoring", done: 2, total: 10 },
+    },
+    updatedAt: now,
+  });
   const database = createDb({
     prepare(query: string) {
       if (query.includes('"news_items"')) throw new Error("unavailable");
