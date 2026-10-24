@@ -91,6 +91,14 @@ export const learningEntryOutputSchema = z.object({
 export const learningListOutputSchema = z.object({
   tab: z.literal("learning"),
   entries: z.array(learningEntrySchema),
+  filters: z.object({
+    query: z.string(),
+    kind: learningKindSchema.nullable(),
+    tag: z.string(),
+    archived: z.boolean(),
+    limit: z.number().int(),
+    offset: z.number().int(),
+  }),
   hasMore: z.boolean(),
   asOf: timestamp,
   progress: z.object({ stage: z.literal("done"), done: z.number().int(), total: z.number().int() }),
@@ -130,6 +138,14 @@ async function browse(
   return ok(`${result.entries.length} learning entries.`, {
     tab: "learning",
     ...result,
+    filters: {
+      query: args.query ?? "",
+      kind: args.kind ?? null,
+      tag: args.tag ?? "",
+      archived: args.archived ?? false,
+      limit: args.limit ?? 50,
+      offset: args.offset ?? 0,
+    },
     asOf: ctx.now().getTime(),
     progress: { stage: "done", done: result.entries.length, total: result.entries.length },
   });
