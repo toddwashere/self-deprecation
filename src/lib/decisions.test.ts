@@ -5,7 +5,13 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createDb } from "../db/client";
 import { apiUsage, users } from "../db/schema";
 import type { Env } from "../env";
-import { type DecisionRequest, type FitInput, heuristicFit, scoreFit } from "./decisions";
+import {
+  type DecisionRequest,
+  type FitInput,
+  heuristicFit,
+  runBoundedDecision,
+  scoreFit,
+} from "./decisions";
 
 interface TestEnv extends Env {
   TEST_MIGRATIONS: D1Migration[];
@@ -43,6 +49,83 @@ function scoringEnv(overrides: Partial<Env> = {}): Env {
 }
 
 describe("Decisions scoring", () => {
+  it("runs a typed choice assessment within six seconds and meters only a successful call", async () => {
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    const recordUsage = vi.fn(async () => undefined);
+    const decide = vi.fn(async (_request: DecisionRequest, signal: AbortSignal) => {
+      expect(signal).toBeInstanceOf(AbortSignal);
+      return {
+        answers: [
+          {
+            type: "choice" as const,
+            name: "level",
+            choice: "3",
+            confidence: 0.8,
+            probabilities: [{ value: "3", probability: 0.8 }],
+          },
+        ],
+        usage: { input_tokens: 42 },
+      };
+    });
+    const request: DecisionRequest = {
+      model: "gpt-6-luna",
+      input: [{ role: "user", content: [{ type: "input_json", data: { tooling: 3 } }] }],
+      questions: [
+        {
+          type: "choice",
+          name: "level",
+          instructions: [{ type: "input_text", text: "Choose the best supported level." }],
+          choices: [
+            { value: "1", description: "Artisan" },
+            { value: "3", description: "Agent Driver" },
+          ],
+        },
+      ],
+    };
+
+    const result = await runBoundedDecision(scoringEnv(), request, {
+      decide,
+      timeoutMs: 9_000,
+      recordUsage,
+    });
+
+    expect(result.answers[0]).toMatchObject({ type: "choice", choice: "3" });
+    expect(timeout).toHaveBeenCalledWith(6_000);
+    expect(recordUsage).toHaveBeenCalledWith(42);
+    timeout.mockRestore();
+  });
+
+  it("honors the kill switch and does not meter a failed request", async () => {
+    const decide = vi.fn(async () => {
+      throw new Error("outage");
+    });
+    const recordUsage = vi.fn(async () => undefined);
+    const request: DecisionRequest = {
+      model: "gpt-6-luna",
+      input: [{ role: "user", content: [{ type: "input_text", text: "assessment" }] }],
+      questions: [
+        {
+          type: "choice",
+          name: "level",
+          instructions: [{ type: "input_text", text: "Choose a level." }],
+          choices: [{ value: "1" }, { value: "2" }],
+        },
+      ],
+    };
+
+    await expect(
+      runBoundedDecision(scoringEnv({ DECISIONS_ENABLED: "0" }), request, {
+        decide,
+        recordUsage,
+      }),
+    ).rejects.toThrow("Decisions disabled");
+    expect(decide).not.toHaveBeenCalled();
+    await expect(
+      runBoundedDecision(scoringEnv(), request, { decide, recordUsage }),
+    ).rejects.toThrow("outage");
+    expect(recordUsage).not.toHaveBeenCalled();
+  });
+
   it("batches, maps names to job IDs, scales 0–4, and isolates a failed batch", async () => {
     let callIndex = 0;
     const decide = vi.fn(async (request: DecisionRequest) => {
