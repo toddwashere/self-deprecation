@@ -1,0 +1,106 @@
+import { and, desc, eq, gte, sql, sum } from "drizzle-orm";
+import type { DB } from "../../db/client";
+import { apiUsage, notes } from "../../db/schema";
+import type { CompanyDossier } from "./agent";
+
+const API_NAME = "agents.dossier";
+
+export type DossierClaim = "ok" | "user_limit" | "global_limit";
+
+export async function claimDossierRun(
+  db: DB,
+  userId: string,
+  limits: { user: number; global: number; since: number },
+  now: number,
+): Promise<DossierClaim> {
+  const id = crypto.randomUUID();
+  const result = await db.run(sql`
+    insert into api_usage (id, user_id, api, units, input_tokens, created_at)
+    select ${id}, ${userId}, ${API_NAME}, 1, 0, ${now}
+    where (
+      select coalesce(sum(units), 0)
+      from api_usage
+      where api = ${API_NAME} and user_id = ${userId} and created_at >= ${limits.since}
+    ) < ${limits.user}
+    and (
+      select coalesce(sum(units), 0)
+      from api_usage
+      where api = ${API_NAME} and created_at >= ${limits.since}
+    ) < ${limits.global}
+  `);
+  if (result.meta.changes === 1) return "ok";
+
+  const [userUsage, globalUsage] = await Promise.all([
+    db
+      .select({ value: sum(apiUsage.units) })
+      .from(apiUsage)
+      .where(
+        and(
+          eq(apiUsage.api, API_NAME),
+          eq(apiUsage.userId, userId),
+          gte(apiUsage.createdAt, limits.since),
+        ),
+      )
+      .get(),
+    db
+      .select({ value: sum(apiUsage.units) })
+      .from(apiUsage)
+      .where(and(eq(apiUsage.api, API_NAME), gte(apiUsage.createdAt, limits.since)))
+      .get(),
+  ]);
+  return Number(userUsage?.value ?? 0) >= limits.user && limits.user <= limits.global
+    ? "user_limit"
+    : Number(globalUsage?.value ?? 0) >= limits.global
+      ? "global_limit"
+      : "user_limit";
+}
+
+const dossierNoteFields = {
+  id: notes.id,
+  subjectType: notes.subjectType,
+  subjectId: notes.subjectId,
+  subjectLabel: notes.subjectLabel,
+  kind: notes.kind,
+  title: notes.title,
+  body: notes.body,
+  createdAt: notes.createdAt,
+  updatedAt: notes.updatedAt,
+};
+
+export async function saveDossier(
+  db: DB,
+  userId: string,
+  company: string,
+  dossier: CompanyDossier,
+  now: number,
+) {
+  const [row] = await db
+    .insert(notes)
+    .values({
+      id: crypto.randomUUID(),
+      userId,
+      subjectType: "company",
+      subjectLabel: company,
+      kind: "dossier",
+      title: `${company} company dossier`,
+      body: JSON.stringify(dossier),
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning(dossierNoteFields);
+  return row;
+}
+
+export async function listDossiers(db: DB, userId: string, company?: string) {
+  return db
+    .select(dossierNoteFields)
+    .from(notes)
+    .where(
+      and(
+        eq(notes.userId, userId),
+        eq(notes.kind, "dossier"),
+        company ? eq(notes.subjectLabel, company) : undefined,
+      ),
+    )
+    .orderBy(desc(notes.createdAt), desc(notes.id));
+}
