@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, Loading } from "../../../web/src/ui";
 import { prepCopy } from "./copy";
+import { createPrepRequestGuard } from "./request-guard";
 import type { IntelRecord, PrepContextOutput } from "./tools";
 
 function IntelCard({
@@ -141,6 +142,12 @@ function IntelCard({
 export function PrepPanel({ bridge }: { bridge: Bridge }) {
   const initial = bridge.initialToolOutput<Partial<PrepContextOutput>>();
   const [selectedId, setSelectedId] = useState<string | undefined>(initial?.job?.id);
+  const [requests] = useState(() => createPrepRequestGuard(initial?.job?.id));
+  function selectJob(jobId?: string) {
+    requests.select(jobId);
+    setSelectedId(jobId);
+    void load();
+  }
   const [data, setData] = useState<PrepContextOutput | undefined>(
     initial?.savedJobs ? (initial as PrepContextOutput) : undefined,
   );
@@ -148,23 +155,27 @@ export function PrepPanel({ bridge }: { bridge: Bridge }) {
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
   const load = useCallback(async () => {
+    const request = requests.begin();
     setLoading(true);
     setError(undefined);
     try {
       const result = await bridge.callTool<PrepContextOutput>(
         "get_prep_context",
-        selectedId ? { jobId: selectedId } : {},
+        request.jobId ? { jobId: request.jobId } : {},
       );
+      if (!requests.accepts(request)) return;
       if (result.error || !result.data)
         setError(result.error?.message ?? "Prep context is unavailable. Try again.");
       else setData(result.data);
     } catch {
-      setError("Prep context is unavailable. Try again.");
+      if (requests.accepts(request)) setError("Prep context is unavailable. Try again.");
     } finally {
-      setLoading(false);
-      setPending(false);
+      if (requests.accepts(request)) {
+        setLoading(false);
+        setPending(false);
+      }
     }
-  }, [bridge, selectedId]);
+  }, [bridge, requests]);
 
   useEffect(() => {
     void load();
@@ -176,15 +187,15 @@ export function PrepPanel({ bridge }: { bridge: Bridge }) {
           return;
         if ("savedJobs" in output) {
           const context = output as PrepContextOutput;
+          if (!requests.acceptsNotification(context.job?.id)) return;
           setData(context);
-          setSelectedId(context.job?.id);
           setPending(false);
           setLoading(false);
         } else {
           void load();
         }
       }),
-    [bridge, load],
+    [bridge, load, requests],
   );
 
   async function ask(prompt: string) {
@@ -289,7 +300,7 @@ export function PrepPanel({ bridge }: { bridge: Bridge }) {
                     aria-pressed={selectedId === job.id}
                     onClick={() => {
                       bridge.saveViewState({ tab: "prep", jobId: job.id });
-                      setSelectedId(job.id);
+                      selectJob(job.id);
                     }}
                   >
                     Open prep
@@ -326,7 +337,7 @@ export function PrepPanel({ bridge }: { bridge: Bridge }) {
               <p className="muted">{data.job.company}</p>
             </div>
             <div className="actions">
-              <Button className="secondary" onClick={() => setSelectedId(undefined)}>
+              <Button className="secondary" onClick={() => selectJob(undefined)}>
                 Show all companies
               </Button>
             </div>
