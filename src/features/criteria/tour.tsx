@@ -49,7 +49,7 @@ export function TourPanel({ configured, onGetStarted, onDemo, onClose }: TourPan
         <Chip tone="good">{step.label}</Chip>
       </div>
 
-      <ul style={loopStyle} aria-label={CRITERIA_COPY.loopPreview}>
+      <ul style={loopStyle} aria-label={CRITERIA_COPY.tourStepsLabel}>
         {CRITERIA_COPY.tourSteps.map((candidate, candidateIndex) => (
           <li
             key={candidate.id}
@@ -68,16 +68,6 @@ export function TourPanel({ configured, onGetStarted, onDemo, onClose }: TourPan
         {step.heading}
       </h2>
       <p>{step.body}</p>
-      <p className="muted">
-        <em>{step.quip}</em>
-      </p>
-      {"technical" in step ? (
-        <div style={{ borderLeft: "3px solid var(--accent)", paddingLeft: 12 }}>
-          <p className="eyebrow">{CRITERIA_COPY.tourTechnical}</p>
-          <p className="muted">{step.technical}</p>
-        </div>
-      ) : null}
-      <p className="success">{step.hope}</p>
 
       <div className="actions">
         {index > 0 ? (

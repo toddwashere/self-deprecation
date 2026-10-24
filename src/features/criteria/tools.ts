@@ -144,8 +144,8 @@ export const criteriaTools: ToolDef[] = [
     output: onboardingOutputSchema,
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     status: {
-      invoking: "Finding your migration starting point…",
-      invoked: "Starting point ready.",
+      invoking: "Loading your search profile…",
+      invoked: "Setup ready.",
     },
     opensPanel: true,
     handler: async (_args, ctx) => {
@@ -167,7 +167,7 @@ export const criteriaTools: ToolDef[] = [
     input: { includeResume: z.boolean().optional() },
     output: criteriaOutputSchema,
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
-    status: { invoking: "Reading your migration plan…", invoked: "Criteria loaded." },
+    status: { invoking: "Loading your search profile…", invoked: "Search profile loaded." },
     handler: async (args, ctx) => {
       const parsed = z.object({ includeResume: z.boolean().optional() }).safeParse(args);
       if (!parsed.success) return invalidInput("Criteria options are invalid.");
@@ -187,7 +187,7 @@ export const criteriaTools: ToolDef[] = [
       destructiveHint: false,
       openWorldHint: false,
     },
-    status: { invoking: "Updating your migration plan…", invoked: "Criteria updated." },
+    status: { invoking: "Saving your search preferences…", invoked: "Search preferences saved." },
     handler: async (args, ctx) => {
       const parsed = updateInputSchema.safeParse(args);
       if (!parsed.success) return invalidInput("One or more criteria values are invalid.");
@@ -215,7 +215,7 @@ export const criteriaTools: ToolDef[] = [
       destructiveHint: false,
       openWorldHint: false,
     },
-    status: { invoking: "Reading the old release notes…", invoked: "Resume saved." },
+    status: { invoking: "Saving your resume…", invoked: "Resume saved." },
     handler: async (args, ctx) => {
       const parsed = resumeInputSchema.safeParse(args);
       if (!parsed.success) {
@@ -235,17 +235,17 @@ export const criteriaTools: ToolDef[] = [
     name: "show_product_tour",
     title: "Show the Self-Deprecation tour",
     description:
-      "Use this when someone asks what Self-Deprecation does, wants a guided tour, or is presenting the product. Do not use it to change job-search criteria or load demo data. Next, let the person choose Get started or See demo from the tour.",
+      "Use this when someone asks what Self-Deprecation does, wants a guided tour, or is presenting the product. Do not use it to change job-search criteria or load demo data. Next, let the person choose Set up my search or View demo from the tour.",
     input: {},
     output: productTourOutputSchema,
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
-    status: { invoking: "Preparing the tasteful existential crisis…", invoked: "Tour ready." },
+    status: { invoking: "Opening the product tour…", invoked: "Tour ready." },
     opensPanel: true,
     handler: async (_args, ctx) => {
       const criteria = await getCriteria(ctx.db, ctx.userId);
       const configured = criteria.targetTitles.length > 0 || criteria.skills.length > 0;
       return ok(
-        "The product tour is open. Let the person choose whether to set up their search or explore the public demo.",
+        "The product tour is open. Let the person choose whether to set up their search or view the public demo.",
         { tab: "profile" as const, mode: "tour" as const, configured },
       );
     },

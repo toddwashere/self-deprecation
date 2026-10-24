@@ -193,8 +193,8 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
       {configured ? (
         <JourneyCard
           criteria={criteria}
-          onOpenTab={openTab}
-          onReview={() => startChat(CRITERIA_COPY.reviewPrompt)}
+          onOpenJobs={() => openTab("jobs")}
+          onRefine={() => startChat(CRITERIA_COPY.updatePrompt)}
         />
       ) : null}
       <Card>
@@ -315,7 +315,6 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
           </>
         ) : (
           <>
-            <p className="success">{CRITERIA_COPY.loopPreview}</p>
             <div className="actions">
               <Button
                 disabled={action.kind === "busy"}
