@@ -36,27 +36,25 @@ beforeEach(async () => {
     .insert(profiles)
     .values({ userId: "a", ...demo.profile, criteriaVersion: 1, updatedAt: now });
   for (let i = 0; i < 25; i++)
-    await db
-      .insert(jobs)
-      .values({
-        id: `job-${i}`,
-        source: "seed",
-        sourceJobId: `${i}`,
-        company: "Example",
-        title: "Senior Software Engineer",
-        remote: true,
-        location: "Remote US",
-        employmentType: "full_time",
-        salaryMin: 180000,
-        salaryMax: 200000,
-        currency: "USD",
-        descriptionText: "TypeScript React Postgres",
-        tags: ["typescript", "react", "postgres"],
-        url: `https://example.com/jobs/${i}`,
-        postedAt: now,
-        fetchedAt: now,
-        lastSeenAt: now,
-      });
+    await db.insert(jobs).values({
+      id: `job-${i}`,
+      source: "seed",
+      sourceJobId: `${i}`,
+      company: "Example",
+      title: "Senior Software Engineer",
+      remote: true,
+      location: "Remote US",
+      employmentType: "full_time",
+      salaryMin: 180000,
+      salaryMax: 200000,
+      currency: "USD",
+      descriptionText: "TypeScript React Postgres",
+      tags: ["typescript", "react", "postgres"],
+      url: `https://example.com/jobs/${i}`,
+      postedAt: now,
+      fetchedAt: now,
+      lastSeenAt: now,
+    });
 });
 const decide = async (request: DecisionRequest) => ({
   answers: request.questions.map((q) =>
@@ -116,4 +114,51 @@ it("shows fallback after an outage and invalidates scores when criteria change",
 it("returns NEEDS_CRITERIA behavior without another user's data", async () => {
   await runJobSearch(ctx, {}, { decide });
   expect(await runJobSearch({ ...ctx, userId: "b" }, {}, { decide })).toBeUndefined();
+});
+
+it("falls back within the tool deadline when Decisions never answers", async () => {
+  const started = performance.now();
+  const result = await runJobSearch(
+    ctx,
+    {},
+    {
+      decide: async (_request, signal) =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener("abort", () => reject(new Error("timed out")), { once: true });
+        }),
+    },
+  );
+  expect(performance.now() - started).toBeLessThan(8000);
+  expect(result?.fallback).toBe(true);
+  expect(result?.jobs.filter((job) => job.fitScore !== null)).toHaveLength(20);
+}, 9000);
+
+it("keeps saved matches discoverable beyond the unfiltered top sixty", async () => {
+  for (let i = 25; i < 65; i++) {
+    await db.insert(jobs).values({
+      id: `job-${i}`,
+      source: "seed",
+      sourceJobId: `${i}`,
+      company: "Example",
+      title: "Senior Software Engineer",
+      remote: true,
+      location: "Remote US",
+      employmentType: "full_time",
+      tags: ["typescript"],
+      url: `https://example.com/jobs/${i}`,
+      postedAt: now,
+      fetchedAt: now,
+      lastSeenAt: now,
+    });
+  }
+  await db.insert(jobMatches).values({
+    id: "saved-low",
+    userId: "a",
+    jobId: "job-64",
+    status: "saved",
+    criteriaVersion: 1,
+    updatedAt: now,
+  });
+  const result = await runJobSearch(ctx, { status: "saved" }, { decide });
+  expect(result?.jobs.map((job) => job.id)).toEqual(["job-64"]);
 });

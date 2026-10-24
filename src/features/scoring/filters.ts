@@ -3,6 +3,7 @@ import type { CandidateJob, JobFilters, ScoringProfile } from "./types";
 function normalized(value: string): string {
   return value
     .toLowerCase()
+    .replace(/\bunited states(?: of america)?\b|\busa\b/g, "us")
     .replace(/\butah\b/g, "ut")
     .replace(/[^a-z0-9+#.]+/g, " ")
     .trim();
@@ -38,7 +39,7 @@ function locationMatches(profile: ScoringProfile, job: CandidateJob): boolean {
         location === "remote" ||
         location.includes("worldwide") ||
         location.includes("anywhere") ||
-        location.includes(region)
+        hasTerm(location, region)
       );
     }
     if (target.includes("remote")) return false;
