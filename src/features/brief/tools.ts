@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, ok } from "../../mcp/result";
 import type { ToolDef } from "../../mcp/types";
+import { jobSearchFiltersSchema } from "../jobs/tools";
 import { markBriefSeen, readBrief } from "./repo";
 
 const timestamp = z.number().int().nonnegative().max(8_640_000_000_000_000);
@@ -20,6 +21,7 @@ const progressSchema = z.object({
   done: z.number().int().nonnegative(),
   total: z.number().int().nonnegative(),
   taskId: z.string().optional(),
+  resumeFilters: jobSearchFiltersSchema.nullable().optional(),
 });
 const taskSchema = z.object({
   taskId: z.string(),
@@ -103,12 +105,14 @@ export const briefTools: ToolDef[] = [
       try {
         const { task, ...data } = await readBrief(ctx.db, ctx.userId, ctx.now().getTime());
         const pending = taskSchema.safeParse(task);
+        const filters = z.object({ filters: jobSearchFiltersSchema }).safeParse(task);
         const progress =
           pending.success && pending.data.progress.done < pending.data.progress.total
             ? {
                 ...pending.data.progress,
                 stage: "awaiting_scoring" as const,
                 taskId: pending.data.taskId,
+                resumeFilters: filters.success ? filters.data.filters : null,
               }
             : { stage: "done" as const, done: 5 - data.unavailable.length, total: 5 };
         return ok(

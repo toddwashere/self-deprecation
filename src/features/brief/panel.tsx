@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, Loading } from "../../../web/src/ui";
+import { searchArgs } from "../scoring/search-state";
 import { briefCopy as copy } from "./copy";
 import type { BriefOutput, SeenOutput } from "./tools";
 
@@ -159,9 +160,9 @@ export function TodayContent({
               <p>
                 {copy.scoring}: {data.progress.done} of {data.progress.total}. {copy.ready}
               </p>
-              <p>{copy.continuation}</p>
-              <Button onClick={onContinueScoring} disabled={scoring || loading}>
-                {copy.continueScoring}
+              <p>{data.progress.resumeFilters ? copy.continuation : copy.reviewFiltersReason}</p>
+              <Button onClick={onContinueScoring} disabled={scoring || loading || running}>
+                {data.progress.resumeFilters ? copy.continueScoring : copy.reviewFilters}
               </Button>
               <progress
                 aria-label={copy.scoring}
@@ -342,10 +343,14 @@ export function TodayPanel({ bridge }: { bridge: Bridge }) {
   }, [bridge, load]);
   const continueScoring = async () => {
     if (scoring || loading || data?.progress.stage !== "awaiting_scoring") return;
+    if (!data.progress.resumeFilters) {
+      await prompt(copy.reviewFiltersPrompt);
+      return;
+    }
     setScoring(true);
     setError(undefined);
     try {
-      const result = await bridge.callTool("score_jobs", {});
+      const result = await bridge.callTool("score_jobs", searchArgs(data.progress.resumeFilters));
       if (!mounted.current) return;
       if (result.error) setError(result.error.message);
       else await load();
