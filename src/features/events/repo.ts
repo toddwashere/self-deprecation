@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, isNull, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { savedEvents } from "../../db/schema";
 
@@ -69,7 +69,9 @@ export async function listEvents(db: DB, userId: string, filters: EventFilters, 
     .from(savedEvents)
     .where(and(...conditions))
     .orderBy(
-      filters.period === "past" ? desc(savedEvents.startsAt) : asc(savedEvents.startsAt),
+      sql`case when ${savedEvents.startsAt} >= ${now} then 0 when ${savedEvents.startsAt} is null then 1 else 2 end`,
+      asc(sql`case when ${savedEvents.startsAt} >= ${now} then ${savedEvents.startsAt} end`),
+      desc(sql`case when ${savedEvents.startsAt} < ${now} then ${savedEvents.startsAt} end`),
       asc(savedEvents.id),
     )
     .limit(filters.limit ?? 100);

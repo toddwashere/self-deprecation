@@ -51,10 +51,14 @@ export async function eventMetadata(
       allowedHosts: EVENT_HOSTS,
       timeoutMs: METADATA_TIMEOUT_MS,
       maxBytes: 256_000,
-      redirect: "error",
+      redirect: "manual",
       headers: { accept: "text/html" },
     });
-    if (!response.ok || !response.headers.get("content-type")?.includes("text/html"))
+    if (
+      (response.status >= 300 && response.status < 400) ||
+      !response.ok ||
+      !response.headers.get("content-type")?.includes("text/html")
+    )
       return { status: "unavailable" };
     const html = await response.text();
     let ogTitle: string | undefined;

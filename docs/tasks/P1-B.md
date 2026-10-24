@@ -24,7 +24,8 @@ TDD: first prove missing save/list/update behavior fails, then implement. T1 sha
 - [contract] Integrator owns navigation enablement, shared docs/TOOLS catalog, generated panel rebuild, production deploy, and ChatGPT dry run. No frozen file changes in this branch.
 
 ## Evidence / integration rechecks
-- Six targeted tests pass after observed missing-tool and missing-enrichment failures. Full typecheck/lint pass; panel production build is 252.32 kB. Full suite: 31/32 pass; only frozen registry tool-list snapshot needs the three new tools.
-- Seed fixture, time/status filters, light/dark, loading/empty/error, and optimistic Saving→updated states verified in browser; dark screenshot: `/tmp/p1-b-events-dark.png`.
-- Local Inspector save/list/update succeed after `load_demo_data` creates the development user. Invalid limit is rejected. Raw invalid save returns `INVALID_INPUT`; Inspector rejects that structured error against the success schema. Integrator is repairing central error-schema registration and will recheck it.
-- Known gaps: navigation enablement, tool catalog/snapshot, central error-schema repair, generated panel embedding, deployment, and real ChatGPT discovery/save dry run remain integrator-owned. Fresh local bypass requires seeding its user first.
+- Nine Events tests pass, plus the shared HTTP cap regression (10/10 targeted). Verified red→green for Workers manual redirects and 100 past rows hiding a future event. Temporal/status filtering runs before the SQL limit; All orders upcoming, undated, then recent history. Panel filter changes query the server and preserve controls for empty results.
+- Integrated central typed-error/stream-cap commits 12c6573/a15379c unchanged. Owned streaming regression confirms early cancellation with saved-facts fallback. Typecheck/lint pass; production panel build 252.57 kB. Full suite: 36/37 pass; only frozen tool-list snapshot needs the three Events names.
+- Inspector valid save/filter/update and invalid-input/not-found responses verified; errors use typed `_meta` without success-schema failures. Local bypass needs demo seeding first.
+- Seed, filters, light/dark, loading/empty/error, Saving→updated previously verified visually (`/tmp/p1-b-events-dark.png`). Review-fix visual recheck blocked by locked Mac/no browser surface.
+- Known gaps: integrator-owned snapshot/catalog, navigation, generated panel embedding, deployment, and real ChatGPT discovery/save dry run.
