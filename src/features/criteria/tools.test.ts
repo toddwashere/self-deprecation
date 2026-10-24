@@ -117,7 +117,7 @@ describe("criteria tools", () => {
 
     expect(rejected).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "INVALID_INPUT" } },
+      _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
     });
     expect(saved.structuredContent).toMatchObject({
       targetTitles: ["Platform Engineer"],

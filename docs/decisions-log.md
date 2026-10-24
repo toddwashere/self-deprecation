@@ -128,3 +128,10 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - P0-C found that the Foundation Decisions wrapper always allowed 15 seconds per batch, while every product tool must return in roughly eight seconds. `scoreFit` now accepts an optional bounded `timeoutMs` (1–15 seconds) and retains 15 seconds as the backward-compatible default for smoke and non-tool callers.
 - Jobs will request a six-second timeout. A timeout still follows the existing per-batch heuristic fallback, so no detached promise can record usage after the tool already returned.
 - Affected tasks: F7 shared wrapper, P0-C Jobs scoring, P1-H AI-native assessment.
+
+## 2026-10-24 11:55 — Typed MCP errors stay outside success output schemas
+
+- MCP Inspector exposed that some clients validate `structuredContent` against a tool's advertised success `outputSchema` even when `isError` is true. The server SDK correctly skips output validation for error results, but emitting a different structured error object is not portable across clients.
+- `fail(code, message, hint)` now keeps model-readable text in `content`, omits `structuredContent`, and places the machine-readable error in tool-result `_meta["self-deprecation/error"]`. The panel bridge reads that private metadata and retains the same typed error UI; success schemas remain precise and unchanged.
+- This is a centralized Foundation compatibility repair. Feature owners should continue using `fail(...)` and must not widen every success schema independently.
+- Affected tasks: F4/F5 shared result and bridge contracts, every typed MCP tool, P1-B Inspector verification.
