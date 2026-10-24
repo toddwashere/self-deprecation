@@ -214,6 +214,25 @@ describe("Learning journal T1/T4", () => {
     });
   });
 
+  it.each([
+    ["save_learning_entry", "not-a-url"],
+    ["save_learning_entry", "https://"],
+    ["update_learning_entry", "not-a-url"],
+    ["update_learning_entry", "https://"],
+  ])(
+    "returns INVALID_INPUT for %s with malformed source URL %s without writing",
+    async (toolName, sourceUrl) => {
+      const saved = await call("save_learning_entry", { title: "Unchanged reference" });
+      const entryId = (saved.structuredContent?.entry as { id: string } | undefined)?.id;
+      await expect(
+        call(toolName, { entryId, title: "Should not be written", sourceUrl }),
+      ).resolves.toMatchObject(invalid);
+      expect((await call("list_learning_entries", {})).structuredContent).toMatchObject({
+        entries: [expect.objectContaining({ title: "Unchanged reference", sourceUrl: null })],
+      });
+    },
+  );
+
   it("exports five uniquely named tools with required contracts and bounded status (T4)", () => {
     expect(feature.tools.map((tool) => tool.name).sort()).toEqual([
       "get_learning_entry",
