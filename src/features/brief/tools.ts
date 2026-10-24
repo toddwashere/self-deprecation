@@ -79,7 +79,7 @@ export const briefTools: ToolDef[] = [
     name: "get_brief_data",
     title: "Get daily brief data",
     description:
-      "Read the caller's stored new job matches and contract leads since the last viewed brief, upcoming events, due follow-ups, and five public AI headlines. Use for a daily brief or Today dashboard. Do not use to refresh feeds, score jobs, or schedule delivery. Next: summarize ready sections with links, acknowledge unavailable or scoring sections, then mark_brief_seen with this result's asOf after the user reads the brief.",
+      "Read the caller's stored new job matches and contract leads since the last viewed brief, upcoming events, due follow-ups, and five public AI headlines. Use for a daily brief or Today dashboard. Do not use to refresh feeds, score jobs, or schedule delivery. Next: summarize ready sections with links, acknowledge unavailable or scoring sections, then mark_brief_seen with this result's asOf after the user reads a brief with no unavailable sections.",
     input: {},
     output: briefOutputSchema,
     annotations: {

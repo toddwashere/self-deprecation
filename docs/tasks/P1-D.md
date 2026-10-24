@@ -22,5 +22,8 @@ Strict red → green: T1 reads/watermark isolation for users A/B; deterministic 
 
 ## Open questions
 - [local] New matches use `scored_at > lastSeenAt` (or updated_at when unscored), status new, current criteria version; first run includes all stored current matches.
-- [local] Limit each section to five; events cover the next 30 days, contacts include all overdue follow-ups; headlines are latest stored items since last seen.
-- [contract] Integrator updates docs/TOOLS.md and handles deployment/ChatGPT check; no shared frozen files need editing.
+- [local] Limit each section to five; events cover the next 30 days, contacts include the earliest five overdue follow-ups; headlines are latest stored items since last seen.
+- [contract] Integrator updates docs/TOOLS.md and handles deployment/ChatGPT check; the shared registry tool-name snapshot also needs the two brief tools added.
+
+## Validation / remaining integration
+Four new red→green tests pass. Typecheck, lint, and build pass. Full suite: 184 pass; only the frozen registry snapshot fails pending integration. Inspector validates both tools and invalid timestamps locally (~0.3s/call). Six built-panel visual states and Run/Mark actions checked using the public demo persona. Evidence: `/private/tmp/p1d-evidence/`. Deployment, ChatGPT dry run, and scheduling availability remain integrator checks; manual handoff is verified locally.
