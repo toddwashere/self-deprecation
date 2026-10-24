@@ -31,6 +31,8 @@ describe("recorded public response shapes (description text synthetic)", () => {
       includeContent: true,
     });
     const jobs = await adapter.fetch(env, { limit: 1 });
+    expect(jobs[0]?.postedAt).toBe(Date.parse(greenhouseFixture.jobs[0].first_published));
+    expect(await adapter.fetch(env, { since: Date.parse("2025-01-01") })).toEqual([]);
     expect(jobs[0]).toMatchObject({
       company: "Lucid Software",
       descriptionText: "Build TypeScript & Python services.",
@@ -171,4 +173,17 @@ it("uses the Workers-supported manual redirect mode and rejects redirects", asyn
       new Response("", { status: 302, headers: { location: "https://untrusted.example/jobs" } }),
   );
   await expect(adapter.fetch(env, {})).rejects.toThrow(/302/);
+});
+
+it("falls back to a valid Greenhouse update timestamp when first publication is absent or invalid", async () => {
+  const adapter = createGreenhouseAdapter({
+    id: "fixture",
+    boardToken: "example",
+    company: "Example",
+  });
+  for (const first_published of [undefined, "invalid"]) {
+    response({ jobs: [{ ...greenhouseFixture.jobs[0], first_published }] });
+    const [job] = await adapter.fetch(env, {});
+    expect(job.postedAt).toBe(Date.parse(greenhouseFixture.jobs[0].updated_at));
+  }
 });

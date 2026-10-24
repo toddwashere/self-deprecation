@@ -19,3 +19,5 @@ Open questions:
 - [product] None; location targeting and board groups already decided by PLAN D3.
 
 Result: 30 boards verified; 16 below the configured 2 MB cap. Manual local Worker/D1 smoke stored 529 jobs across Greenhouse/Lever/Ashby in 672 ms with one oversized-source error isolated. Snapshot contains 60 dated metadata-only listings (plus five legacy scoring examples); original job identities prevent fallback/live duplication. Adzuna reuse includes an atomic concurrency claim. Integration requests and remaining live checks are in decisions-log: register tools/cron, source attribution UI, daily active-user search contract, deployment/ChatGPT verification, and credentialed Adzuna smoke.
+
+Review corrections: 100-statement upsert batches bound the default rotation to 33 D1 calls (including source health); recorded first-publication dates prevent edited jobs appearing new. The tool now uses a six-second whole-operation deadline with partial progress and cooperative persistence stopping; a write already submitted to D1 may still commit. Red/green regressions cover all three findings.

@@ -32,7 +32,16 @@ export async function finishFetchRun(
     .where(eq(fetchRuns.id, id));
 }
 
-export async function upsertJobs(db: DB, items: NormalizedJob[], now: number): Promise<number> {
+// One D1 batch is one invocation query; each statement keeps its own parameter limit.
+export const JOB_UPSERT_BATCH_SIZE = 100;
+
+export async function upsertJobs(
+  db: DB,
+  items: NormalizedJob[],
+  now: number,
+  options: { signal?: AbortSignal } = {},
+): Promise<number> {
+  options.signal?.throwIfAborted();
   const unique = [
     ...new Map(items.map((item) => [`${item.source}:${item.sourceJobId}`, item])).values(),
   ];
@@ -70,11 +79,15 @@ export async function upsertJobs(db: DB, items: NormalizedJob[], now: number): P
       };
     }),
   );
-  for (let offset = 0; offset < statements.length; offset += 20) {
-    const batch = statements.slice(offset, offset + 20).map((entry) => entry.statement);
+  for (let offset = 0; offset < statements.length; offset += JOB_UPSERT_BATCH_SIZE) {
+    options.signal?.throwIfAborted();
+    const batch = statements
+      .slice(offset, offset + JOB_UPSERT_BATCH_SIZE)
+      .map((entry) => entry.statement);
     if (batch.length)
       await db.batch(batch as [(typeof batch)[number], ...(typeof batch)[number][]]);
   }
+  options.signal?.throwIfAborted();
   return unique.length;
 }
 

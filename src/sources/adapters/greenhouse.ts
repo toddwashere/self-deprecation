@@ -34,7 +34,10 @@ export function createGreenhouseAdapter(
       if (!Array.isArray(payload.jobs)) throw new Error("Invalid Greenhouse response");
       const candidates = payload.jobs
         .filter((job) => job.id != null && job.title && job.absolute_url)
-        .map((job) => ({ job, postedAt: timestamp(job.updated_at ?? job.first_published) }))
+        .map((job) => ({
+          job,
+          postedAt: timestamp(job.first_published) ?? timestamp(job.updated_at),
+        }))
         .filter(
           ({ postedAt }) =>
             opts.since === undefined || postedAt === undefined || postedAt >= opts.since,

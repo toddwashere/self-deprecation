@@ -1,6 +1,7 @@
 import { applyD1Migrations, env } from "cloudflare:test";
 import type { D1Migration } from "@cloudflare/vitest-plugin";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import boards from "../../../seed/ats-boards.json";
 import { createDb } from "../../db/client";
 import { fetchRuns, jobs, profiles, users } from "../../db/schema";
 import type { Env } from "../../env";
@@ -250,4 +251,123 @@ it("shares one Adzuna request when two users refresh the same query/location con
   });
   await Promise.all([refreshJobs(ctx("room-a")), refreshJobs(ctx("room-b"))]);
   expect(adzunaRequests).toBe(1);
+});
+
+it("keeps a full rotating batch within fifty D1 calls using committed board maxima and records failures", async () => {
+  let calls = 0;
+  const counted = new Proxy(testEnv.DB, {
+    get(target, property) {
+      if (property === "batch")
+        return (...args: Parameters<D1Database["batch"]>) => {
+          calls++;
+          return target.batch(...args);
+        };
+      if (property === "prepare") return (sql: string) => statement(target.prepare(sql));
+      const value = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  function statement(prepared: D1PreparedStatement): D1PreparedStatement {
+    return new Proxy(prepared, {
+      get(target, property) {
+        if (property === "bind") return (...values: unknown[]) => statement(target.bind(...values));
+        const value = Reflect.get(target, property);
+        if (typeof value !== "function") return value;
+        return (...args: unknown[]) => {
+          if (["run", "all", "raw", "first"].includes(String(property))) calls++;
+          return value.apply(target, args);
+        };
+      },
+    });
+  }
+  let failed = false;
+  vi.stubGlobal("fetch", async (url: URL) => {
+    const board = boards.find((board) => url.pathname.includes(board.token));
+    if (!board) throw new Error("Unexpected source");
+    if (failed && board.source === "lever") return new Response("", { status: 503 });
+    const rows = Array.from({ length: Math.min(board.jobCount, 100) }, (_, index) => ({
+      id: String(index + 1),
+      title: "Engineer",
+      text: "Engineer",
+      absolute_url: `https://example.com/${index}`,
+      hostedUrl: `https://example.com/${index}`,
+      jobUrl: `https://example.com/${index}`,
+    }));
+    return new Response(JSON.stringify(board.source === "lever" ? rows : { jobs: rows }));
+  });
+  await runRotatingJobBatch(testEnv, { db: createDb(counted), now: () => now });
+  expect(calls).toBeLessThanOrEqual(50);
+  expect(calls).toBe(33);
+  await db.delete(fetchRuns);
+  failed = true;
+  calls = 0;
+  const result = await runRotatingJobBatch(testEnv, { db: createDb(counted), now: () => now });
+  expect(calls).toBeLessThanOrEqual(50);
+  expect(calls).toBe(32);
+  expect(result.sources).toHaveLength(10);
+  const runs = await db.select().from(fetchRuns);
+  expect(runs).toHaveLength(10);
+  expect(runs.filter((run) => run.status === "error")).toHaveLength(1);
+});
+
+it("returns partial progress when D1 persistence stalls and starts no later write batches", async () => {
+  const { refreshJobsWithinBudget } = await import("../../features/jobs/service");
+  await db.insert(users).values({ id: "deadline", createdAt: now, updatedAt: now });
+  await db
+    .insert(profiles)
+    .values({ userId: "deadline", targetTitles: ["Engineer"], updatedAt: now });
+  let batches = 0;
+  let release: () => void = () => {};
+  let entered: () => void = () => {};
+  const persistenceStarted = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const slowD1 = new Proxy(testEnv.DB, {
+    get(target, property) {
+      if (property === "batch")
+        return (...args: Parameters<D1Database["batch"]>) => {
+          batches++;
+          if (batches !== 1) return target.batch(...args);
+          entered();
+          return new Promise((resolve, reject) => {
+            release = () => {
+              target.batch(...args).then(resolve, reject);
+            };
+          });
+        };
+      const value = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  vi.stubGlobal("fetch", async (url: URL) => {
+    const rows = [
+      {
+        id: "1",
+        title: "Engineer",
+        text: "Engineer",
+        absolute_url: job.url,
+        hostedUrl: job.url,
+        jobUrl: job.url,
+      },
+    ];
+    return new Response(JSON.stringify(url.hostname === "api.lever.co" ? rows : { jobs: rows }));
+  });
+  const pending = refreshJobsWithinBudget(
+    { ...ctx("deadline"), db: createDb(slowD1) },
+    { timeoutMs: 100 },
+  );
+  await persistenceStarted;
+  const result = await Promise.race([
+    pending,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 300)),
+  ]);
+  try {
+    expect(result).toMatchObject({ partial: true, progress: { stage: "fetching" } });
+    expect(refreshOutputSchema.safeParse(result).success).toBe(true);
+  } finally {
+    release();
+    await pending;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  }
+  expect(batches).toBe(1);
 });

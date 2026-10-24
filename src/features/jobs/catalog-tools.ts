@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fail, ok } from "../../mcp/result";
 import type { ToolDef } from "../../mcp/types";
-import { MissingCriteriaError, refreshJobs } from "./service";
+import { MissingCriteriaError, refreshJobsWithinBudget } from "./service";
 
 export const refreshOutputSchema = z.object({
   tab: z.literal("jobs"),
@@ -15,8 +15,13 @@ export const refreshOutputSchema = z.object({
       reason: z.string().optional(),
     }),
   ),
-  progress: z.object({ stage: z.literal("done"), done: z.number().int(), total: z.number().int() }),
+  progress: z.object({
+    stage: z.enum(["fetching", "done"]),
+    done: z.number().int(),
+    total: z.number().int(),
+  }),
   fallback: z.boolean(),
+  partial: z.boolean().optional(),
   skipped: z.array(z.object({ source: z.string(), reason: z.string() })),
 });
 export type RefreshOutput = z.infer<typeof refreshOutputSchema>;
@@ -39,7 +44,12 @@ export const catalogTools: ToolDef[] = [
     opensPanel: true,
     async handler(_args, ctx) {
       try {
-        const result = await refreshJobs(ctx);
+        const result = await refreshJobsWithinBudget(ctx);
+        if (result.partial)
+          return ok(
+            `${result.itemsUpserted} jobs are ready. Refresh reached its time budget; an in-flight write may still finish. Search stored jobs or refresh again.`,
+            { ...result },
+          );
         const failures = result.sources.filter((source) => source.status === "error").length;
         if (result.fallback)
           return ok(
