@@ -141,3 +141,34 @@ describe("recorded public response shapes (description text synthetic)", () => {
     await expect(remotiveAdapter.fetch(env, {})).rejects.toThrow(/503/);
   });
 });
+
+it("refuses oversized boards before parsing their content", async () => {
+  vi.stubGlobal(
+    "fetch",
+    async () => new Response("{}", { headers: { "content-length": "2000001" } }),
+  );
+  await expect(
+    createAshbyAdapter({ id: "oversized", boardToken: "large", company: "Large" }).fetch(env, {}),
+  ).rejects.toThrow(/size limit/);
+});
+
+it("uses the Workers-supported manual redirect mode and rejects redirects", async () => {
+  let mode: RequestRedirect | undefined;
+  vi.stubGlobal("fetch", async (_url: URL, init: RequestInit) => {
+    mode = init.redirect;
+    return new Response(JSON.stringify({ jobs: [] }));
+  });
+  const adapter = createGreenhouseAdapter({
+    id: "fixture",
+    boardToken: "example",
+    company: "Example",
+  });
+  await adapter.fetch(env, {});
+  expect(mode).toBe("manual");
+  vi.stubGlobal(
+    "fetch",
+    async () =>
+      new Response("", { status: 302, headers: { location: "https://untrusted.example/jobs" } }),
+  );
+  await expect(adapter.fetch(env, {})).rejects.toThrow(/302/);
+});

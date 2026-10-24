@@ -18,5 +18,1213 @@
   {
     "jobId": "seed-junior-designer",
     "jobText": "Junior Brand Designer. Onsite Los Angeles. Illustration, typography, Figma, and agency portfolio required. Compensation $75k-$95k."
+  },
+  {
+    "source": "greenhouse_lucidsoftware",
+    "sourceJobId": "6190715004",
+    "company": "Lucid Software",
+    "title": "Solutions Engineer III, EMEA",
+    "location": "Amsterdam, NL",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/lucidsoftware/jobs/6190715004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1791800776000,
+    "descriptionText": "Solutions Engineer III, EMEA at Lucid Software. Amsterdam, NL. Skills: ai.",
+    "jobId": "greenhouse_lucidsoftware:role:6190715004",
+    "jobText": "Solutions Engineer III, EMEA at Lucid Software. Amsterdam, NL. Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_lucidsoftware",
+    "sourceJobId": "6211390004",
+    "company": "Lucid Software",
+    "title": "Sr. Security Engineer",
+    "location": "Raleigh, NC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/lucidsoftware/jobs/6211390004",
+    "tags": [
+      "ai",
+      "aws",
+      "llm"
+    ],
+    "postedAt": 1790722307000,
+    "descriptionText": "Sr. Security Engineer at Lucid Software. Raleigh, NC. Skills: ai, aws, llm.",
+    "jobId": "greenhouse_lucidsoftware:role:6211390004",
+    "jobText": "Sr. Security Engineer at Lucid Software. Raleigh, NC. Skills: ai, aws, llm.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_lucidsoftware",
+    "sourceJobId": "6208854004",
+    "company": "Lucid Software",
+    "title": "Sr. Security Engineer",
+    "location": "Salt Lake City, UT",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/lucidsoftware/jobs/6208854004",
+    "tags": [
+      "ai",
+      "aws",
+      "llm"
+    ],
+    "postedAt": 1790722304000,
+    "descriptionText": "Sr. Security Engineer at Lucid Software. Salt Lake City, UT. Skills: ai, aws, llm.",
+    "jobId": "greenhouse_lucidsoftware:role:6208854004",
+    "jobText": "Sr. Security Engineer at Lucid Software. Salt Lake City, UT. Skills: ai, aws, llm.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6113507004",
+    "company": "BILL",
+    "title": "Director of Developer Productivity",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6113507004&gh_jid=6113507004",
+    "tags": [
+      "ai",
+      "aws",
+      "kubernetes"
+    ],
+    "postedAt": 1791589738000,
+    "descriptionText": "Director of Developer Productivity at BILL. United States. Skills: ai, aws, kubernetes.",
+    "jobId": "greenhouse_billcom:role:6113507004",
+    "jobText": "Director of Developer Productivity at BILL. United States. Skills: ai, aws, kubernetes.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6166032004",
+    "company": "BILL",
+    "title": "Senior Software Development Engineer in Test (SDET)",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6166032004&gh_jid=6166032004",
+    "tags": [
+      "ai",
+      "javascript",
+      "typescript"
+    ],
+    "postedAt": 1791589738000,
+    "descriptionText": "Senior Software Development Engineer in Test (SDET) at BILL. United States. Skills: ai, javascript, typescript.",
+    "jobId": "greenhouse_billcom:senior:6166032004",
+    "jobText": "Senior Software Development Engineer in Test (SDET) at BILL. United States. Skills: ai, javascript, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6175334004",
+    "company": "BILL",
+    "title": "Senior Staff AI Security Engineer",
+    "location": "Draper, Utah, United States; San Jose, California, United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6175334004&gh_jid=6175334004",
+    "tags": [
+      "ai",
+      "go",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1791589738000,
+    "descriptionText": "Senior Staff AI Security Engineer at BILL. Draper, Utah, United States; San Jose, California, United States. Skills: ai, go, llm, python.",
+    "jobId": "greenhouse_billcom:senior:6175334004",
+    "jobText": "Senior Staff AI Security Engineer at BILL. Draper, Utah, United States; San Jose, California, United States. Skills: ai, go, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6103454004",
+    "company": "BILL",
+    "title": "Senior Staff Data Engineer",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6103454004&gh_jid=6103454004",
+    "tags": [
+      "ai",
+      "python"
+    ],
+    "postedAt": 1791589738000,
+    "descriptionText": "Senior Staff Data Engineer at BILL. United States. Skills: ai, python.",
+    "jobId": "greenhouse_billcom:senior:6103454004",
+    "jobText": "Senior Staff Data Engineer at BILL. United States. Skills: ai, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6232206004",
+    "company": "BILL",
+    "title": "Senior Technical Recruiter",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6232206004&gh_jid=6232206004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792780700000,
+    "descriptionText": "Senior Technical Recruiter at BILL. United States. Skills: ai.",
+    "jobId": "greenhouse_billcom:senior:6232206004",
+    "jobText": "Senior Technical Recruiter at BILL. United States. Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6206053004",
+    "company": "BILL",
+    "title": "Software Engineer II",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6206053004&gh_jid=6206053004",
+    "tags": [
+      "ai",
+      "aws"
+    ],
+    "postedAt": 1791589739000,
+    "descriptionText": "Software Engineer II at BILL. United States. Skills: ai, aws.",
+    "jobId": "greenhouse_billcom:role:6206053004",
+    "jobText": "Software Engineer II at BILL. United States. Skills: ai, aws.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6223092004",
+    "company": "BILL",
+    "title": "Software Engineer II (Full-stack) - Growth",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6223092004&gh_jid=6223092004",
+    "tags": [
+      "ai",
+      "aws",
+      "react",
+      "typescript"
+    ],
+    "postedAt": 1792677488000,
+    "descriptionText": "Software Engineer II (Full-stack) - Growth at BILL. United States. Skills: ai, aws, react, typescript.",
+    "jobId": "greenhouse_billcom:role:6223092004",
+    "jobText": "Software Engineer II (Full-stack) - Growth at BILL. United States. Skills: ai, aws, react, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "5240146004",
+    "company": "BILL",
+    "title": "Software Engineer II - Payments Platform",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?5240146004&gh_jid=5240146004",
+    "tags": [
+      "ai",
+      "aws"
+    ],
+    "postedAt": 1791589735000,
+    "descriptionText": "Software Engineer II - Payments Platform at BILL. United States. Skills: ai, aws.",
+    "jobId": "greenhouse_billcom:role:5240146004",
+    "jobText": "Software Engineer II - Payments Platform at BILL. United States. Skills: ai, aws.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6223339004",
+    "company": "BILL",
+    "title": "Staff Database Engineer",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6223339004&gh_jid=6223339004",
+    "tags": [
+      "ai",
+      "aws",
+      "go",
+      "python"
+    ],
+    "postedAt": 1792006315000,
+    "descriptionText": "Staff Database Engineer at BILL. United States. Skills: ai, aws, go, python.",
+    "jobId": "greenhouse_billcom:staff:6223339004",
+    "jobText": "Staff Database Engineer at BILL. United States. Skills: ai, aws, go, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6180061004",
+    "company": "BILL",
+    "title": "Staff Machine Learning Engineer",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6180061004&gh_jid=6180061004",
+    "tags": [
+      "ai",
+      "llm"
+    ],
+    "postedAt": 1791589738000,
+    "descriptionText": "Staff Machine Learning Engineer at BILL. United States. Skills: ai, llm.",
+    "jobId": "greenhouse_billcom:staff:6180061004",
+    "jobText": "Staff Machine Learning Engineer at BILL. United States. Skills: ai, llm.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_billcom",
+    "sourceJobId": "6202740004",
+    "company": "BILL",
+    "title": "Staff Software Engineer",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://www.bill.com/job?6202740004&gh_jid=6202740004",
+    "tags": [
+      "ai",
+      "aws",
+      "react"
+    ],
+    "postedAt": 1791589739000,
+    "descriptionText": "Staff Software Engineer at BILL. United States. Skills: ai, aws, react.",
+    "jobId": "greenhouse_billcom:staff:6202740004",
+    "jobText": "Staff Software Engineer at BILL. United States. Skills: ai, aws, react.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "8037980003",
+    "company": "SoFi",
+    "title": "Engineering Manager, Workday",
+    "location": "San Francisco, California",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/8037980003?gh_jid=8037980003",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792438088000,
+    "descriptionText": "Engineering Manager, Workday at SoFi. San Francisco, California. Skills: ai.",
+    "jobId": "greenhouse_sofi:role:8037980003",
+    "jobText": "Engineering Manager, Workday at SoFi. San Francisco, California. Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "8037984003",
+    "company": "SoFi",
+    "title": "Principal Software Engineer, Data Platform — Data Trust & AI Context",
+    "location": "WA - Seattle; UT - Cottonwood Heights; CA - San Francisco",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/8037984003?gh_jid=8037984003",
+    "tags": [
+      "ai",
+      "aws",
+      "go",
+      "python"
+    ],
+    "postedAt": 1792787381000,
+    "descriptionText": "Principal Software Engineer, Data Platform — Data Trust & AI Context at SoFi. WA - Seattle; UT - Cottonwood Heights; CA - San Francisco. Skills: ai, aws, go, python.",
+    "jobId": "greenhouse_sofi:principal:8037984003",
+    "jobText": "Principal Software Engineer, Data Platform — Data Trust & AI Context at SoFi. WA - Seattle; UT - Cottonwood Heights; CA - San Francisco. Skills: ai, aws, go, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "8040823003",
+    "company": "SoFi",
+    "title": "Senior Data Engineer",
+    "location": "Cottonwood Heights, Utah, United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/8040823003?gh_jid=8040823003",
+    "tags": [
+      "python"
+    ],
+    "postedAt": 1792789624000,
+    "descriptionText": "Senior Data Engineer at SoFi. Cottonwood Heights, Utah, United States. Skills: python.",
+    "jobId": "greenhouse_sofi:senior:8040823003",
+    "jobText": "Senior Data Engineer at SoFi. Cottonwood Heights, Utah, United States. Skills: python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "7963969003",
+    "company": "SoFi",
+    "title": "Senior Engineering Manager-People Analytics",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/7963969003?gh_jid=7963969003",
+    "tags": [
+      "ai",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1790795612000,
+    "descriptionText": "Senior Engineering Manager-People Analytics at SoFi. United States. Skills: ai, llm, python.",
+    "jobId": "greenhouse_sofi:senior:7963969003",
+    "jobText": "Senior Engineering Manager-People Analytics at SoFi. United States. Skills: ai, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "8042378003",
+    "company": "SoFi",
+    "title": "Senior Software Engineer",
+    "location": "WA - Seattle",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/8042378003?gh_jid=8042378003",
+    "tags": [
+      "aws",
+      "docker",
+      "kubernetes"
+    ],
+    "postedAt": 1792762342000,
+    "descriptionText": "Senior Software Engineer at SoFi. WA - Seattle. Skills: aws, docker, kubernetes.",
+    "jobId": "greenhouse_sofi:senior:8042378003",
+    "jobText": "Senior Software Engineer at SoFi. WA - Seattle. Skills: aws, docker, kubernetes.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_sofi",
+    "sourceJobId": "8042385003",
+    "company": "SoFi",
+    "title": "Senior Software Engineer",
+    "location": "WA - Seattle",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://sofi.com/careers/job/8042385003?gh_jid=8042385003",
+    "tags": [
+      "aws",
+      "docker",
+      "kubernetes",
+      "postgres",
+      "typescript"
+    ],
+    "postedAt": 1792762452000,
+    "descriptionText": "Senior Software Engineer at SoFi. WA - Seattle. Skills: aws, docker, kubernetes, postgres, typescript.",
+    "jobId": "greenhouse_sofi:senior:8042385003",
+    "jobText": "Senior Software Engineer at SoFi. WA - Seattle. Skills: aws, docker, kubernetes, postgres, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4413992005",
+    "company": "Scale AI",
+    "title": "Applied AI Engineer, Global Public Sector",
+    "location": "Doha, Qatar; London, UK",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4413992005",
+    "tags": [
+      "ai",
+      "aws",
+      "javascript",
+      "python",
+      "typescript"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Applied AI Engineer, Global Public Sector at Scale AI. Doha, Qatar; London, UK. Skills: ai, aws, javascript, python, typescript.",
+    "jobId": "greenhouse_scaleai:ai:4413992005",
+    "jobText": "Applied AI Engineer, Global Public Sector at Scale AI. Doha, Qatar; London, UK. Skills: ai, aws, javascript, python, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4674863005",
+    "company": "Scale AI",
+    "title": "DevOps Engineer, Infrastructure & Security",
+    "location": "Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4674863005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "DevOps Engineer, Infrastructure & Security at Scale AI. Washington, DC. Skills: ai, aws, docker, kubernetes, python.",
+    "jobId": "greenhouse_scaleai:role:4674863005",
+    "jobText": "DevOps Engineer, Infrastructure & Security at Scale AI. Washington, DC. Skills: ai, aws, docker, kubernetes, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4625271005",
+    "company": "Scale AI",
+    "title": "Engineering Manager, Agent Oversight",
+    "location": "San Francisco, CA; New York, NY",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4625271005",
+    "tags": [
+      "ai",
+      "llm"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Engineering Manager, Agent Oversight at Scale AI. San Francisco, CA; New York, NY. Skills: ai, llm.",
+    "jobId": "greenhouse_scaleai:role:4625271005",
+    "jobText": "Engineering Manager, Agent Oversight at Scale AI. San Francisco, CA; New York, NY. Skills: ai, llm.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4733702005",
+    "company": "Scale AI",
+    "title": "Engineering Manager, Customer Platform (GenAI)",
+    "location": "San Francisco, CA; New York, NY",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4733702005",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Engineering Manager, Customer Platform (GenAI) at Scale AI. San Francisco, CA; New York, NY. Skills: ai.",
+    "jobId": "greenhouse_scaleai:ai:4733702005",
+    "jobText": "Engineering Manager, Customer Platform (GenAI) at Scale AI. San Francisco, CA; New York, NY. Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4732365005",
+    "company": "Scale AI",
+    "title": "Engineering Manager, Frontier AI Infrastructure - Public Sector",
+    "location": "Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4732365005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Engineering Manager, Frontier AI Infrastructure - Public Sector at Scale AI. Washington, DC. Skills: ai, aws, docker, kubernetes.",
+    "jobId": "greenhouse_scaleai:ai:4732365005",
+    "jobText": "Engineering Manager, Frontier AI Infrastructure - Public Sector at Scale AI. Washington, DC. Skills: ai, aws, docker, kubernetes.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4719479005",
+    "company": "Scale AI",
+    "title": "Engineering Manager, Infrastructure",
+    "location": "London, UK",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4719479005",
+    "tags": [
+      "ai",
+      "aws",
+      "kubernetes"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Engineering Manager, Infrastructure at Scale AI. London, UK. Skills: ai, aws, kubernetes.",
+    "jobId": "greenhouse_scaleai:role:4719479005",
+    "jobText": "Engineering Manager, Infrastructure at Scale AI. London, UK. Skills: ai, aws, kubernetes.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4709132005",
+    "company": "Scale AI",
+    "title": "Engineering Manager, Saudi Arabia",
+    "location": "Riyadh, Saudi Arabia",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4709132005",
+    "tags": [
+      "ai",
+      "go",
+      "llm"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Engineering Manager, Saudi Arabia at Scale AI. Riyadh, Saudi Arabia. Skills: ai, go, llm.",
+    "jobId": "greenhouse_scaleai:role:4709132005",
+    "jobText": "Engineering Manager, Saudi Arabia at Scale AI. Riyadh, Saudi Arabia. Skills: ai, go, llm.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4518690005",
+    "company": "Scale AI",
+    "title": "Field Engineer, Data Engine",
+    "location": "Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4518690005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Field Engineer, Data Engine at Scale AI. Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, aws, docker, kubernetes, python.",
+    "jobId": "greenhouse_scaleai:role:4518690005",
+    "jobText": "Field Engineer, Data Engine at Scale AI. Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, aws, docker, kubernetes, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4717648005",
+    "company": "Scale AI",
+    "title": "Field Engineer, Public Sector",
+    "location": "Austin, TX; Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4717648005",
+    "tags": [
+      "ai",
+      "go",
+      "javascript",
+      "kubernetes",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Field Engineer, Public Sector at Scale AI. Austin, TX; Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, go, javascript, kubernetes, python.",
+    "jobId": "greenhouse_scaleai:role:4717648005",
+    "jobText": "Field Engineer, Public Sector at Scale AI. Austin, TX; Colorado Springs, CO; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, go, javascript, kubernetes, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4481921005",
+    "company": "Scale AI",
+    "title": "Forward Deployed Software Engineer, Public Sector",
+    "location": "Austin, TX; Colorado Springs, CO; Honolulu, HI; Omaha, NE; St. Louis, MO; Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4481921005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "node",
+      "python",
+      "react",
+      "typescript"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Forward Deployed Software Engineer, Public Sector at Scale AI. Austin, TX; Colorado Springs, CO; Honolulu, HI; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, aws, docker, kubernetes, node, python, react, typescript.",
+    "jobId": "greenhouse_scaleai:role:4481921005",
+    "jobText": "Forward Deployed Software Engineer, Public Sector at Scale AI. Austin, TX; Colorado Springs, CO; Honolulu, HI; Omaha, NE; St. Louis, MO; Washington, DC. Skills: ai, aws, docker, kubernetes, node, python, react, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4743438005",
+    "company": "Scale AI",
+    "title": "Frontier Agent Engineering Manager, Enterprise",
+    "location": "London, UK",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4743438005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Frontier Agent Engineering Manager, Enterprise at Scale AI. London, UK. Skills: ai, aws, docker, kubernetes, python.",
+    "jobId": "greenhouse_scaleai:role:4743438005",
+    "jobText": "Frontier Agent Engineering Manager, Enterprise at Scale AI. London, UK. Skills: ai, aws, docker, kubernetes, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4602177005",
+    "company": "Scale AI",
+    "title": "Frontier Agent Engineering Manager, Enterprise",
+    "location": "San Francisco, CA; New York, NY",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4602177005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Frontier Agent Engineering Manager, Enterprise at Scale AI. San Francisco, CA; New York, NY. Skills: ai, aws, docker, kubernetes, python.",
+    "jobId": "greenhouse_scaleai:role:4602177005",
+    "jobText": "Frontier Agent Engineering Manager, Enterprise at Scale AI. San Francisco, CA; New York, NY. Skills: ai, aws, docker, kubernetes, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4720573005",
+    "company": "Scale AI",
+    "title": "Frontier Agents Engineer (Applied AI)",
+    "location": "San Francisco, CA",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4720573005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Frontier Agents Engineer (Applied AI) at Scale AI. San Francisco, CA. Skills: ai, aws, docker, kubernetes, llm, python.",
+    "jobId": "greenhouse_scaleai:ai:4720573005",
+    "jobText": "Frontier Agents Engineer (Applied AI) at Scale AI. San Francisco, CA. Skills: ai, aws, docker, kubernetes, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4694861005",
+    "company": "Scale AI",
+    "title": "Frontier Agents Engineer (Forward Deployed Engineering)",
+    "location": "San Francisco, CA",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4694861005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Frontier Agents Engineer (Forward Deployed Engineering) at Scale AI. San Francisco, CA. Skills: ai, aws, docker, kubernetes, llm, python.",
+    "jobId": "greenhouse_scaleai:role:4694861005",
+    "jobText": "Frontier Agents Engineer (Forward Deployed Engineering) at Scale AI. San Francisco, CA. Skills: ai, aws, docker, kubernetes, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4745021005",
+    "company": "Scale AI",
+    "title": "Infrastructure Software Engineer, Apps Platform",
+    "location": "London, UK",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4745021005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "kubernetes"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Infrastructure Software Engineer, Apps Platform at Scale AI. London, UK. Skills: ai, aws, docker, kubernetes.",
+    "jobId": "greenhouse_scaleai:role:4745021005",
+    "jobText": "Infrastructure Software Engineer, Apps Platform at Scale AI. London, UK. Skills: ai, aws, docker, kubernetes.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4665557005",
+    "company": "Scale AI",
+    "title": "Infrastructure Software Engineer, Enterprise GenAI",
+    "location": "San Francisco, CA; New York, NY",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4665557005",
+    "tags": [
+      "ai",
+      "aws",
+      "javascript",
+      "kubernetes",
+      "python",
+      "typescript"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Infrastructure Software Engineer, Enterprise GenAI at Scale AI. San Francisco, CA; New York, NY. Skills: ai, aws, javascript, kubernetes, python, typescript.",
+    "jobId": "greenhouse_scaleai:ai:4665557005",
+    "jobText": "Infrastructure Software Engineer, Enterprise GenAI at Scale AI. San Francisco, CA; New York, NY. Skills: ai, aws, javascript, kubernetes, python, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4741059005",
+    "company": "Scale AI",
+    "title": "IT Support Engineer",
+    "location": "Mexico City, MX",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4741059005",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "IT Support Engineer at Scale AI. Mexico City, MX. Skills: ai.",
+    "jobId": "greenhouse_scaleai:role:4741059005",
+    "jobText": "IT Support Engineer at Scale AI. Mexico City, MX. Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4704551005",
+    "company": "Scale AI",
+    "title": "IT Systems Engineer",
+    "location": "Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4704551005",
+    "tags": [
+      "ai",
+      "python"
+    ],
+    "postedAt": 1792763385000,
+    "descriptionText": "IT Systems Engineer at Scale AI. Washington, DC. Skills: ai, python.",
+    "jobId": "greenhouse_scaleai:role:4704551005",
+    "jobText": "IT Systems Engineer at Scale AI. Washington, DC. Skills: ai, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4631848005",
+    "company": "Scale AI",
+    "title": "Machine Learning Engineer, Public Sector",
+    "location": "Denver, CO; Honolulu, HI; Washington, DC",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4631848005",
+    "tags": [
+      "ai",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Machine Learning Engineer, Public Sector at Scale AI. Denver, CO; Honolulu, HI; Washington, DC. Skills: ai, llm, python.",
+    "jobId": "greenhouse_scaleai:role:4631848005",
+    "jobText": "Machine Learning Engineer, Public Sector at Scale AI. Denver, CO; Honolulu, HI; Washington, DC. Skills: ai, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_scaleai",
+    "sourceJobId": "4660340005",
+    "company": "Scale AI",
+    "title": "Machine Learning Fellow - Human Frontier Collective",
+    "location": "United States",
+    "remote": false,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/scaleai/jobs/4660340005",
+    "tags": [
+      "ai",
+      "aws",
+      "docker",
+      "llm",
+      "python"
+    ],
+    "postedAt": 1792692638000,
+    "descriptionText": "Machine Learning Fellow - Human Frontier Collective at Scale AI. United States. Skills: ai, aws, docker, llm, python.",
+    "jobId": "greenhouse_scaleai:role:4660340005",
+    "jobText": "Machine Learning Fellow - Human Frontier Collective at Scale AI. United States. Skills: ai, aws, docker, llm, python.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6121600004",
+    "company": "Grafana Labs",
+    "title": "Manager, Solutions Engineering | NorBen | Remote",
+    "location": "Netherlands (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6121600004",
+    "tags": [
+      "ai",
+      "go"
+    ],
+    "postedAt": 1787066027000,
+    "descriptionText": "Manager, Solutions Engineering | NorBen | Remote at Grafana Labs. Netherlands (Remote). Skills: ai, go.",
+    "jobId": "greenhouse_grafanalabs:role:6121600004",
+    "jobText": "Manager, Solutions Engineering | NorBen | Remote at Grafana Labs. Netherlands (Remote). Skills: ai, go.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6122353004",
+    "company": "Grafana Labs",
+    "title": "Manager, Solutions Engineering | NorBen | Remote",
+    "location": "Sweden (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6122353004",
+    "tags": [
+      "ai",
+      "go"
+    ],
+    "postedAt": 1787066036000,
+    "descriptionText": "Manager, Solutions Engineering | NorBen | Remote at Grafana Labs. Sweden (Remote). Skills: ai, go.",
+    "jobId": "greenhouse_grafanalabs:role:6122353004",
+    "jobText": "Manager, Solutions Engineering | NorBen | Remote at Grafana Labs. Sweden (Remote). Skills: ai, go.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233335004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | Germany | Remote",
+    "location": "Germany (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233335004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787379000,
+    "descriptionText": "Principal Technical Marketing Engineer | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233335004",
+    "jobText": "Principal Technical Marketing Engineer | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233339004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | Ireland | Remote",
+    "location": "Republic of Ireland (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233339004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787380000,
+    "descriptionText": "Principal Technical Marketing Engineer | Ireland | Remote at Grafana Labs. Republic of Ireland (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233339004",
+    "jobText": "Principal Technical Marketing Engineer | Ireland | Remote at Grafana Labs. Republic of Ireland (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233333004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | Spain | Remote",
+    "location": "Spain (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233333004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787382000,
+    "descriptionText": "Principal Technical Marketing Engineer | Spain | Remote at Grafana Labs. Spain (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233333004",
+    "jobText": "Principal Technical Marketing Engineer | Spain | Remote at Grafana Labs. Spain (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233334004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | Sweden | Remote",
+    "location": "Sweden (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233334004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787383000,
+    "descriptionText": "Principal Technical Marketing Engineer | Sweden | Remote at Grafana Labs. Sweden (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233334004",
+    "jobText": "Principal Technical Marketing Engineer | Sweden | Remote at Grafana Labs. Sweden (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233317004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | UK | Remote",
+    "location": "United Kingdom (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233317004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787385000,
+    "descriptionText": "Principal Technical Marketing Engineer | UK | Remote at Grafana Labs. United Kingdom (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233317004",
+    "jobText": "Principal Technical Marketing Engineer | UK | Remote at Grafana Labs. United Kingdom (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6233315004",
+    "company": "Grafana Labs",
+    "title": "Principal Technical Marketing Engineer | US | Remote",
+    "location": "United States (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6233315004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1792787387000,
+    "descriptionText": "Principal Technical Marketing Engineer | US | Remote at Grafana Labs. United States (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:principal:6233315004",
+    "jobText": "Principal Technical Marketing Engineer | US | Remote at Grafana Labs. United States (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6111473004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Analytics | Canada | Remote",
+    "location": "Canada (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6111473004",
+    "tags": [
+      "ai",
+      "aws"
+    ],
+    "postedAt": 1791918000000,
+    "descriptionText": "Senior Backend Engineer - Analytics | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws.",
+    "jobId": "greenhouse_grafanalabs:senior:6111473004",
+    "jobText": "Senior Backend Engineer - Analytics | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6114603004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Analytics | US | Remote",
+    "location": "United States (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6114603004",
+    "tags": [
+      "ai",
+      "aws"
+    ],
+    "postedAt": 1791918068000,
+    "descriptionText": "Senior Backend Engineer - Analytics | US | Remote at Grafana Labs. United States (Remote). Skills: ai, aws.",
+    "jobId": "greenhouse_grafanalabs:senior:6114603004",
+    "jobText": "Senior Backend Engineer - Analytics | US | Remote at Grafana Labs. United States (Remote). Skills: ai, aws.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6209461004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Databases - Analytics | Canada | Remote",
+    "location": "Canada (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6209461004",
+    "tags": [
+      "ai",
+      "aws",
+      "rust"
+    ],
+    "postedAt": 1792574663000,
+    "descriptionText": "Senior Backend Engineer - Databases - Analytics | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6209461004",
+    "jobText": "Senior Backend Engineer - Databases - Analytics | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6206556004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Databases - Analytics | US | Remote",
+    "location": "United States (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6206556004",
+    "tags": [
+      "ai",
+      "aws",
+      "rust"
+    ],
+    "postedAt": 1792574665000,
+    "descriptionText": "Senior Backend Engineer - Databases - Analytics | US | Remote at Grafana Labs. United States (Remote). Skills: ai, aws, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6206556004",
+    "jobText": "Senior Backend Engineer - Databases - Analytics | US | Remote at Grafana Labs. United States (Remote). Skills: ai, aws, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6223410004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Databases Tempo | Canada | Remote",
+    "location": "Canada (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6223410004",
+    "tags": [
+      "ai",
+      "go",
+      "kubernetes",
+      "llm",
+      "rust"
+    ],
+    "postedAt": 1791976125000,
+    "descriptionText": "Senior Backend Engineer - Databases Tempo | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, go, kubernetes, llm, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6223410004",
+    "jobText": "Senior Backend Engineer - Databases Tempo | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, go, kubernetes, llm, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6223411004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Engineer - Databases Tempo | US | Remote",
+    "location": "United States (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6223411004",
+    "tags": [
+      "ai",
+      "go",
+      "kubernetes",
+      "llm",
+      "rust"
+    ],
+    "postedAt": 1791976127000,
+    "descriptionText": "Senior Backend Engineer - Databases Tempo | US | Remote at Grafana Labs. United States (Remote). Skills: ai, go, kubernetes, llm, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6223411004",
+    "jobText": "Senior Backend Engineer - Databases Tempo | US | Remote at Grafana Labs. United States (Remote). Skills: ai, go, kubernetes, llm, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6229352004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Software Engineer - Loki | NASA | Remote",
+    "location": "Canada (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6229352004",
+    "tags": [
+      "ai",
+      "aws",
+      "go",
+      "kubernetes",
+      "python",
+      "rust"
+    ],
+    "postedAt": 1792581015000,
+    "descriptionText": "Senior Backend Software Engineer - Loki | NASA | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws, go, kubernetes, python, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6229352004",
+    "jobText": "Senior Backend Software Engineer - Loki | NASA | Remote at Grafana Labs. Canada (Remote). Skills: ai, aws, go, kubernetes, python, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6229350004",
+    "company": "Grafana Labs",
+    "title": "Senior Backend Software Engineer - Loki | NASA | Remote",
+    "location": "United States (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6229350004",
+    "tags": [
+      "ai",
+      "aws",
+      "go",
+      "kubernetes",
+      "python",
+      "rust"
+    ],
+    "postedAt": 1792581068000,
+    "descriptionText": "Senior Backend Software Engineer - Loki | NASA | Remote at Grafana Labs. United States (Remote). Skills: ai, aws, go, kubernetes, python, rust.",
+    "jobId": "greenhouse_grafanalabs:senior:6229350004",
+    "jobText": "Senior Backend Software Engineer - Loki | NASA | Remote at Grafana Labs. United States (Remote). Skills: ai, aws, go, kubernetes, python, rust.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6147030004",
+    "company": "Grafana Labs",
+    "title": "Senior Business Value Engineer | Germany | Remote",
+    "location": "Germany (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6147030004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1787215116000,
+    "descriptionText": "Senior Business Value Engineer | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:senior:6147030004",
+    "jobText": "Senior Business Value Engineer | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6147032004",
+    "company": "Grafana Labs",
+    "title": "Senior Business Value Engineer | UK | Remote",
+    "location": "United Kingdom (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6147032004",
+    "tags": [
+      "ai"
+    ],
+    "postedAt": 1789982234000,
+    "descriptionText": "Senior Business Value Engineer | UK | Remote at Grafana Labs. United Kingdom (Remote). Skills: ai.",
+    "jobId": "greenhouse_grafanalabs:senior:6147032004",
+    "jobText": "Senior Business Value Engineer | UK | Remote at Grafana Labs. United Kingdom (Remote). Skills: ai.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6200723004",
+    "company": "Grafana Labs",
+    "title": "Senior Engineering Manager, Grafana Frontend | Canada | Remote",
+    "location": "Canada (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6200723004",
+    "tags": [
+      "ai",
+      "react",
+      "typescript"
+    ],
+    "postedAt": 1792288824000,
+    "descriptionText": "Senior Engineering Manager, Grafana Frontend | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, react, typescript.",
+    "jobId": "greenhouse_grafanalabs:senior:6200723004",
+    "jobText": "Senior Engineering Manager, Grafana Frontend | Canada | Remote at Grafana Labs. Canada (Remote). Skills: ai, react, typescript.",
+    "snapshotCapturedAt": 1792863824178
+  },
+  {
+    "source": "greenhouse_grafanalabs",
+    "sourceJobId": "6200726004",
+    "company": "Grafana Labs",
+    "title": "Senior Engineering Manager, Grafana Frontend | Germany | Remote",
+    "location": "Germany (Remote)",
+    "remote": true,
+    "employmentType": "full_time",
+    "url": "https://job-boards.greenhouse.io/grafanalabs/jobs/6200726004",
+    "tags": [
+      "ai",
+      "react",
+      "typescript"
+    ],
+    "postedAt": 1792288827000,
+    "descriptionText": "Senior Engineering Manager, Grafana Frontend | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai, react, typescript.",
+    "jobId": "greenhouse_grafanalabs:senior:6200726004",
+    "jobText": "Senior Engineering Manager, Grafana Frontend | Germany | Remote at Grafana Labs. Germany (Remote). Skills: ai, react, typescript.",
+    "snapshotCapturedAt": 1792863824178
   }
 ]

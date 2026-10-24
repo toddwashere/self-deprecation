@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, count, eq, gte, inArray, max, notLike } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { fetchRuns, jobs } from "../../db/schema";
+import { cleanDescription } from "../../sources/adapters/normalization";
 import type { NormalizedJob } from "../../sources/types";
 
 export async function startFetchRun(
@@ -26,53 +27,100 @@ export async function finishFetchRun(
       finishedAt: now,
       status: result.status,
       itemsUpserted: result.itemsUpserted,
-      error: result.error?.slice(0, 500),
+      error: result.error?.slice(0, 500) ?? null,
     })
     .where(eq(fetchRuns.id, id));
 }
 
 export async function upsertJobs(db: DB, items: NormalizedJob[], now: number): Promise<number> {
-  for (const item of items) {
-    await db
-      .insert(jobs)
-      .values({
-        id: `${item.source}:${item.sourceJobId}`,
+  const unique = [
+    ...new Map(items.map((item) => [`${item.source}:${item.sourceJobId}`, item])).values(),
+  ];
+  const statements = await Promise.all(
+    unique.map(async (item) => {
+      const values = {
         source: item.source,
         sourceJobId: item.sourceJobId,
         company: item.company,
         title: item.title,
-        location: item.location,
-        remote: item.remote,
+        location: item.location ?? null,
+        remote: item.remote ?? null,
         employmentType: item.employmentType,
-        salaryMin: item.salaryMin,
-        salaryMax: item.salaryMax,
-        currency: item.currency,
+        salaryMin: item.salaryMin ?? null,
+        salaryMax: item.salaryMax ?? null,
+        currency: item.currency ?? null,
         url: item.url,
-        descriptionText: item.descriptionText,
+        descriptionText: item.descriptionText ? cleanDescription(item.descriptionText) : null,
         tags: item.tags ?? [],
-        postedAt: item.postedAt,
-        fetchedAt: now,
-        lastSeenAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [jobs.source, jobs.sourceJobId],
-        set: {
-          company: item.company,
-          title: item.title,
-          location: item.location,
-          remote: item.remote,
-          employmentType: item.employmentType,
-          salaryMin: item.salaryMin,
-          salaryMax: item.salaryMax,
-          currency: item.currency,
-          url: item.url,
-          descriptionText: item.descriptionText,
-          tags: item.tags ?? [],
-          postedAt: item.postedAt,
-          fetchedAt: now,
-          lastSeenAt: now,
-        },
-      });
+        postedAt: item.postedAt ?? null,
+      };
+      const hash = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(JSON.stringify(values)),
+      );
+      const contentHash = Array.from(new Uint8Array(hash), (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
+      const update = { ...values, fetchedAt: now, lastSeenAt: now, contentHash };
+      return {
+        statement: db
+          .insert(jobs)
+          .values({ id: `${item.source}:${item.sourceJobId}`, ...update })
+          .onConflictDoUpdate({ target: [jobs.source, jobs.sourceJobId], set: update }),
+      };
+    }),
+  );
+  for (let offset = 0; offset < statements.length; offset += 20) {
+    const batch = statements.slice(offset, offset + 20).map((entry) => entry.statement);
+    if (batch.length)
+      await db.batch(batch as [(typeof batch)[number], ...(typeof batch)[number][]]);
   }
-  return items.length;
+  return unique.length;
+}
+
+export async function hasRecentFetch(db: DB, source: string, since: number): Promise<boolean> {
+  const row = await db
+    .select({ id: fetchRuns.id })
+    .from(fetchRuns)
+    .where(
+      and(
+        eq(fetchRuns.source, source),
+        eq(fetchRuns.status, "ok"),
+        gte(fetchRuns.finishedAt, since),
+      ),
+    )
+    .limit(1)
+    .get();
+  return Boolean(row);
+}
+
+export async function lastFetchTimes(db: DB, sources: string[]): Promise<Map<string, number>> {
+  if (!sources.length) return new Map();
+  const rows = await db
+    .select({ source: fetchRuns.source, startedAt: max(fetchRuns.startedAt) })
+    .from(fetchRuns)
+    .where(inArray(fetchRuns.source, sources))
+    .groupBy(fetchRuns.source);
+  const times = new Map<string, number>();
+  for (const row of rows) if (!times.has(row.source)) times.set(row.source, row.startedAt ?? 0);
+  return times;
+}
+
+export async function getCatalogStats(db: DB) {
+  const sources = await db
+    .select({ source: jobs.source, count: count() })
+    .from(jobs)
+    .groupBy(jobs.source)
+    .orderBy(jobs.source);
+  return { total: sources.reduce((total, row) => total + row.count, 0), sources };
+}
+
+export async function hasLiveJobs(db: DB): Promise<boolean> {
+  const row = await db
+    .select({ id: jobs.id })
+    .from(jobs)
+    .where(notLike(jobs.tags, '%"snapshot"%'))
+    .limit(1)
+    .get();
+  return Boolean(row);
 }
