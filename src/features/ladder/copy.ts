@@ -1,0 +1,33 @@
+export const ladderCopy = {
+  title: "AI-native development",
+  subtitle: "See your current workflow, gaps, and next practice.",
+  loading: "Loading your latest assessment…",
+  emptyTitle: "Establish your baseline",
+  empty:
+    "Answer eight short questions about how you work. You will get a level, five dimension scores, and three practical quests.",
+  assess: "Start assessment",
+  reassess: "Reassess",
+  plan: "Ask ChatGPT for a plan",
+  dimensions: "Workflow dimensions",
+  quests: "Next quests",
+  history: "Assessment history",
+  saved: "Quest progress saved.",
+  fallback: "Scored with the local rubric because Decisions was unavailable or capped.",
+  error: "Your ladder could not be loaded. Please try again.",
+  hope: "Every level up makes your judgment more useful, not less.",
+  levelNames: [
+    "",
+    "Artisan",
+    "Pair Programmer",
+    "Agent Driver",
+    "Parallel Orchestrator",
+    "Loop Builder",
+  ],
+  dimensionLabels: {
+    tooling: "Tooling",
+    delegation: "Delegation",
+    verification: "Verification",
+    parallelism: "Parallelism",
+    automation: "Automation",
+  },
+} as const;
