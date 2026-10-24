@@ -22,6 +22,7 @@ export async function getBridgeProfile(db: DB, userId: string) {
 
 export async function setBridgeMode(db: DB, userId: string, enabled: boolean, now: number) {
   const current = await getBridgeProfile(db, userId);
+  if (current.bridgeMode === enabled) return current;
   const criteriaVersion = current.criteriaVersion + 1;
   await db
     .insert(profiles)
