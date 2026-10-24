@@ -61,10 +61,11 @@ export async function runJobSearch(
     getSourceHealth(ctx.db),
   ]);
   const byJob = new Map(matches.map((match) => [match.jobId, match]));
-  const selected = candidateJobs(profile, catalog, ctx.now().getTime(), filters).filter((job) => {
+  const visible = catalog.filter((job) => {
     const status = byJob.get(job.id)?.status ?? "new";
     return filters.status ? status === filters.status : status !== "dismissed";
   });
+  const selected = candidateJobs(profile, visible, ctx.now().getTime(), filters);
   const pending = selected.filter((job) => {
     const match = byJob.get(job.id);
     return !match || match.criteriaVersion !== profile.criteriaVersion || match.fitScore === null;
@@ -90,7 +91,7 @@ export async function runJobSearch(
       ctx.env,
       profileText,
       batch.map((job) => ({ jobId: job.id, jobText: jobDigest(job) })),
-      { db: ctx.db, userId: ctx.userId, decide: options.decide, now: ctx.now },
+      { db: ctx.db, userId: ctx.userId, decide: options.decide, timeoutMs: 6000, now: ctx.now },
     );
     const evidence = new Map(batch.map((job) => [job.id, jobReasons(profile, job)]));
     await saveJobScores(
