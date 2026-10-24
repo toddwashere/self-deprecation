@@ -215,6 +215,24 @@ it("keeps ready personal sections when public news cannot be read and returns sc
     events: [{ id: "upcoming" }],
     headlines: [],
     unavailable: ["headlines"],
-    progress: { stage: "scoring", done: 2, total: 10, taskId: "jobs-v2" },
+    progress: { stage: "awaiting_scoring", done: 2, total: 10, taskId: "jobs-v2" },
   });
+});
+
+it("reports unfinished Jobs batches as needing continuation instead of background scoring", async () => {
+  await db.insert(userState).values({
+    userId: "brief-a",
+    key: "task.jobs-v2",
+    value: {
+      taskId: "jobs-v2",
+      status: "running",
+      progress: { stage: "scoring", done: 2, total: 10 },
+    },
+    updatedAt: now,
+  });
+  for (let read = 0; read < 2; read++) {
+    expect((await call("get_brief_data")).structuredContent).toMatchObject({
+      progress: { stage: "awaiting_scoring", done: 2, total: 10, taskId: "jobs-v2" },
+    });
+  }
 });
