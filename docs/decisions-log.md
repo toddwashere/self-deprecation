@@ -178,6 +178,11 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 ## P0-C · Review fixes and wrapper authorization (2026-10-24)
 The integrator explicitly authorized the shared Decisions timeout repair and supplied commit `08d54ed`; P0-C integrated that approved repair as `9ae1382`. This review milestone changes only owned Jobs/scoring files and this log. JobsOutput now includes normalized initiating filters for panel refresh/continuation; remote geography no longer requires a literal work-mode keyword; batch-size zero follows the wrapper's clamp to one.
+
+## 2026-10-24 — P0-F demo loading includes the learning journal
+
+- P1-I requested a public-safe learning fixture so the Learning tab has immediate value after **See demo**. The P0-F integrator extended the existing demo contract additively: `load_demo_data` now also replaces and reports one deterministic learning entry linked to the demo event.
+- The fixture contains synthetic presentation notes only. It preserves the existing reset-first, per-user insertion path and is covered by an idempotency regression.
 ## 2026-10-24 — P0-D CRM registration integration request
 
 - P0-D registers `add_contact`, `update_contact`, `list_contacts`, `add_note`, and `list_notes` through its owned `src/features/crm/index.ts`. The frozen central registry snapshot must add those names after existing criteria tools. The integrator also owns the corresponding `docs/TOOLS.md` entries and final deploy/ChatGPT natural-language check.

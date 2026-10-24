@@ -127,14 +127,26 @@ describe("core destructive tools", () => {
 
     const first = await call("load_demo_data", {}, "demo-user");
     const firstContacts = await db.select().from(contacts).where(eq(contacts.userId, "demo-user"));
+    const firstLearning = await db
+      .select()
+      .from(learningEntries)
+      .where(eq(learningEntries.userId, "demo-user"));
     const second = await call("load_demo_data", {}, "demo-user");
     const secondContacts = await db.select().from(contacts).where(eq(contacts.userId, "demo-user"));
+    const secondLearning = await db
+      .select()
+      .from(learningEntries)
+      .where(eq(learningEntries.userId, "demo-user"));
 
     expect(first.isError).not.toBe(true);
     expect(second.isError).not.toBe(true);
     expect(firstContacts.length).toBeGreaterThan(0);
     expect(secondContacts).toHaveLength(firstContacts.length);
     expect(new Set(secondContacts.map((contact) => contact.id)).size).toBe(secondContacts.length);
+    expect(firstLearning.length).toBeGreaterThan(0);
+    expect(secondLearning).toHaveLength(firstLearning.length);
+    expect(new Set(secondLearning.map((entry) => entry.id)).size).toBe(secondLearning.length);
+    expect(first.structuredContent).toMatchObject({ loaded: { learning: firstLearning.length } });
   });
 });
 

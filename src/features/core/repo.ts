@@ -51,6 +51,23 @@ export interface DemoData {
     source: string;
     status: string;
   }>;
+  learning: Array<{
+    id: string;
+    kind: string;
+    title: string;
+    body?: string;
+    sourceUrl?: string;
+    sourceTitle?: string;
+    author?: string;
+    eventId?: string;
+    occurredAt?: number;
+    tags: string[];
+    takeaways: string[];
+    followUpQuestions: string[];
+    nextActions: string[];
+    pinned?: boolean;
+    archived?: boolean;
+  }>;
 }
 
 export async function getTaskState(db: DB, userId: string, taskId: string) {
@@ -165,5 +182,20 @@ export async function loadDemoData(db: DB, userId: string, demo: DemoData, now: 
       .insert(savedEvents)
       .values(demo.events.map((event) => ({ ...event, userId, createdAt: now, updatedAt: now })));
   }
-  return { contacts: demo.contacts.length, notes: demo.notes.length, events: demo.events.length };
+  if (demo.learning.length) {
+    await db.insert(learningEntries).values(
+      demo.learning.map((entry) => ({
+        ...entry,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    );
+  }
+  return {
+    contacts: demo.contacts.length,
+    notes: demo.notes.length,
+    events: demo.events.length,
+    learning: demo.learning.length,
+  };
 }

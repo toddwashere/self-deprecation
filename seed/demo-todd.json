@@ -48,5 +48,25 @@
       "source": "manual",
       "status": "interested"
     }
+  ],
+  "learning": [
+    {
+      "id": "demo-learning-agent-evals",
+      "kind": "talk",
+      "title": "Building reliable agents: evals before vibes",
+      "body": "Notes from an AI engineering presentation on designing agent workflows that can be measured, debugged, and improved.",
+      "sourceTitle": "AI Builders Community Night",
+      "eventId": "demo-event-ai-builders",
+      "occurredAt": 1792886400000,
+      "tags": ["agents", "evals"],
+      "takeaways": [
+        "Define success before adding autonomy.",
+        "Keep tool traces small enough to inspect.",
+        "Test recovery paths, not only happy paths."
+      ],
+      "followUpQuestions": ["Which eval catches the most expensive failure first?"],
+      "nextActions": ["Add one recovery-path eval to the current agent workflow."],
+      "pinned": true
+    }
   ]
 }

@@ -52,7 +52,12 @@ const dashboardOutput = z.object({
 });
 const actionOutput = z.object({ message: z.string() });
 const demoOutput = actionOutput.extend({
-  loaded: z.object({ contacts: z.number(), notes: z.number(), events: z.number() }),
+  loaded: z.object({
+    contacts: z.number(),
+    notes: z.number(),
+    events: z.number(),
+    learning: z.number(),
+  }),
 });
 
 export const coreTools: ToolDef[] = [
