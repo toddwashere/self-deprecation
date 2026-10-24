@@ -113,3 +113,6 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Todd asked to remove generated-sounding and requirement-shaped language from the real user experience. P0-B will simplify every owned Profile, tour, onboarding, and status string, but the global subtitle `Less panic. Better queries. A path forward.`, persistent hope footer, `you@v0.1 · Foundation` label, and disabled `soon` navigation are part of the shared Foundation shell outside P0-B ownership.
 - The integrator should remove the subtitle and persistent footer, replace or hide the internal milestone version label, and hide unavailable tabs from the normal user view. This is a presentation-only shell change: no bridge, tab ID, tool, resource, or data contract changes.
 - Affected tasks: Foundation shell/integrator, P0-B presentation consistency, P0-F demo packaging.
+
+## P0-C · Jobs tool registration contract (2026-10-24)
+`src/features/jobs/index.ts` is a Foundation stub with `tools: []`, but P0-C owns only jobs tools/panel and scoring. Integrator: import `jobsTools` from `./tools` and register it alongside P0-A catalog tools. P0-C will export the four user-facing tools cleanly. Catalog reads and user match writes stay behind `scoring/repo.ts`; bounded scoring returns progress for subsequent `score_jobs` calls, with no waitUntil dependency (integrator ruling).
