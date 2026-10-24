@@ -135,3 +135,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - `fail(code, message, hint)` now keeps model-readable text in `content`, omits `structuredContent`, and places the machine-readable error in tool-result `_meta["self-deprecation/error"]`. The panel bridge reads that private metadata and retains the same typed error UI; success schemas remain precise and unchanged.
 - This is a centralized Foundation compatibility repair. Feature owners should continue using `fail(...)` and must not widen every success schema independently.
 - Affected tasks: F4/F5 shared result and bridge contracts, every typed MCP tool, P1-B Inspector verification.
+
+## 2026-10-24 12:08 — External response limits are enforced while streaming
+
+- P1-B review proved the shared `fetchWithTimeout` helper buffered an entire response before applying `maxBytes` when `Content-Length` was absent. That allowed an untrusted upstream to consume Worker memory beyond the declared limit.
+- The helper now reads the response stream incrementally, cancels it immediately after the byte limit is crossed, and only constructs the returned response from bounded chunks. Declared oversized responses still fail before reading.
+- Affected tasks: shared HTTP foundation, all source adapters, P0-A jobs, P1-B event metadata, P1-C news.
