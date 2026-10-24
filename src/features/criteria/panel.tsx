@@ -161,6 +161,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
   if (!criteria) return null;
 
   const configured = isConfigured(criteria);
+  const complete = criteria.targetTitles.length > 0 && criteria.skills.length > 0;
   const feedback = (
     <>
       {action.kind === "busy" ? <Loading line={action.message} /> : null}
@@ -205,8 +206,12 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </p>
             <h2>{configured ? CRITERIA_COPY.configuredTitle : CRITERIA_COPY.emptyTitle}</h2>
           </div>
-          <Chip tone={configured ? "good" : "neutral"}>
-            {configured ? CRITERIA_COPY.profileReady : CRITERIA_COPY.setupNeeded}
+          <Chip tone={complete ? "good" : "neutral"}>
+            {complete
+              ? CRITERIA_COPY.profileReady
+              : configured
+                ? CRITERIA_COPY.profileIncomplete
+                : CRITERIA_COPY.setupNeeded}
           </Chip>
         </div>
         <p className="muted">

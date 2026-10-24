@@ -20,6 +20,7 @@ export const CRITERIA_COPY = {
   configuredBody:
     "These preferences shape which roles you see. Update them whenever your goals change.",
   profileReady: "Ready",
+  profileIncomplete: "Needs details",
   setupNeeded: "Setup needed",
   targetTitles: "Target titles (comma separated)",
   skills: "Skills (comma separated)",
@@ -83,9 +84,10 @@ export const CRITERIA_COPY = {
     },
   ],
   nextStep: "Next step",
-  finishProfileTitle: "Finish your search profile",
-  finishProfileBody:
-    "Add at least one target role and the skills you want to use so matches can be narrowed.",
+  addTitlesTitle: "Add a target role",
+  addTitlesBody: "Choose at least one role so the search can find relevant opportunities.",
+  addSkillsTitle: "Add the skills you want to use",
+  addSkillsBody: "Add the skills that should matter when matching and ranking roles.",
   reviewJobsTitle: "Review matching jobs",
   reviewJobsBody:
     "Your search preferences are ready. Review matching roles and save the ones worth pursuing.",

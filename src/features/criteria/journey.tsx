@@ -9,9 +9,19 @@ interface JourneyCardProps {
 }
 
 export function JourneyCard({ criteria, onRefine, onOpenJobs }: JourneyCardProps) {
-  const needsFocus = criteria.targetTitles.length === 0 || criteria.skills.length === 0;
-  const title = needsFocus ? CRITERIA_COPY.finishProfileTitle : CRITERIA_COPY.reviewJobsTitle;
-  const body = needsFocus ? CRITERIA_COPY.finishProfileBody : CRITERIA_COPY.reviewJobsBody;
+  const needsTitles = criteria.targetTitles.length === 0;
+  const needsSkills = criteria.skills.length === 0;
+  const needsFocus = needsTitles || needsSkills;
+  const title = needsTitles
+    ? CRITERIA_COPY.addTitlesTitle
+    : needsSkills
+      ? CRITERIA_COPY.addSkillsTitle
+      : CRITERIA_COPY.reviewJobsTitle;
+  const body = needsTitles
+    ? CRITERIA_COPY.addTitlesBody
+    : needsSkills
+      ? CRITERIA_COPY.addSkillsBody
+      : CRITERIA_COPY.reviewJobsBody;
   const action = needsFocus ? CRITERIA_COPY.refineCriteria : CRITERIA_COPY.reviewJobs;
   const run = needsFocus ? onRefine : onOpenJobs;
 
