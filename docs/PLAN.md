@@ -46,6 +46,8 @@ confirmed while planning and must be checked against current docs before relying
 27. Progress and status UX
 28. Company interview intel ("know the gauntlet")
 29. Testing strategy (minimal, high-value)
+30. Audience invite ("try it right now")
+31. Speed strategy: precompute, don't cache
 
 ---
 
@@ -997,7 +999,7 @@ Global Definition of Done is in `AGENTS.md`.
 - Deliver: plugin package with skills + MCP connection (use `$plugin-creator` in Codex or
   `@plugin-creator` in ChatGPT Work) and a local marketplace entry; plugin name, description,
   starter prompts; tool-selection eval set (direct, indirect, negative prompts) in `docs/DEMO.md`;
-  the demo script with exact prompts; `scripts/smoke-prod.ts`.
+  the demo script with exact prompts; `scripts/smoke-prod.ts`; the public landing page + QR code (§30).
 - Done when: a fresh ChatGPT chat with the installed plugin completes the full demo script twice in
   a row.
 
@@ -1117,6 +1119,9 @@ conversation panel), plugin skills and scheduled tasks; the Decisions API for sc
 Workers + D1 with GitHub sign-in so each user's data is separate. Limits today: public ATS and
 remote-board feeds only (no LinkedIn), scores are probabilistic, one login provider. Next: skill-shift
 radar, adjacent roles, Indie mode. We're not being deprecated. We're being migrated."
+
+**Closing invite (last 10 seconds, §30):** QR code on screen → "It's live. Scan this, sign in with
+GitHub, and see where you are on the ladder. Go ahead, find out if you're deprecated."
 
 **Before stage:** `load_demo_data`, open a fresh chat, keep `wrangler tail` running on the laptop,
 hotspot ready, backup video queued.
@@ -1607,3 +1612,60 @@ under 10 seconds, all in vitest (Worker/D1 ones via `@cloudflare/vitest-pool-wor
 - Tests live next to code (`*.test.ts`), use the seed helpers, and never call the network.
 - A failing T1–T5 blocks merge. T6–T8 failures are fixed before the next deploy.
 - Bug found in a dry run → add one regression test only if it's in T1–T8 territory.
+
+---
+
+## 30. Audience invite ("try it right now")
+
+At the end of the demo Todd invites the room to use it live. That's a wow moment only if it works
+for 50 people at once, so plan for it.
+
+**Landing page (P0-F):** `GET /` on the Worker serves a single static page (no auth):
+- Name, tagline, the `@deprecated` joke, a one-paragraph pitch.
+- **"Add to ChatGPT" steps** with the MCP URL (`https://<worker>/mcp`) and a copy button: ChatGPT
+  desktop → Plugins → **+** → Add custom MCP server → paste URL → OAuth → Create as plugin → sign in
+  with GitHub. **VERIFY** what audience accounts need (paid plan? custom MCP servers allowed on their
+  plan/workspace?) and state it on the page so nobody gets stuck silently.
+- 3 starter prompts to paste ("Where am I on the AI-Native Ladder?", "Find me remote staff
+  engineer roles", "What's the interview loop at OpenAI like?").
+- Link to the GitHub repo. The QR code points to this page (generate a static SVG at build time;
+  no external QR service).
+
+**Load and cost guardrails for a room full of new users:**
+- `DECISIONS_DAILY_JOB_CAP` per user (default 300) plus **`DECISIONS_GLOBAL_DAILY_CAP`** (e.g. 20,000
+  jobs/day) → beyond it, heuristic scoring with the usual banner. Same pattern for the optional
+  dossier (`AGENTS_GLOBAL_DAILY_CAP`).
+- Adzuna is called per distinct (query, location), cached for 6h in the `jobs` catalog (keyed by a
+  `fetch_runs` entry), so 50 users in Salt Lake City cost one call, not 50.
+- Workers Free limits (100k requests/day, D1 100k row writes/day) are fine for a demo room; keep
+  the $5 upgrade ready if CPU errors appear.
+- New users start empty, not with Todd's data: onboarding runs automatically on first tool call
+  (`NEEDS_CRITERIA` → onboarding skill), and the Level tab works with zero setup (fastest "aha").
+- Abuse: input size caps (already in §14), per-user rate limit on write tools (e.g. 60/min),
+  `reset_my_data` available to everyone, and a `DISABLE_SIGNUPS=1` kill switch if anything goes
+  sideways.
+
+---
+
+## 31. Speed strategy: precompute, don't cache
+
+Rule: **anything slow runs before the user asks, and its result is stored in D1.** No separate cache
+layer (no KV/Redis caching, no TTL invalidation logic) during the hackathon. The database *is* the
+cache, and staleness is shown honestly ("updated 2h ago").
+
+| Slow thing | Where it's precomputed/stored | When it runs |
+|---|---|---|
+| Fetching job feeds | `jobs` catalog | Cron (rotating batches), Adzuna per (query, location) with 6h freshness |
+| Fit scoring | `job_matches.fit_score` keyed by `criteria_version` | In the background right after `update_criteria`/`save_resume` (`ctx.waitUntil`), after each cron fetch for users active in the last 7 days, and on demand in `search_jobs` for any remaining top candidates |
+| Interview intel | `notes.kind='interview_intel'` | Once per company; "Refresh" re-runs it |
+| AI news | `news_items` | Cron |
+| Daily brief data | Assembled from the stored tables (fast reads) | On request |
+| Ladder assessment | `ladder_assessments` | On request (one small Decisions call, ~1–2s) |
+
+Request-time behavior: tools return stored results immediately; if work is still pending, include
+`progress` (§27) and let the panel poll `get_task_status`. If `ctx.waitUntil` work is cut short
+(**VERIFY** Workers limits for background work after a response), the next cron or `search_jobs` call
+picks up the unscored remainder, so nothing is lost.
+
+Decide-after-the-fact: only add a real cache layer if dry runs show a specific read is slow (e.g.
+panel opening > 2s). Measure first with `wrangler tail` timings.
