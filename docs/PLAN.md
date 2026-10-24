@@ -395,6 +395,16 @@ saved_events
   notes, created_at, updated_at
   INDEX(user_id, starts_at)
 
+learning_entries                    -- first-class learning journal; quick references, not CRM notes
+  id, user_id,
+  kind text default 'reference'     -- 'reference'|'talk'|'course'|'article'|'experiment'|'reflection'
+  title text, body text (markdown), source_url text NULL, source_title text NULL, author text NULL
+  event_id text NULL FK → saved_events.id
+  occurred_at int
+  tags json string[], takeaways json string[], follow_up_questions json string[], next_actions json string[]
+  pinned int default 0, archived int default 0, created_at, updated_at
+  INDEX(user_id, occurred_at), INDEX(user_id, kind), INDEX(user_id, pinned)
+
 user_state                          -- small per-user key/value for UI and brief bookkeeping
   user_id, key, value json, updated_at     PK(user_id, key)
   -- e.g. 'brief.last_seen_at', 'panel.last_tab', 'onboarding.done'
@@ -418,7 +428,7 @@ api_usage                           -- spend guardrails
 ```
 
 **Reset semantics (`reset_my_data`):** delete the user's rows from `job_matches`, `contacts`,
-`notes`, `saved_events`, `user_state`, `ladder_assessments`, `ladder_quests`, `api_usage`; reset `profiles` to an empty row (bump
+`notes`, `learning_entries`, `saved_events`, `user_state`, `ladder_assessments`, `ladder_quests`, `api_usage`; reset `profiles` to an empty row (bump
 `criteria_version`). Keep `users` and `auth_identities`. Never touch global tables.
 
 ---
@@ -638,6 +648,9 @@ All tools require OAuth unless noted. `RO` = readOnlyHint, `D` = destructiveHint
 | `set_bridge_mode` | P1 | — | Toggle Bridge mode. |
 | `list_contract_leads` | P1 | RO, panel | Contract/freelance matches (HN freelancer threads, contract jobs). |
 | `save_event` / `list_events` / `update_event` | P1 | — / RO / — | Events found by ChatGPT web search or pasted URLs. |
+| `save_learning_entry` / `list_learning_entries` | P1 | — / RO | Capture and browse talks, links, takeaways, questions, and next actions. |
+| `get_learning_entry` / `update_learning_entry` | P1 | RO / — | Read or revise one journal entry owned by the caller. |
+| `search_learning_entries` | P1 | RO, panel | Find prior learning by title, body, source, tag, or takeaway. |
 | `get_ai_news` | P1 | RO | `{since?, limit?, topics?}` news items for ChatGPT to summarize. |
 | `get_brief_data` | P1 | RO, panel | Everything for the daily brief since last seen. |
 | `mark_brief_seen` | P1 | — | Advance `brief.last_seen_at`. |
@@ -1027,6 +1040,11 @@ Global Definition of Done is in `AGENTS.md`.
   `assess_ai_level` (Decisions), `get_ladder`, `update_quest`, static quest catalog. Done when a
   self-assessment produces a level with dimension scores and three next-level quests, and
   completing a quest updates progress. *Strong demo candidate; prioritize right after P1-D.*
+- **P1-I Learning Journal** · Owns `features/learning/*`, `skills/learning-journal/`. Capture a
+  presentation, course, article, experiment, or reflection as a structured quick-reference entry
+  with source links, takeaways, follow-up questions, and next actions. Browse and search prior
+  learning through the panel. Done when a user can save notes from a tech talk and retrieve the
+  relevant entry later without mixing it into CRM notes.
 - **P1-G (optional) Agents API company dossier** · Owns `features/dossier/*`. `run_company_dossier`
   → Agents API session with web search → structured dossier (what they do, recent news, eng
   stack/culture signals, who to reach out to as role types, not scraped people) → `notes.kind='dossier'`.
@@ -1067,6 +1085,7 @@ sequences · email digests · public launch (OpenAI plugin submission + review).
 | `features/brief/*`, `skills/daily-brief` | P1-D |
 | `features/calculators/*` | P1-E |
 | `features/ladder/*`, `skills/level-up` | P1-H |
+| `features/learning/*`, `skills/learning-journal` | P1-I |
 | `features/dossier/*` | P1-G |
 
 Model-agnostic: any agent (Codex, Claude Code, others) can take any task. Give each agent:

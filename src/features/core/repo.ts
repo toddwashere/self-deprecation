@@ -6,6 +6,7 @@ import {
   jobMatches,
   ladderAssessments,
   ladderQuests,
+  learningEntries,
   notes,
   profiles,
   savedEvents,
@@ -98,6 +99,7 @@ export async function resetUserData(db: DB, userId: string, now: number): Promis
   await db.delete(jobMatches).where(eq(jobMatches.userId, userId));
   await db.delete(contacts).where(eq(contacts.userId, userId));
   await db.delete(notes).where(eq(notes.userId, userId));
+  await db.delete(learningEntries).where(eq(learningEntries.userId, userId));
   await db.delete(savedEvents).where(eq(savedEvents.userId, userId));
   await db.delete(userState).where(eq(userState.userId, userId));
   await db.delete(ladderAssessments).where(eq(ladderAssessments.userId, userId));

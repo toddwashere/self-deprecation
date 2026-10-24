@@ -5,6 +5,7 @@ const tables = [
   "ladder_quests",
   "ladder_assessments",
   "user_state",
+  "learning_entries",
   "saved_events",
   "notes",
   "contacts",

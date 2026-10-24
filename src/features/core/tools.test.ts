@@ -3,7 +3,7 @@ import type { D1Migration } from "@cloudflare/vitest-plugin";
 import { eq, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createDb } from "../../db/client";
-import { authIdentities, contacts, jobs, profiles, users } from "../../db/schema";
+import { authIdentities, contacts, jobs, learningEntries, profiles, users } from "../../db/schema";
 import type { Env } from "../../env";
 import { createLogger } from "../../lib/log";
 import type { ToolContext } from "../../mcp/types";
@@ -59,6 +59,22 @@ async function seedUsers() {
     { id: "contact-a", userId: "user-a", name: "Delete me", createdAt: now, updatedAt: now },
     { id: "contact-b", userId: "user-b", name: "Keep me", createdAt: now, updatedAt: now },
   ]);
+  await db.insert(learningEntries).values([
+    {
+      id: "learning-a",
+      userId: "user-a",
+      title: "Private learning",
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: "learning-b",
+      userId: "user-b",
+      title: "Keep this learning",
+      createdAt: now,
+      updatedAt: now,
+    },
+  ]);
   await db.insert(jobs).values({
     id: "global-job",
     source: "seed",
@@ -85,6 +101,12 @@ describe("core destructive tools", () => {
     expect(reset.isError).not.toBe(true);
     expect(await db.select().from(contacts).where(eq(contacts.userId, "user-a"))).toEqual([]);
     expect(await db.select().from(contacts).where(eq(contacts.userId, "user-b"))).toHaveLength(1);
+    expect(
+      await db.select().from(learningEntries).where(eq(learningEntries.userId, "user-a")),
+    ).toEqual([]);
+    expect(
+      await db.select().from(learningEntries).where(eq(learningEntries.userId, "user-b")),
+    ).toHaveLength(1);
     expect(
       await db.select().from(authIdentities).where(eq(authIdentities.userId, "user-a")),
     ).toHaveLength(1);

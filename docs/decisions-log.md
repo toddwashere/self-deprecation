@@ -96,3 +96,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 ## 2026-10-24 01:49 — Generated panel freeze exception
 
 - `src/mcp/panel-html.generated.ts` is the deterministic output of `npm run build:web`; every feature panel must refresh it for deployment. It is the sole build-only exception to the frozen `src/mcp/*` ownership rule: feature branches may commit changes produced by `scripts/embed-panel.mjs`, but must never hand-edit the file. Foundation tool tests assert the six core tools remain present instead of freezing the total tool count as P0/P1 features register their own tools.
+
+## 2026-10-24 10:25 — Learning Journal schema reservation
+
+- Todd approved a future first-class Learning Journal for talks, courses, articles, experiments, and reflections. It is a quick-reference knowledge record with source links, takeaways, follow-up questions, and next actions; it is intentionally distinct from CRM-oriented generic notes.
+- Foundation reserves `learning_entries` before the F9 schema freeze and includes it in caller-isolated reset semantics. No journal tools or panel surface ship in this amendment.
+- P1-I owns the future `features/learning/*` implementation and `skills/learning-journal/`; its tools must keep user identity in `ToolContext` and satisfy T1 isolation.

@@ -29,6 +29,7 @@ describe("foundation schema", () => {
       "contacts",
       "notes",
       "saved_events",
+      "learning_entries",
       "user_state",
       "ladder_assessments",
       "ladder_quests",

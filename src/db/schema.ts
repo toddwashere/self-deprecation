@@ -219,6 +219,42 @@ export const savedEvents = sqliteTable(
   (table) => [index("saved_events_user_start_idx").on(table.userId, table.startsAt)],
 );
 
+export const learningEntries = sqliteTable(
+  "learning_entries",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull().default("reference"),
+    title: text("title").notNull(),
+    body: text("body"),
+    sourceUrl: text("source_url"),
+    sourceTitle: text("source_title"),
+    author: text("author"),
+    eventId: text("event_id").references(() => savedEvents.id, { onDelete: "set null" }),
+    occurredAt: integer("occurred_at"),
+    tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    takeaways: text("takeaways", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    followUpQuestions: text("follow_up_questions", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    nextActions: text("next_actions", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+    archived: integer("archived", { mode: "boolean" }).notNull().default(false),
+    ...timestamps,
+  },
+  (table) => [
+    index("learning_entries_user_occurred_idx").on(table.userId, table.occurredAt),
+    index("learning_entries_user_kind_idx").on(table.userId, table.kind),
+    index("learning_entries_user_pinned_idx").on(table.userId, table.pinned),
+  ],
+);
+
 export const userState = sqliteTable(
   "user_state",
   {
@@ -294,6 +330,7 @@ export const schema = {
   contacts,
   notes,
   savedEvents,
+  learningEntries,
   userState,
   ladderAssessments,
   ladderQuests,
@@ -311,6 +348,7 @@ export const schemaTableNames = [
   "contacts",
   "notes",
   "saved_events",
+  "learning_entries",
   "user_state",
   "ladder_assessments",
   "ladder_quests",
