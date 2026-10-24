@@ -18,7 +18,8 @@ describe("workspace navigation", () => {
     ]);
   });
 
-  it("keeps occasional growth assessment out of primary navigation", () => {
+  it("keeps occasional utilities out of primary navigation", () => {
     expect(TABS.find((tab) => tab.id === "level")).toMatchObject({ enabled: true, nav: false });
+    expect(TABS.find((tab) => tab.id === "money")).toMatchObject({ enabled: true, nav: false });
   });
 });

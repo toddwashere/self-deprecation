@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { TodayPanel } from "../../src/features/brief/panel";
+import { MoneyPanel } from "../../src/features/calculators/panel";
 import { SettingsPanel } from "../../src/features/core/panel";
 import { ProfilePanel } from "../../src/features/criteria/panel";
 import { PeoplePanel } from "../../src/features/crm/panel";
@@ -20,6 +21,7 @@ export type TabId =
   | "news"
   | "learning"
   | "level"
+  | "money"
   | "profile"
   | "settings";
 
@@ -40,6 +42,7 @@ export const TABS: TabDef[] = [
   { id: "events", label: "Events", component: EventsPanel, enabled: true },
   { id: "news", label: "News", component: NewsPanel, enabled: true },
   { id: "level", label: "Level", component: LevelPanel, enabled: true, nav: false },
+  { id: "money", label: "Money", component: MoneyPanel, enabled: true, nav: false },
   { id: "profile", label: "Profile", component: ProfilePanel, enabled: true },
   { id: "settings", label: "Settings", component: SettingsPanel, enabled: true },
 ];
