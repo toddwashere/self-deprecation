@@ -265,9 +265,23 @@ export async function runBoundedDecision(
   const timeoutMs = Math.min(6_000, Math.max(1_000, options.timeoutMs ?? 6_000));
   const decide =
     options.decide ?? ((input, signal) => defaultDecide(env.OPENAI_API_KEY, input, signal));
-  const response = await decide(request, AbortSignal.timeout(timeoutMs));
-  await options.recordUsage?.(response.usage.input_tokens);
-  return response;
+  const signal = AbortSignal.timeout(timeoutMs);
+  let rejectTimeout: (() => void) | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    rejectTimeout = () => reject(new Error("Decisions timed out"));
+    if (signal.aborted) rejectTimeout();
+    else signal.addEventListener("abort", rejectTimeout, { once: true });
+  });
+  const operation = (async () => {
+    const response = await decide(request, signal);
+    await options.recordUsage?.(response.usage.input_tokens);
+    return response;
+  })();
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    if (rejectTimeout) signal.removeEventListener("abort", rejectTimeout);
+  }
 }
 
 export async function smokeScoreBatch(
