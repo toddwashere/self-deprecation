@@ -286,7 +286,7 @@ describe("ladder tools", () => {
     expect(usage.every((row) => row.inputTokens === 30)).toBe(true);
   });
 
-  it("releases a failed assessment reservation so a later attempt can use it", async () => {
+  it("retains an ordinary failed-request reservation because upstream usage is uncertain", async () => {
     const failed = findTool(
       createLadderTools({
         decide: async () => {
@@ -302,6 +302,6 @@ describe("ladder tools", () => {
         .select()
         .from(apiUsage)
         .where(and(eq(apiUsage.userId, "ladder-a"), eq(apiUsage.api, "decisions_ladder"))),
-    ).toHaveLength(0);
+    ).toHaveLength(1);
   });
 });

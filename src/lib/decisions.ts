@@ -85,11 +85,13 @@ export type Decide = (request: DecisionRequest, signal: AbortSignal) => Promise<
 
 export class DecisionExecutionError extends Error {
   readonly phase: "request" | "usage";
+  readonly usagePossible: boolean;
 
-  constructor(phase: "request" | "usage", message: string, cause?: unknown) {
+  constructor(phase: "request" | "usage", message: string, cause?: unknown, usagePossible = true) {
     super(message, { cause });
     this.name = "DecisionExecutionError";
     this.phase = phase;
+    this.usagePossible = usagePossible;
   }
 }
 
@@ -271,7 +273,10 @@ export async function runBoundedDecision(
   request: DecisionRequest,
   options: BoundedDecisionOptions = {},
 ): Promise<DecisionResponse> {
-  if (env.DECISIONS_ENABLED !== "1") throw new Error("Decisions disabled");
+  if (env.DECISIONS_ENABLED !== "1")
+    throw new DecisionExecutionError("request", "Decisions disabled", undefined, false);
+  if (!options.decide && !env.OPENAI_API_KEY)
+    throw new DecisionExecutionError("request", "OpenAI API key unavailable", undefined, false);
   const timeoutMs = Math.min(6_000, Math.max(1_000, options.timeoutMs ?? 6_000));
   const decide =
     options.decide ?? ((input, signal) => defaultDecide(env.OPENAI_API_KEY, input, signal));
@@ -290,6 +295,7 @@ export async function runBoundedDecision(
       await options.recordUsage?.(response.usage.input_tokens);
       return response;
     } catch (error) {
+      if (error instanceof DecisionExecutionError) throw error;
       const message = error instanceof Error ? error.message : "Decisions failed";
       throw new DecisionExecutionError(phase, message, error);
     }
