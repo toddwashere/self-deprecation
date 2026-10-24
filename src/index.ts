@@ -3,6 +3,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import { githubAuthHandler } from "./auth/github-handler";
 import { localAuthProps, resolveUserId } from "./auth/guards";
 import type { AuthProps } from "./auth/types";
+import { dispatchCron } from "./cron/dispatcher";
 import type { Env } from "./env";
 import { createServer } from "./mcp/server";
 
@@ -76,5 +77,8 @@ export default {
     }
 
     return createOAuthProvider(env).fetch(request, env, ctx);
+  },
+  async scheduled(controller, env): Promise<void> {
+    await dispatchCron(env, controller.cron);
   },
 } satisfies ExportedHandler<Env>;
