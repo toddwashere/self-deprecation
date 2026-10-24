@@ -5,12 +5,12 @@
 - Replace the People placeholder with searchable contacts, selected-contact details, newest-first notes, add forms, follow-up editing, and ChatGPT outreach handoff. Use only Bridge and shared UI components, with loading/empty/error/saving states and live tool-output refresh.
 - Keep public-safe data and literal labels; keep one light joke in feature copy. No external API calls or server generation.
 
-Files: `src/features/crm/{index.ts,repo.ts,tools.ts,panel.tsx,copy.ts,panel.css,repo.test.ts,tools.test.ts}` and this brief.
+Files: `src/features/crm/{index.ts,repo.ts,tools.ts,panel.tsx,copy.ts,panel.css,panel-state.ts,panel-state.test.ts,repo.test.ts,tools.test.ts}` and this brief.
 
 Tool contracts (all objects omit userId):
 - `add_contact`: name + optional company/title/email/linkedinUrl/whereMet/tags/lastContactedAt/followUpAt → `{tab:'people',contact}`.
 - `update_contact`: contactId + partial contact fields, nullable optional fields clear values → `{tab:'people',contact}`.
-- `list_contacts`: query?, contactId?, limit? (default 50, max 100), offset? → `{tab:'people',contacts,hasMore}`.
+- `list_contacts`: query?, contactId?, limit? (default 50, max 100), offset? → `{tab:'people',contacts,hasMore,filters:{query,contactId,limit,offset}}`.
 - `add_note`: subjectType (contact/company/job/event/general), subjectId?, subjectLabel?, kind?, title?, body → `{tab:'people',note}`. Verify contact ownership before attaching.
 - `list_notes`: subjectType?, subjectId?, subjectLabel?, limit?, offset? → `{tab:'people',notes,hasMore}`. Notes support saved prep/intel kinds on read without narrowing shared storage.
 - Contact/note objects expose all useful fields and timestamps, excluding userId and extra.
@@ -19,4 +19,4 @@ Tests (TDD): T1 shared isolation helper for contact and note list/update/delete 
 
 Questions: [local] Use epoch milliseconds for timestamps; date form uses local midnight. [local] Literal substring search across name/company/title/whereMet/tags/email, ordered alphabetically. [contract] Integrator updates frozen central registry snapshot and docs/TOOLS.md for the five tool names. Deployment/ChatGPT connection and final natural-language eval are integration checks.
 
-Verification: observed five failing CRM contract tests against the empty registration, then all eight CRM tests passed. Final Vite production build, typecheck, and lint pass. Full suite: 35 pass; sole failure is the frozen registry tool-name snapshot requested above. MCP Inspector CLI (`DEV_AUTH_BYPASS=1`, isolated local D1) passed valid/invalid calls for all five tools and NOT_FOUND; evidence `/private/tmp/p0d-inspector-smoke.json`. Browser checks used the two demo contacts and synthetic notes: light/dark, list/detail/search, add contact/note, follow-up edit, empty/error/loading/saving. Screenshots: `/private/tmp/p0d-people-{populated,dark,empty,error,loading,saving,search}.png`. Temporary harness removed. Known gaps: integrator-owned snapshot, tool catalog, embedded-panel rebuild, deploy/ChatGPT natural-language evaluation, and independent review.
+Verification: observed original CRM failures, then review regressions fail for foreign-event attachment, absent normalized filters, and discarded initial/search/contact/page state. Final CRM tests: 14 pass, including T1 event ownership and four extracted-state regressions. Final Vite build, typecheck, and lint pass. Full suite: 41 pass; sole failure remains the frozen registry tool-name snapshot. Inspector passed all five tools with valid/invalid inputs (`/private/tmp/p0d-inspector-smoke.json`); review rerun confirmed foreign/missing event NOT_FOUND, owner event/external-label success, and normalized filters (`/private/tmp/p0d-review-inspector.json`). Browser verified original states plus initial filtered-page preservation, query/offset retention on refresh/continuation, and contactId selection/refresh. Screenshots: `/private/tmp/p0d-people-{populated,dark,empty,error,loading,saving,search,filtered,contact-filter}.png`. Temporary harness removed. Known gaps: integrator-owned snapshot/catalog/embed rebuild, deploy/ChatGPT evaluation, and review recheck.

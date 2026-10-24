@@ -52,16 +52,14 @@ async function person() {
 
 describe("CRM tool contracts", () => {
   it("T1: event notes require the caller's saved event; external events use a label", async () => {
-    await db
-      .insert(savedEvents)
-      .values({
-        id: "event-a",
-        userId: "a",
-        title: "Synthetic meetup",
-        source: "manual",
-        createdAt: now,
-        updatedAt: now,
-      });
+    await db.insert(savedEvents).values({
+      id: "event-a",
+      userId: "a",
+      title: "Synthetic meetup",
+      source: "manual",
+      createdAt: now,
+      updatedAt: now,
+    });
     error(
       await call(
         "add_note",
