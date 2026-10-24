@@ -31,5 +31,5 @@
 ## Open questions
 
 - `[contract]` The frozen registry already points at both HN adapters and the cron already selects them; the integrator must update the tool snapshot/`docs/TOOLS.md` and add the Bridge chip/filter to Jobs UI.
-- `[contract]` Official HN Algolia docs still provide `/search_by_date`, `/items/:id`, anonymous access, and 10,000 requests/hour/IP. The dedicated Freelancer thread stopped after October 2025; use the latest available thread with its visible age and supplement it with current contract-tagged Who-is-hiring posts.
+- `[contract]` Official HN Algolia docs still provide `/search_by_date`, `/items/:id`, anonymous access, and 10,000 requests/hour/IP. Dedicated Freelancer threads are now community-run; query recent comments and accept only posts beginning `SEEKING FREELANCER`, preserving each comment's visible age.
 - `[local]` Read-only listing never triggers a network refresh. Cron owns ingestion, keeping the tool fast and honest about source freshness.

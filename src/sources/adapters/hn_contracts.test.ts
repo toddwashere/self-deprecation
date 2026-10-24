@@ -41,11 +41,19 @@ describe("HN contract sources", () => {
   });
 
   it("keeps only employer-side Seeking Freelancer posts and preserves their real age", async () => {
+    let requests = 0;
     const adapter = createHnFreelanceAdapter({
-      fetcher: recorded(freelanceFixture.search, freelanceFixture.item),
+      fetcher: async (input) => {
+        requests += 1;
+        const url = new URL(input);
+        expect(url.pathname).toContain("search_by_date");
+        expect(url.searchParams.get("tags")).toBe("comment");
+        return Response.json(freelanceFixture.comments);
+      },
     });
     const jobs = await adapter.fetch(env, { limit: 10 });
 
+    expect(requests).toBe(1);
     expect(jobs).toHaveLength(1);
     expect(jobs[0]).toMatchObject({
       source: "hn_freelance",
@@ -88,5 +96,16 @@ describe("HN contract sources", () => {
     });
     expect(await adapter.fetch(env, { limit: 0 })).toEqual([]);
     expect(await adapter.fetch(env, { since: 1790867000001 })).toEqual([]);
+  });
+
+  it("does not require the legacy whoishiring author for community-run freelancer threads", async () => {
+    const tags: string[] = [];
+    const fetcher = async (input: string | URL) => {
+      tags.push(new URL(input).searchParams.get("tags") ?? "");
+      return Response.json({ hits: [] });
+    };
+    await createHnFreelanceAdapter({ fetcher }).fetch(env, {});
+    await createHnHiringAdapter({ fetcher }).fetch(env, {});
+    expect(tags).toEqual(["comment", "story,author_whoishiring"]);
   });
 });

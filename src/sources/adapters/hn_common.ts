@@ -99,6 +99,7 @@ export function parseHnComment(
 export function createHnContractAdapter(config: {
   id: "hn_hiring" | "hn_freelance";
   query: string;
+  tags: "story" | "story,author_whoishiring";
   title: RegExp;
   include: (text: string) => boolean;
   options?: HnAdapterOptions;
@@ -109,7 +110,7 @@ export function createHnContractAdapter(config: {
     async fetch(_env, opts) {
       const searchUrl = new URL("https://hn.algolia.com/api/v1/search_by_date");
       searchUrl.searchParams.set("query", config.query);
-      searchUrl.searchParams.set("tags", "story,author_whoishiring");
+      searchUrl.searchParams.set("tags", config.tags);
       searchUrl.searchParams.set("hitsPerPage", "20");
       const request = {
         fetcher: config.options?.fetcher,
