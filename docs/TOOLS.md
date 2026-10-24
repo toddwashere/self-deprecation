@@ -16,6 +16,5 @@ panel metadata.
 
 ## Known gaps
 
-- The F4 panel resource is still the connection placeholder. F5 replaces it with the embedded React
-  shell.
-- Core Reset and Load Demo tools arrive in F6.
+- Core Reset and Load Demo tools arrive in F6; the F5 Settings buttons already render their
+  loading, completion, and error states.

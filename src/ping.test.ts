@@ -156,8 +156,12 @@ describe("F1 Worker", () => {
       uri: UI_URI,
       mimeType: MCP_APP_MIME,
     });
-    expect(resourceResult.contents[0].text).toContain("Hello from Self-Deprecation");
-    expect(resourceResult.contents[0].text).toContain("Connection healthy");
+    expect(resourceResult.contents[0].text).toContain("Your career migration guide");
+    expect(resourceResult.contents[0].text).toContain("Load demo data");
+    expect(new TextEncoder().encode(resourceResult.contents[0].text).byteLength).toBeLessThan(
+      400_000,
+    );
+    expect(resourceResult.contents[0].text).not.toMatch(/<script[^>]+src=/);
   });
 
   it("returns the bypass profile locally and challenges anonymous production calls", async () => {

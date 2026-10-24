@@ -54,3 +54,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Feature modules own declarative `ToolDef` arrays; `src/mcp/server.ts` is the only registration path and centrally adds `mcp:read`, invocation status, annotations, and the shared panel URI. The small `as never` adapter is confined to this registrar because the SDK's static generic overload cannot preserve heterogeneous runtime zod schemas.
 - All 13 planned feature modules are predeclared, so later feature work changes only its own folder. The T4 contract and MCP integration tests cover unique snake-case names, descriptions, three required annotations, status length, OAuth metadata, tool-list snapshot, and typed current results.
 - The canonical resource URI is now `ui://self-deprecation/panel`; F5 will replace its placeholder HTML with the embedded React shell.
+
+## 2026-10-24 00:54 — F5 embedded panel and bridge
+
+- Vite produces one self-contained HTML resource and `scripts/embed-panel.mjs` converts that exact artifact into the Worker module. The measured panel is 233,852 bytes raw / 74.37 KB gzip, below the 400 KB target, with no external script or network dependency.
+- `web/src/bridge.ts` is the only host boundary. It implements the MCP Apps 2026-01-26 view handshake and JSON-RPC methods directly, then falls back to `window.openai` for ChatGPT-specific widget state and legacy host calls. Using the full view SDK was tested but rejected locally because it expanded the panel to 686.95 KB; the server-side MCP Apps packages remain unchanged.
+- The visual browser check passed for the shell, ten-tab navigation, disabled P1 states, Today empty state, Settings loading/error states, responsive labels, and hope-line footer. F6 activates the already-wired Reset and Load Demo buttons.

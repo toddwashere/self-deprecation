@@ -1,7 +1,21 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
   "files": {
-    "includes": ["src/**/*.ts", "*.json", "*.jsonc", "*.ts", "docs/tasks/F.md"]
+    "includes": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "!src/mcp/panel-html.generated.ts",
+      "web/src/**/*.ts",
+      "web/src/**/*.tsx",
+      "web/src/**/*.css",
+      "web/*.ts",
+      "scripts/*.ts",
+      "scripts/*.mjs",
+      "*.json",
+      "*.jsonc",
+      "*.ts",
+      "docs/tasks/F.md"
+    ]
   },
   "formatter": {
     "enabled": true,
