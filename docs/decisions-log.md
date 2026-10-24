@@ -84,3 +84,7 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 - The empty dashboard is not an acceptable first-run experience. Before the Foundation freeze, `open_dashboard` may add first-run Profile routing and `src/mcp/server.ts` may add server instructions. P0-B remains the owner of all criteria tools, Profile onboarding UI, and `skills/onboarding/`; this logged exception prevents later agents from editing frozen registry, bridge, or tab contracts.
 - Chosen experience: an empty Profile offers **Get started** (conversational criteria setup) or **See demo** (public-safe demo load). Do not auto-run on connection. Natural-language setup requests and future `NEEDS_CRITERIA` results enter the same flow.
+
+## 2026-10-24 01:42 — Cloudflare types compatibility repair
+
+- `@cloudflare/workers-types@5.20261024.1` publishes both a module-style `index.ts` and a global `index.d.ts` without a package `types` entry. TypeScript's bundler resolution selected `index.ts`, so the Foundation globals `D1Database` and `KVNamespace` disappeared even though the declaration file was installed. Pinning the compiler type entry to `@cloudflare/workers-types/index.d.ts` restores the intended Worker globals without weakening type safety or changing runtime code. This is a Foundation dependency compatibility repair made before the F9 tag.
