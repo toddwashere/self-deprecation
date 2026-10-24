@@ -113,7 +113,7 @@ export function EventsPanel({ bridge }: { bridge: Bridge }) {
             disabled={loading || savingId !== null}
             onClick={() => void load()}
           >
-            Refresh
+            {eventsCopy.refresh}
           </Button>
         </div>
       </div>
@@ -189,12 +189,16 @@ export function EventsPanel({ bridge }: { bridge: Bridge }) {
                       {event.startsAt == null
                         ? eventsCopy.dateUnknown
                         : new Date(event.startsAt).toLocaleString(undefined, {
-                            dateStyle: "medium",
-                            timeStyle: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            timeZoneName: "short",
                           })}
                       {event.endsAt == null
                         ? ""
-                        : ` – ${new Date(event.endsAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`}
+                        : ` – ${new Date(event.endsAt).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" })}`}
                     </p>
                     {event.city || event.venue ? (
                       <p>{[event.venue, event.city].filter(Boolean).join(" · ")}</p>
