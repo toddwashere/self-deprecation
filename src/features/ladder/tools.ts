@@ -4,11 +4,12 @@ import { fail, ok } from "../../mcp/result";
 import type { ToolDef } from "../../mcp/types";
 import { questsForLevel } from "./quests";
 import {
-  getLadderDecisionUnitsSince,
+  completeLadderDecisionUsage,
   getLatestAssessment,
   listAssessments,
   listQuestStates,
-  recordLadderDecisionUsage,
+  releaseLadderDecisionUsage,
+  reserveLadderDecisionUsage,
   saveAssessment,
   updateQuestState,
 } from "./repo";
@@ -58,7 +59,7 @@ const updateInputSchema = z
   .object({
     questId: z.string().trim().min(1).max(100),
     status: z.enum(["todo", "done"]),
-    evidence: z.string().trim().max(2_000).optional(),
+    evidence: z.string().trim().max(2_000).nullable().optional(),
   })
   .strict();
 const invalid = () =>
@@ -127,8 +128,21 @@ export function createLadderTools(options: { decide?: Decide } = {}): ToolDef[] 
         const now = ctx.now().getTime();
         const result = await assessLadder(ctx.env, parsed.data, {
           decide: options.decide,
-          usedToday: await getLadderDecisionUnitsSince(ctx.db, ctx.userId, dayStart(now)),
-          recordUsage: (tokens) => recordLadderDecisionUsage(ctx.db, ctx.userId, tokens, now),
+          reserveUsage: async () => {
+            const reservationId = await reserveLadderDecisionUsage(
+              ctx.db,
+              ctx.userId,
+              dayStart(now),
+              now,
+            );
+            return reservationId
+              ? {
+                  complete: (tokens: number) =>
+                    completeLadderDecisionUsage(ctx.db, ctx.userId, reservationId, tokens),
+                  release: () => releaseLadderDecisionUsage(ctx.db, ctx.userId, reservationId),
+                }
+              : undefined;
+          },
         });
         await saveAssessment(ctx.db, ctx.userId, { ...result, answers: parsed.data }, now);
         const output = await view(ctx);
@@ -187,7 +201,7 @@ export function createLadderTools(options: { decide?: Decide } = {}): ToolDef[] 
           quest.questId,
           quest.level,
           parsed.data.status,
-          parsed.data.evidence ?? null,
+          parsed.data.evidence,
           ctx.now().getTime(),
         );
         return ok(

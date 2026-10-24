@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { apiUsage, ladderAssessments, ladderQuests } from "../../db/schema";
 
@@ -70,22 +70,28 @@ export async function updateQuestState(
   questId: string,
   level: number,
   status: "todo" | "done",
-  evidence: string | null,
+  evidence: string | null | undefined,
   now: number,
 ) {
   const values = {
     level,
     status,
-    evidence,
     completedAt: status === "done" ? now : null,
     updatedAt: now,
   };
+  const updateValues = evidence === undefined ? values : { ...values, evidence };
   await db
     .insert(ladderQuests)
-    .values({ id: crypto.randomUUID(), userId, questId, ...values })
+    .values({
+      id: crypto.randomUUID(),
+      userId,
+      questId,
+      ...values,
+      evidence: evidence ?? null,
+    })
     .onConflictDoUpdate({
       target: [ladderQuests.userId, ladderQuests.questId],
-      set: values,
+      set: updateValues,
       setWhere: eq(ladderQuests.userId, userId),
     });
   return db
@@ -95,33 +101,55 @@ export async function updateQuestState(
     .get();
 }
 
-export async function getLadderDecisionUnitsSince(db: DB, userId: string, since: number) {
-  const row = await db
-    .select({ units: sql<number>`coalesce(sum(${apiUsage.units}), 0)` })
-    .from(apiUsage)
-    .where(
-      and(
-        eq(apiUsage.userId, userId),
-        eq(apiUsage.api, "decisions_ladder"),
-        gte(apiUsage.createdAt, since),
-      ),
-    )
-    .get();
-  return Number(row?.units ?? 0);
-}
-
-export async function recordLadderDecisionUsage(
+// D1 executes this conditional INSERT as one atomic statement across Worker isolates.
+export async function reserveLadderDecisionUsage(
   db: DB,
   userId: string,
-  inputTokens: number,
+  since: number,
   now: number,
+  cap = 3,
+): Promise<string | null> {
+  const id = crypto.randomUUID();
+  const result = await db.run(sql`
+    INSERT INTO api_usage (id, user_id, api, units, input_tokens, created_at)
+    SELECT ${id}, ${userId}, 'decisions_ladder', 1, 0, ${now}
+    WHERE (
+      SELECT coalesce(sum(units), 0)
+      FROM api_usage
+      WHERE user_id = ${userId}
+        AND api = 'decisions_ladder'
+        AND created_at >= ${since}
+    ) < ${cap}
+  `);
+  return result.meta.changes === 1 ? id : null;
+}
+
+export async function completeLadderDecisionUsage(
+  db: DB,
+  userId: string,
+  reservationId: string,
+  inputTokens: number,
 ) {
-  await db.insert(apiUsage).values({
-    id: crypto.randomUUID(),
-    userId,
-    api: "decisions_ladder",
-    units: 1,
-    inputTokens,
-    createdAt: now,
-  });
+  await db
+    .update(apiUsage)
+    .set({ inputTokens })
+    .where(
+      and(
+        eq(apiUsage.id, reservationId),
+        eq(apiUsage.userId, userId),
+        eq(apiUsage.api, "decisions_ladder"),
+      ),
+    );
+}
+
+export async function releaseLadderDecisionUsage(db: DB, userId: string, reservationId: string) {
+  await db
+    .delete(apiUsage)
+    .where(
+      and(
+        eq(apiUsage.id, reservationId),
+        eq(apiUsage.userId, userId),
+        eq(apiUsage.api, "decisions_ladder"),
+      ),
+    );
 }

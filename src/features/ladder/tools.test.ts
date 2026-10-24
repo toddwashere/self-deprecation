@@ -201,4 +201,107 @@ describe("ladder tools", () => {
     expect(result.structuredContent).toMatchObject({ fallback: true });
     expect(decide).not.toHaveBeenCalled();
   });
+
+  it("preserves omitted quest evidence and clears it only with explicit null", async () => {
+    const tools = createLadderTools();
+    const assessed = await findTool(tools, "assess_ai_level").handler(answers, context("ladder-a"));
+    const assessedQuests = (assessed.structuredContent?.quests ?? []) as Array<{ questId: string }>;
+    expect(assessedQuests).toHaveLength(3);
+    const questId = assessedQuests[0].questId;
+    const update = findTool(tools, "update_quest");
+
+    await update.handler(
+      { questId, status: "done", evidence: "Merged two independently verified changes." },
+      context("ladder-a"),
+    );
+    const statusOnly = await update.handler({ questId, status: "todo" }, context("ladder-a"));
+    expect(statusOnly.structuredContent).toMatchObject({
+      quests: expect.arrayContaining([
+        expect.objectContaining({
+          questId,
+          status: "todo",
+          evidence: "Merged two independently verified changes.",
+        }),
+      ]),
+    });
+
+    const cleared = await update.handler(
+      { questId, status: "todo", evidence: null },
+      context("ladder-a"),
+    );
+    expect(cleared.structuredContent).toMatchObject({
+      quests: expect.arrayContaining([expect.objectContaining({ questId, evidence: null })]),
+    });
+  });
+
+  it("atomically reserves at most three concurrent Decisions assessments per day", async () => {
+    let releaseCalls: (() => void) | undefined;
+    const callsMayFinish = new Promise<void>((resolve) => {
+      releaseCalls = resolve;
+    });
+    let started = 0;
+    const decide = vi.fn(async (request: DecisionRequest) => {
+      started += 1;
+      if (started === 3) releaseCalls?.();
+      await callsMayFinish;
+      return {
+        answers: request.questions.map((question) =>
+          question.type === "choice"
+            ? {
+                type: "choice" as const,
+                name: question.name,
+                choice: "3",
+                confidence: 0.8,
+                probabilities: [{ value: "3", probability: 0.8 }],
+              }
+            : question.type === "score"
+              ? {
+                  type: "score" as const,
+                  name: question.name,
+                  score: 2,
+                  confidence: 0.8,
+                  probabilities: [],
+                }
+              : { type: "refusal" as const, name: question.name },
+        ),
+        usage: { input_tokens: 30 },
+      };
+    });
+    const assess = findTool(createLadderTools({ decide }), "assess_ai_level");
+
+    const results = await Promise.all(
+      Array.from({ length: 4 }, () => assess.handler(answers, context("ladder-a", "1"))),
+    );
+
+    expect(decide).toHaveBeenCalledTimes(3);
+    expect(results.filter((result) => result.structuredContent?.fallback === false)).toHaveLength(
+      3,
+    );
+    expect(results.filter((result) => result.structuredContent?.fallback === true)).toHaveLength(1);
+    const usage = await db
+      .select()
+      .from(apiUsage)
+      .where(and(eq(apiUsage.userId, "ladder-a"), eq(apiUsage.api, "decisions_ladder")));
+    expect(usage).toHaveLength(3);
+    expect(usage.every((row) => row.inputTokens === 30)).toBe(true);
+  });
+
+  it("releases a failed assessment reservation so a later attempt can use it", async () => {
+    const failed = findTool(
+      createLadderTools({
+        decide: async () => {
+          throw new Error("temporary outage");
+        },
+      }),
+      "assess_ai_level",
+    );
+    const fallback = await failed.handler(answers, context("ladder-a", "1"));
+    expect(fallback.structuredContent).toMatchObject({ fallback: true });
+    expect(
+      await db
+        .select()
+        .from(apiUsage)
+        .where(and(eq(apiUsage.userId, "ladder-a"), eq(apiUsage.api, "decisions_ladder"))),
+    ).toHaveLength(0);
+  });
 });

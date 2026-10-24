@@ -5,8 +5,57 @@ import { ladderCopy as copy } from "./copy";
 import "./panel.css";
 import type { LadderOutput } from "./tools";
 
-function isLadderOutput(value: unknown): value is LadderOutput {
-  return Boolean(value && typeof value === "object" && (value as { tab?: string }).tab === "level");
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isAssessment(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  const scores = isRecord(value.dimensionScores) ? Object.values(value.dimensionScores) : [];
+  return (
+    typeof value.id === "string" &&
+    Number.isInteger(value.level) &&
+    Number(value.level) >= 1 &&
+    Number(value.level) <= 5 &&
+    Array.isArray(value.levelP) &&
+    value.levelP.length === 5 &&
+    value.levelP.every(
+      (item) => typeof item === "number" && Number.isFinite(item) && item >= 0 && item <= 1,
+    ) &&
+    scores.length === 5 &&
+    scores.every(
+      (item) => typeof item === "number" && Number.isFinite(item) && item >= 0 && item <= 4,
+    ) &&
+    typeof value.createdAt === "number" &&
+    Number.isFinite(value.createdAt) &&
+    (value.source === "decisions" || value.source === "heuristic")
+  );
+}
+
+function isQuest(value: unknown): boolean {
+  const dimensions = ["tooling", "delegation", "verification", "parallelism", "automation"];
+  return (
+    isRecord(value) &&
+    typeof value.questId === "string" &&
+    Number.isInteger(value.level) &&
+    Number(value.level) >= 2 &&
+    Number(value.level) <= 5 &&
+    typeof value.dimension === "string" &&
+    dimensions.includes(value.dimension) &&
+    typeof value.title === "string" &&
+    typeof value.description === "string" &&
+    (value.status === "todo" || value.status === "done") &&
+    (value.evidence === null || typeof value.evidence === "string") &&
+    (value.completedAt === null || typeof value.completedAt === "number")
+  );
+}
+
+export function isLadderOutput(value: unknown): value is LadderOutput {
+  if (!isRecord(value) || value.tab !== "level") return false;
+  if (value.assessment !== null && !isAssessment(value.assessment)) return false;
+  if (!Array.isArray(value.quests) || !value.quests.every(isQuest)) return false;
+  if (!Array.isArray(value.history) || !value.history.every(isAssessment)) return false;
+  return value.fallback === undefined || typeof value.fallback === "boolean";
 }
 
 export function LevelPanel({ bridge }: { bridge: Bridge }) {
