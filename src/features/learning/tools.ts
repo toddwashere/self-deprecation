@@ -22,8 +22,12 @@ const sourceUrl = z
   .url()
   .max(2048)
   .refine((value) => {
-    const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+    try {
+      const url = new URL(value);
+      return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+    } catch {
+      return false;
+    }
   }, "Use an HTTP or HTTPS source URL without credentials.");
 const lines = z
   .array(
