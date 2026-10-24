@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, Loading } from "../../../web/src/ui";
 import { peopleCopy as c } from "./copy";
+import { type ContactListFilters, contactListRequest, initialPeopleList } from "./panel-state";
 import type {
   Contact,
   ContactOutput,
@@ -23,15 +24,11 @@ function dateTimestamp(value: string) {
 function displayDate(timestamp: number | null) {
   return timestamp === null ? c.notSet : new Date(timestamp).toLocaleDateString();
 }
-function initialContact(output: unknown): Contact | null {
-  if (output && typeof output === "object" && "contact" in output)
-    return (output as ContactOutput).contact;
-  return null;
-}
-function outputKind(output: unknown): "contact" | "note" | undefined {
+function outputKind(output: unknown): "contact" | "contacts" | "note" | undefined {
   if (!output || typeof output !== "object" || !("tab" in output) || output.tab !== "people")
     return;
   if ("contact" in output) return "contact";
+  if ("contacts" in output && "filters" in output) return "contacts";
   if ("note" in output) return "note";
 }
 
@@ -414,34 +411,41 @@ function ContactDetail({
 }
 
 export function PeoplePanel({ bridge }: { bridge: Bridge }) {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [selected, setSelected] = useState<Contact | null>(() =>
-    initialContact(bridge.initialToolOutput()),
-  );
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
+  const [initial] = useState(() => initialPeopleList(bridge.initialToolOutput()));
+  const [contacts, setContacts] = useState<Contact[]>(initial.contacts);
+  const [selected, setSelected] = useState<Contact | null>(initial.selected);
+  const [query, setQuery] = useState(initial.filters.query ?? "");
+  const [filters, setFilters] = useState(initial.filters);
+  const [loading, setLoading] = useState(!initial.ready);
+  const [hasMore, setHasMore] = useState(initial.hasMore);
+  const skipNextLoad = useRef<ContactListFilters | null>(initial.ready ? initial.filters : null);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [form, setForm] = useState<"add" | "edit" | null>(null);
   const generation = useRef(0);
   const mounted = useRef(true);
   const loadContacts = useCallback(
-    async (offset = 0) => {
+    async (appendedCount?: number) => {
       const request = ++generation.current;
       setLoading(true);
       setError(undefined);
       try {
-        const result = await bridge.callTool<ContactsOutput>("list_contacts", {
-          ...(query.trim() ? { query: query.trim() } : {}),
-          offset,
-          limit: 25,
-        });
+        const result = await bridge.callTool<ContactsOutput>(
+          "list_contacts",
+          contactListRequest(filters, appendedCount),
+        );
         if (request !== generation.current || !mounted.current) return;
         if (result.error || !result.data) setError(result.error?.message ?? c.error);
         else {
           const loaded = result.data.contacts;
-          setContacts((previous) => (offset ? [...previous, ...loaded] : loaded));
+          setContacts((previous) =>
+            appendedCount === undefined ? loaded : [...previous, ...loaded],
+          );
+          setSelected((current) =>
+            filters.contactId
+              ? (loaded.find((contact) => contact.id === filters.contactId) ?? null)
+              : current,
+          );
           setHasMore(result.data.hasMore);
         }
       } catch {
@@ -450,21 +454,35 @@ export function PeoplePanel({ bridge }: { bridge: Bridge }) {
         if (request === generation.current && mounted.current) setLoading(false);
       }
     },
-    [bridge, query],
+    [bridge, filters],
   );
   useEffect(() => {
     mounted.current = true;
-    const timer = setTimeout(() => void loadContacts(), 200);
+    const skip = skipNextLoad.current === filters;
+    skipNextLoad.current = null;
+    const timer = skip ? undefined : setTimeout(() => void loadContacts(), 200);
     return () => {
       mounted.current = false;
       generation.current++;
       clearTimeout(timer);
     };
-  }, [loadContacts]);
+  }, [loadContacts, filters]);
   useEffect(
     () =>
       bridge.onToolOutput((output) => {
-        if (outputKind(output) === "contact") {
+        if (outputKind(output) === "contacts") {
+          const next = initialPeopleList(output);
+          generation.current++;
+          skipNextLoad.current = next.filters;
+          setContacts(next.contacts);
+          setSelected(next.selected);
+          setFilters(next.filters);
+          setQuery(next.filters.query ?? "");
+          setHasMore(next.hasMore);
+          setLoading(false);
+          setError(undefined);
+          setForm(null);
+        } else if (outputKind(output) === "contact") {
           setSelected((output as ContactOutput).contact);
           setForm(null);
           void loadContacts();
@@ -512,7 +530,14 @@ export function PeoplePanel({ bridge }: { bridge: Bridge }) {
                 value={query}
                 placeholder={c.searchPlaceholder}
                 onChange={(event) => {
-                  setQuery(event.target.value);
+                  const nextQuery = event.target.value;
+                  setQuery(nextQuery);
+                  setFilters((previous) => ({
+                    ...previous,
+                    query: nextQuery.trim() || null,
+                    contactId: null,
+                    offset: 0,
+                  }));
                   bridge.saveViewState({ tab: "people", query: event.target.value });
                 }}
               />
