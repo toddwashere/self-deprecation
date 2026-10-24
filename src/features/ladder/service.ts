@@ -123,20 +123,39 @@ export async function assessLadder(
   answers: LadderAnswers,
   options: {
     decide?: Decide;
-    usedToday: number;
-    recordUsage: (inputTokens: number) => Promise<void>;
+    reserveUsage: () => Promise<
+      | {
+          complete: (inputTokens: number) => Promise<void>;
+          release: () => Promise<void>;
+        }
+      | undefined
+    >;
   },
 ): Promise<LadderAssessmentResult> {
   const fallback = heuristicAssessment(answers);
-  if (options.usedToday >= 3) return fallback;
+  if (env.DECISIONS_ENABLED !== "1") return fallback;
+  let reservation: Awaited<ReturnType<typeof options.reserveUsage>>;
+  try {
+    reservation = await options.reserveUsage();
+  } catch {
+    return fallback;
+  }
+  if (!reservation) return fallback;
   try {
     const response = await runBoundedDecision(env, requestFor(answers), {
       decide: options.decide,
       timeoutMs: 6_000,
-      recordUsage: options.recordUsage,
+      recordUsage: reservation.complete,
     });
     return mapDecision(response) ?? fallback;
   } catch {
+    // Failed or timed-out transports do not consume the daily allowance.
+    // Completion is update-only, so a late persistence attempt cannot recreate this row.
+    try {
+      await reservation.release();
+    } catch {
+      // A stale reservation is conservative: it can reduce spend, never exceed the cap.
+    }
     return fallback;
   }
 }
