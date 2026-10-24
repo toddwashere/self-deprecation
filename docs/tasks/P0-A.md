@@ -17,3 +17,5 @@ Open questions:
 - [local] Use fetch_runs success records as the rotation/freshness cursor; no new schema.
 - [local] Snapshot entries are verified public job listings, with no applicant/contact data. Preserve legacy jobId/jobText keys for existing Decisions fixtures.
 - [product] None; location targeting and board groups already decided by PLAN D3.
+
+Result: 30 boards verified; 16 below the configured 2 MB cap. Manual local Worker/D1 smoke stored 529 jobs across Greenhouse/Lever/Ashby in 672 ms with one oversized-source error isolated. Snapshot contains 60 dated metadata-only listings (plus five legacy scoring examples); original job identities prevent fallback/live duplication. Adzuna reuse includes an atomic concurrency claim. Integration requests and remaining live checks are in decisions-log: register tools/cron, source attribution UI, daily active-user search contract, deployment/ChatGPT verification, and credentialed Adzuna smoke.

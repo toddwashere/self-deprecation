@@ -1,4 +1,4 @@
-import { and, count, eq, gte, inArray, max, notLike } from "drizzle-orm";
+import { and, count, eq, gte, inArray, max, notLike, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { fetchRuns, jobs } from "../../db/schema";
 import { cleanDescription } from "../../sources/adapters/normalization";
@@ -123,4 +123,26 @@ export async function hasLiveJobs(db: DB): Promise<boolean> {
     .limit(1)
     .get();
   return Boolean(row);
+}
+
+// D1 executes this single conditional INSERT atomically across Worker isolates.
+export async function claimFreshFetch(
+  db: DB,
+  source: string,
+  now: number,
+  freshForMs: number,
+): Promise<string | null> {
+  const id = crypto.randomUUID();
+  const result = await db.run(sql`
+    INSERT INTO fetch_runs (id, source, kind, started_at, status)
+    SELECT ${id}, ${source}, 'jobs', ${now}, 'running'
+    WHERE NOT EXISTS (
+      SELECT 1 FROM fetch_runs
+      WHERE source = ${source} AND (
+        (status = 'ok' AND finished_at >= ${now - freshForMs})
+        OR (status = 'running' AND started_at >= ${now - 10_000})
+      )
+    )
+  `);
+  return result.meta.changes === 1 ? id : null;
 }
