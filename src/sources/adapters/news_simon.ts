@@ -1,2 +1,2 @@
-import { emptyNewsSource } from "./placeholder";
-export const simonWillisonNewsAdapter = emptyNewsSource("simon_willison");
+import { newsFeedAdapter } from "../../features/news/adapters";
+export const simonWillisonNewsAdapter = newsFeedAdapter("simon_willison");

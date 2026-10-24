@@ -1,3 +1,3 @@
 import type { FeatureModule } from "../../mcp/types";
-
-export const newsFeature = { id: "news", tools: [] } satisfies FeatureModule;
+import { newsTools } from "./tools";
+export const newsFeature = { id: "news", tools: newsTools } satisfies FeatureModule;
