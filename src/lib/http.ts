@@ -20,9 +20,31 @@ export async function fetchWithTimeout(
   if (declaredLength > maxBytes) {
     throw new AppError("RESPONSE_TOO_LARGE", "External response exceeded the size limit", 502);
   }
-  const body = await response.arrayBuffer();
-  if (body.byteLength > maxBytes) {
-    throw new AppError("RESPONSE_TOO_LARGE", "External response exceeded the size limit", 502);
+  if (!response.body) {
+    return new Response(null, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      throw new AppError("RESPONSE_TOO_LARGE", "External response exceeded the size limit", 502);
+    }
+    chunks.push(value);
+  }
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
   }
   return new Response(body, {
     status: response.status,
