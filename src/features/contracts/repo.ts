@@ -53,37 +53,35 @@ export async function listContractLeads(db: DB, userId: string, filters: Contrac
     )
     .orderBy(desc(jobs.postedAt), desc(jobs.fetchedAt))
     .limit(200);
-  const visible = rows
-    .slice(0, filters.limit)
-    .map(({ job, match }) => {
-      const current = match?.criteriaVersion === profile.criteriaVersion;
-      const status = STATUSES.includes(match?.status ?? "") ? match?.status : "new";
-      return {
-        id: job.id,
-        source: job.source,
-        company: job.company,
-        title: job.title,
-        location: job.location,
-        remote: job.remote,
-        employmentType: job.employmentType,
-        salaryMin: job.salaryMin,
-        salaryMax: job.salaryMax,
-        currency: job.currency,
-        url: job.url,
-        descriptionText: job.descriptionText,
-        tags: job.tags,
-        postedAt: job.postedAt,
-        fetchedAt: job.fetchedAt,
-        fitScore: current ? (match?.fitScore ?? null) : null,
-        scoreSource:
-          current && (match?.scoreSource === "decisions" || match?.scoreSource === "heuristic")
-            ? match.scoreSource
-            : null,
-        reasons: current && match?.fitScore !== null ? (match?.reasons ?? []) : ["Contract"],
-        status: status ?? "new",
-        scoredAt: current ? (match?.scoredAt ?? null) : null,
-      };
-    });
+  const visible = rows.slice(0, filters.limit).map(({ job, match }) => {
+    const current = match?.criteriaVersion === profile.criteriaVersion;
+    const status = STATUSES.includes(match?.status ?? "") ? match?.status : "new";
+    return {
+      id: job.id,
+      source: job.source,
+      company: job.company,
+      title: job.title,
+      location: job.location,
+      remote: job.remote,
+      employmentType: job.employmentType,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      currency: job.currency,
+      url: job.url,
+      descriptionText: job.descriptionText,
+      tags: job.tags,
+      postedAt: job.postedAt,
+      fetchedAt: job.fetchedAt,
+      fitScore: current ? (match?.fitScore ?? null) : null,
+      scoreSource:
+        current && (match?.scoreSource === "decisions" || match?.scoreSource === "heuristic")
+          ? match.scoreSource
+          : null,
+      reasons: current && match?.fitScore !== null ? (match?.reasons ?? []) : ["Contract"],
+      status: status ?? "new",
+      scoredAt: current ? (match?.scoredAt ?? null) : null,
+    };
+  });
   const runs = await db
     .select()
     .from(fetchRuns)
