@@ -84,6 +84,17 @@ it("T1 keeps Bridge mode and caller match state isolated while sharing public le
   expect(leadsB.jobs[0]).toMatchObject({ status: "new", fitScore: null, reasons: ["Contract"] });
 });
 
+it("does not advance criteria when Bridge mode already has the requested value", async () => {
+  expect(await setBridgeMode(db, "bridge-a", true, 30)).toMatchObject({
+    bridgeMode: true,
+    criteriaVersion: 2,
+  });
+  expect(await setBridgeMode(db, "bridge-a", true, 31)).toMatchObject({
+    bridgeMode: true,
+    criteriaVersion: 2,
+  });
+});
+
 it("filters public contract leads without admitting full-time rows", async () => {
   await setBridgeMode(db, "bridge-a", true, 30);
   expect(

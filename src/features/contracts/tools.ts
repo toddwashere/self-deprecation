@@ -109,7 +109,7 @@ export const contractTools: ToolDef[] = [
       openWorldHint: false,
       idempotentHint: true,
     },
-    status: { invoking: copy.enabling, invoked: copy.enabled },
+    status: { invoking: copy.updating, invoked: copy.updated },
     handler: validated(setSchema, async ({ enabled }, ctx) => {
       const state = await setBridgeMode(ctx.db, ctx.userId, enabled, ctx.now().getTime());
       return ok(

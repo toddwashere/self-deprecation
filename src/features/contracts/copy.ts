@@ -1,8 +1,6 @@
 export const CONTRACT_COPY = {
-  enabling: "Enabling backward-compatible income…",
-  enabled: "Bridge mode ready.",
-  disabling: "Closing the contract lane…",
-  disabled: "Bridge mode off.",
+  updating: "Updating the contract lane…",
+  updated: "Bridge mode updated.",
   loading: "Checking the contract lane…",
   loaded: "Contract leads ready.",
   off: "Bridge mode is off.",
