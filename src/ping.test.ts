@@ -4,7 +4,7 @@ import type { Env } from "./env";
 import worker from "./index";
 
 const MCP_URL = "http://localhost/mcp";
-const UI_URI = "ui://self-deprecation/hello";
+const UI_URI = "ui://self-deprecation/panel";
 const MCP_APP_MIME = "text/html;profile=mcp-app";
 
 interface JsonRpcResponse<T> {
@@ -73,7 +73,19 @@ describe("F1 Worker", () => {
       }>;
     }>(1, "tools/list", {});
 
-    expect(result.tools).toHaveLength(2);
+    expect(result.tools).toHaveLength(3);
+    for (const tool of result.tools) {
+      expect(tool.name).toMatch(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/);
+      expect(tool.description).toContain("Do not");
+      expect(tool.annotations).toMatchObject({
+        readOnlyHint: expect.any(Boolean),
+        destructiveHint: expect.any(Boolean),
+        openWorldHint: expect.any(Boolean),
+      });
+      expect(tool._meta?.securitySchemes).toEqual([{ type: "oauth2", scopes: ["mcp:read"] }]);
+      expect(String(tool._meta?.["openai/toolInvocation/invoking"]).length).toBeLessThanOrEqual(64);
+      expect(String(tool._meta?.["openai/toolInvocation/invoked"]).length).toBeLessThanOrEqual(64);
+    }
     const ping = result.tools.find((tool) => tool.name === "ping");
     expect(ping).toMatchObject({
       name: "ping",

@@ -48,3 +48,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - The complete §7 schema is represented in `src/db/schema.ts` and migration `0002_foundation.sql`; both local and production D1 applied the migration successfully. JSON columns use typed Drizzle JSON mode and user-owned rows have cascading internal-user foreign keys.
 - Future feature repositories must run the shared T1 isolation assertion, which verifies cross-user list, update-by-ID, and delete-by-ID behavior. The helper itself passed against real Miniflare D1.
 - `db:reset:local` is intentionally local-only: it drops the known Foundation tables and reapplies recorded migrations. It never accepts a remote flag.
+
+## 2026-10-24 00:50 — F4 feature registry and tool contract
+
+- Feature modules own declarative `ToolDef` arrays; `src/mcp/server.ts` is the only registration path and centrally adds `mcp:read`, invocation status, annotations, and the shared panel URI. The small `as never` adapter is confined to this registrar because the SDK's static generic overload cannot preserve heterogeneous runtime zod schemas.
+- All 13 planned feature modules are predeclared, so later feature work changes only its own folder. The T4 contract and MCP integration tests cover unique snake-case names, descriptions, three required annotations, status length, OAuth metadata, tool-list snapshot, and typed current results.
+- The canonical resource URI is now `ui://self-deprecation/panel`; F5 will replace its placeholder HTML with the embedded React shell.
