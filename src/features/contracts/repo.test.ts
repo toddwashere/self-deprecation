@@ -130,7 +130,7 @@ it("applies query and remote filters before bounding the SQL result", async () =
   expect((await listContractLeads(db, "bridge-a", { query: "bounded", limit: 10 })).jobs).toEqual([
     expect.objectContaining({ id: "contract-one" }),
   ]);
-  expect(
-    (await listContractLeads(db, "bridge-a", { remoteOnly: true, limit: 10 })).jobs,
-  ).toEqual([expect.objectContaining({ id: "contract-one" })]);
+  expect((await listContractLeads(db, "bridge-a", { remoteOnly: true, limit: 10 })).jobs).toEqual([
+    expect.objectContaining({ id: "contract-one" }),
+  ]);
 });
