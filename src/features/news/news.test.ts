@@ -113,7 +113,7 @@ describe("get_ai_news contract (T4)", () => {
     ]) {
       expect(await tool.handler(args, ctx)).toMatchObject({
         isError: true,
-        structuredContent: { error: { code: "INVALID_INPUT" } },
+        _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
       });
     }
     const result = await tool.handler({}, ctx);

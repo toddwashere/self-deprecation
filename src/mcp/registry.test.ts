@@ -35,6 +35,7 @@ describe("tool registry contract", () => {
         "update_criteria",
         "save_resume",
         "show_product_tour",
+        "get_ai_news",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);
