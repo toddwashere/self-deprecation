@@ -2,10 +2,10 @@ import { applyD1Migrations, env } from "cloudflare:test";
 import type { D1Migration } from "@cloudflare/vitest-plugin";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb } from "../../db/client";
-import { apiUsage, notes, users } from "../../db/schema";
+import { apiUsage, notes, userState, users } from "../../db/schema";
 import type { Env } from "../../env";
 import type { CompanyDossier } from "./agent";
-import { claimDossierRun, listDossiers, saveDossier } from "./repo";
+import { claimDossierRun, getDossierTask, listDossiers, putDossierTask, saveDossier } from "./repo";
 
 const bound = env as unknown as Env & { TEST_MIGRATIONS: D1Migration[] };
 const db = createDb(bound.DB);
@@ -25,6 +25,7 @@ beforeAll(async () => applyD1Migrations(bound.DB, bound.TEST_MIGRATIONS));
 beforeEach(async () => {
   await db.delete(apiUsage);
   await db.delete(notes);
+  await db.delete(userState);
   await db.delete(users);
   await db.insert(users).values([
     { id: "a", displayName: "A", createdAt: now, updatedAt: now },
@@ -55,5 +56,26 @@ describe("dossier repository", () => {
       kind: "dossier",
     });
     expect(JSON.parse(own[0]?.body ?? "{}")).toMatchObject({ company: "Example Labs" });
+  });
+
+  it("keeps asynchronous agent session state isolated by user", async () => {
+    await putDossierTask(
+      db,
+      "a",
+      {
+        taskId: "dossier-1",
+        sessionId: "session-private",
+        company: "Example Labs",
+        researchedAt: now,
+        status: "researching",
+      },
+      now,
+    );
+
+    expect(await getDossierTask(db, "b", "dossier-1")).toBeUndefined();
+    expect(await getDossierTask(db, "a", "dossier-1")).toMatchObject({
+      sessionId: "session-private",
+      status: "researching",
+    });
   });
 });

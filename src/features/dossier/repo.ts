@@ -1,11 +1,21 @@
 import { and, desc, eq, gte, sql, sum } from "drizzle-orm";
 import type { DB } from "../../db/client";
-import { apiUsage, notes } from "../../db/schema";
+import { apiUsage, notes, userState } from "../../db/schema";
 import type { CompanyDossier } from "./agent";
 
 const API_NAME = "agents.dossier";
 
 export type DossierClaim = "ok" | "user_limit" | "global_limit";
+export interface DossierTask {
+  taskId: string;
+  sessionId: string;
+  company: string;
+  website?: string;
+  researchedAt: number;
+  status: "researching" | "complete" | "unavailable";
+  dossier?: CompanyDossier;
+  noteId?: string;
+}
 
 export async function claimDossierRun(
   db: DB,
@@ -103,4 +113,24 @@ export async function listDossiers(db: DB, userId: string, company?: string) {
       ),
     )
     .orderBy(desc(notes.createdAt), desc(notes.id));
+}
+
+export async function putDossierTask(db: DB, userId: string, task: DossierTask, now: number) {
+  await db
+    .insert(userState)
+    .values({ userId, key: `task.${task.taskId}`, value: task, updatedAt: now })
+    .onConflictDoUpdate({
+      target: [userState.userId, userState.key],
+      set: { value: task, updatedAt: now },
+      setWhere: eq(userState.userId, userId),
+    });
+}
+
+export async function getDossierTask(db: DB, userId: string, taskId: string) {
+  const row = await db
+    .select({ value: userState.value })
+    .from(userState)
+    .where(and(eq(userState.userId, userId), eq(userState.key, `task.${taskId}`)))
+    .get();
+  return row?.value as DossierTask | undefined;
 }

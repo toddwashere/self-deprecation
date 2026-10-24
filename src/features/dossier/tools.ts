@@ -2,32 +2,47 @@ import { z } from "zod";
 import type { Env } from "../../env";
 import { fail, ok } from "../../mcp/result";
 import type { ToolContext, ToolDef, ToolResult } from "../../mcp/types";
-import { dossierSchema, runDossierAgent } from "./agent";
+import { dossierSchema, pollDossierAgent, startDossierAgent } from "./agent";
 import { dossierCopy as copy } from "./copy";
-import { claimDossierRun, saveDossier } from "./repo";
+import { claimDossierRun, getDossierTask, putDossierTask, saveDossier } from "./repo";
 
 const inputShape = {
-  company: z.string().trim().min(1).max(200),
+  company: z.string().trim().min(1).max(200).optional(),
   website: z
     .url({ protocol: /^https?$/ })
     .max(2_048)
     .optional(),
+  taskId: z.string().trim().min(1).max(200).optional(),
 };
-const inputSchema = z.object(inputShape).strict();
+const inputSchema = z
+  .object(inputShape)
+  .strict()
+  .refine(
+    (value) => (value.taskId ? !value.company && !value.website : Boolean(value.company)),
+    "Provide either a company to start or a taskId to check.",
+  );
 export const dossierOutputSchema = z.object({
   tab: z.literal("people"),
-  status: z.enum(["complete", "unavailable", "rate_limited", "disabled"]),
+  status: z.enum(["researching", "complete", "unavailable", "rate_limited", "disabled"]),
   company: z.string(),
   dossier: dossierSchema.nullable(),
   noteId: z.string().nullable(),
+  taskId: z.string().nullable(),
   progress: z.object({
-    stage: z.literal("done"),
+    stage: z.enum(["researching", "done"]),
     done: z.number().int().nonnegative(),
     total: z.number().int().nonnegative(),
   }),
 });
 
-type RunDossier = typeof runDossierAgent;
+export interface DossierAgentOperations {
+  start: typeof startDossierAgent;
+  poll: typeof pollDossierAgent;
+}
+const defaultOperations: DossierAgentOperations = {
+  start: startDossierAgent,
+  poll: pollDossierAgent,
+};
 type DossierEnv = Env & {
   AGENTS_ENABLED?: string;
   AGENTS_GLOBAL_DAILY_CAP?: string;
@@ -38,7 +53,11 @@ function integerSetting(value: string | undefined, fallback: number, min: number
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
 }
 
-function unavailable(company: string, status: "unavailable" | "rate_limited" | "disabled") {
+function unavailable(
+  company: string,
+  status: "unavailable" | "rate_limited" | "disabled",
+  taskId: string | null = null,
+) {
   const message =
     status === "disabled"
       ? copy.disabled
@@ -51,16 +70,17 @@ function unavailable(company: string, status: "unavailable" | "rate_limited" | "
     company,
     dossier: null,
     noteId: null,
+    taskId,
     progress: { stage: "done" as const, done: 0, total: status === "disabled" ? 0 : 1 },
   });
 }
 
 function validated(
-  run: RunDossier,
+  operations: DossierAgentOperations,
   action: (
     args: z.infer<typeof inputSchema>,
     ctx: ToolContext,
-    run: RunDossier,
+    operations: DossierAgentOperations,
   ) => Promise<ToolResult>,
 ): ToolDef["handler"] {
   return async (args, ctx) => {
@@ -71,29 +91,102 @@ function validated(
         "Provide a company name and, optionally, its HTTP or HTTPS website.",
         "No research was started.",
       );
-    return action(parsed.data, ctx, run);
+    return action(parsed.data, ctx, operations);
   };
 }
 
-export function createDossierTools(run: RunDossier = runDossierAgent): ToolDef[] {
+export function createDossierTools(
+  operations: DossierAgentOperations = defaultOperations,
+): ToolDef[] {
   return [
     {
       name: "run_company_dossier",
       title: "Research a company",
       description:
-        "Use this to research a named company with the OpenAI Agents API and live public web search, then save a cited company note for the signed-in person. Do not use it for private-person research, uncited claims, interview-loop reports, or more than three attempts per user per day. Next, review the saved evidence in People and use get_prep_context or draft outreach in ChatGPT.",
+        "Use this to start cited company research with the OpenAI Agents API and live public web search, or pass its taskId to check progress and save the completed company note. Do not use it for private-person research, uncited claims, interview-loop reports, or more than three starts per user per day. Next, call this tool again with taskId while status is researching; when complete, review the evidence in People and use get_prep_context or draft outreach in ChatGPT.",
       input: inputShape,
       output: dossierOutputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
       status: {
         invoking: "Sending a research agent into the corporate website…",
-        invoked: "Dossier research finished.",
+        invoked: "Dossier research started or checked.",
       },
       opensPanel: true,
-      handler: validated(run, async (args, ctx, execute) => {
+      handler: validated(operations, async (args, ctx, agent) => {
         const agentEnv = ctx.env as DossierEnv;
         if (agentEnv.AGENTS_ENABLED !== "1" || !agentEnv.OPENAI_API_KEY)
-          return unavailable(args.company, "disabled");
+          return unavailable(args.company ?? "Company", "disabled", args.taskId ?? null);
+
+        if (args.taskId) {
+          const task = await getDossierTask(ctx.db, ctx.userId, args.taskId);
+          if (!task)
+            return fail(
+              "NOT_FOUND",
+              "Dossier research task not found.",
+              "Start a new dossier with a company name.",
+            );
+          if (task.status === "complete" && task.dossier)
+            return ok(copy.complete, {
+              tab: "people",
+              status: "complete",
+              company: task.company,
+              dossier: task.dossier,
+              noteId: task.noteId ?? null,
+              taskId: task.taskId,
+              progress: { stage: "done", done: 1, total: 1 },
+            });
+          try {
+            const result = await agent.poll(
+              agentEnv.OPENAI_API_KEY,
+              task.sessionId,
+              {
+                company: task.company,
+                ...(task.website ? { website: task.website } : {}),
+                researchedAt: task.researchedAt,
+              },
+              { timeoutMs: 4_000 },
+            );
+            if (result.status === "researching")
+              return ok(copy.researching, {
+                tab: "people",
+                status: "researching",
+                company: task.company,
+                dossier: null,
+                noteId: null,
+                taskId: task.taskId,
+                progress: { stage: "researching", done: 0, total: 1 },
+              });
+            const note = await saveDossier(
+              ctx.db,
+              ctx.userId,
+              task.company,
+              result.dossier,
+              ctx.now().getTime(),
+            );
+            await putDossierTask(
+              ctx.db,
+              ctx.userId,
+              {
+                ...task,
+                status: "complete",
+                dossier: result.dossier,
+                noteId: note?.id,
+              },
+              ctx.now().getTime(),
+            );
+            return ok(copy.complete, {
+              tab: "people",
+              status: "complete",
+              company: task.company,
+              dossier: result.dossier,
+              noteId: note?.id ?? null,
+              taskId: task.taskId,
+              progress: { stage: "done", done: 1, total: 1 },
+            });
+          } catch {
+            return unavailable(task.company, "unavailable", task.taskId);
+          }
+        }
 
         const current = ctx.now();
         const dayStart = Date.UTC(
@@ -111,31 +204,42 @@ export function createDossierTools(run: RunDossier = runDossierAgent): ToolDef[]
           },
           current.getTime(),
         );
-        if (claim !== "ok") return unavailable(args.company, "rate_limited");
+        const company = args.company as string;
+        if (claim !== "ok") return unavailable(company, "rate_limited");
 
         try {
-          const dossier = await execute(
+          const started = await agent.start(
             agentEnv.OPENAI_API_KEY,
-            { company: args.company, ...(args.website ? { website: args.website } : {}) },
-            { timeoutMs: 6_500 },
+            { company, ...(args.website ? { website: args.website } : {}) },
+            { timeoutMs: 4_000 },
           );
-          const note = await saveDossier(
+          if (started.status === "failed" || started.status === "requires_action")
+            return unavailable(company, "unavailable");
+          const taskId = `dossier-${crypto.randomUUID()}`;
+          await putDossierTask(
             ctx.db,
             ctx.userId,
-            args.company,
-            dossier,
+            {
+              taskId,
+              sessionId: started.sessionId,
+              company,
+              ...(args.website ? { website: args.website } : {}),
+              researchedAt: current.getTime(),
+              status: "researching",
+            },
             ctx.now().getTime(),
           );
-          return ok(copy.complete, {
+          return ok(copy.researching, {
             tab: "people",
-            status: "complete",
-            company: args.company,
-            dossier,
-            noteId: note?.id ?? null,
-            progress: { stage: "done", done: 1, total: 1 },
+            status: "researching",
+            company,
+            dossier: null,
+            noteId: null,
+            taskId,
+            progress: { stage: "researching", done: 0, total: 1 },
           });
         } catch {
-          return unavailable(args.company, "unavailable");
+          return unavailable(company, "unavailable");
         }
       }),
     },
