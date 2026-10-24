@@ -1,0 +1,29 @@
+[
+  {
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Engineering",
+      "location": "Palo Alto, CA",
+      "team": "Engineering - Android",
+      "allLocations": [
+        "Palo Alto, CA",
+        "Seattle, WA",
+        "San Francisco, CA",
+        "New York City, NY"
+      ]
+    },
+    "createdAt": 1694463796009,
+    "id": "78d6f6d5-1f08-4d5d-87be-c4250567bfb5",
+    "text": "Android Engineer",
+    "workplaceType": "hybrid",
+    "hostedUrl": "https://jobs.lever.co/wealthfront/78d6f6d5-1f08-4d5d-87be-c4250567bfb5",
+    "descriptionPlain": "Build Python and Postgres services.",
+    "lists": [
+      {
+        "text": "Requirements",
+        "content": "<li>TypeScript and React</li>"
+      }
+    ],
+    "additionalPlain": "Full-time engineering role."
+  }
+]
