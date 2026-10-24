@@ -12,10 +12,10 @@
 `skills/daily-brief/SKILL.md`; this brief. Shared docs changes go to the integrator.
 
 ## Tool contracts / states
-- `get_brief_data({})`: `{tab:'today', asOf, lastSeenAt:number|null, timezone, needsCriteria, matches:Match[], contractLeads:Match[], events:Event[], followUps:FollowUp[], headlines:Headline[], unavailable:string[], progress:{stage:'done'|'awaiting_scoring',done,total,taskId?}}`.
+- `get_brief_data({})`: `{tab:'today', asOf, lastSeenAt:number|null, timezone, needsCriteria, matches:Match[], contractLeads:Match[], events:Event[], followUps:FollowUp[], headlines:Headline[], unavailable:string[], progress:{stage:'done'|'awaiting_scoring',done,total,taskId?,resumeFilters?:JobSearchFilters|null}}`.
 - `mark_brief_seen({asOf:nonnegative epoch ms})`: `{tab:'today', lastSeenAt}`; reject future timestamps and advance monotonically.
 - No input accepts user IDs. Outputs defined with zod in tools.ts. Every tool has annotations/status and short summaries.
-- Panel states: initial loader; section empty messages; retryable error; stored-ready sections remain visible during partial availability; incomplete scoring exposes an explicit Continue scoring action (one score_jobs batch followed by a brief read), with no background polling.
+- Panel states: initial loader; section empty messages; retryable error; stored-ready sections remain visible during partial availability; incomplete scoring resumes only with validated original filters; legacy tasks ask the user to review filters in chat. No background polling.
 
 ## Tests
 Strict red → green: T1 reads/watermark isolation for users A/B; deterministic ranking, cutoff/limits, current criteria, contract selection, upcoming/due filters, five headlines; monotonic seen watermark; invalid inputs/output schemas; partial-section failure and scoring progress. Run typecheck, lint, full tests, build; Inspector valid/invalid calls; seed/empty/error/in-progress visual checks.
@@ -23,7 +23,7 @@ Strict red → green: T1 reads/watermark isolation for users A/B; deterministic 
 ## Open questions
 - [local] New matches use `scored_at > lastSeenAt` (or updated_at when unscored), status new, current criteria version; first run includes all stored current matches.
 - [local] Limit each section to five; events cover the next 30 days, contacts include the earliest five overdue follow-ups; headlines are latest stored items since last seen.
-- [contract] Integrator updates docs/TOOLS.md and handles deployment/ChatGPT check; the shared registry tool-name snapshot also needs the two brief tools added.
+- [contract] Integrator updates docs/TOOLS.md and handles deployment/ChatGPT check; the shared registry tool-name snapshot also needs the two brief tools added. Jobs currently omits normalized filters from task state; until its owner persists task.filters, Today uses the safe filter-review handoff.
 
 ## Validation / remaining integration
-Five red→green tests pass, including continuation-needed progress (Jobs only advances per score_jobs call). Typecheck, lint, and build pass. Full suite: 185 pass; only the frozen registry snapshot fails pending integration. Inspector validates both tools and invalid timestamps locally (~0.3s/call). Six built-panel visual states and Run/Mark actions checked using the public demo persona. Review regression: no passive polling; one Continue scoring click visibly calls score_jobs then get_brief_data and clears completed progress. Evidence: `/private/tmp/p1d-evidence/`. Deployment, ChatGPT dry run, and scheduling availability remain integrator checks; manual handoff is verified locally.
+Six red→green tests pass, including continuation-needed progress (Jobs only advances per score_jobs call). Typecheck, lint, and build pass. Full suite: 186 pass; only the frozen registry snapshot fails pending integration. Inspector validates both tools and invalid timestamps locally (~0.3s/call). Six built-panel visual states and Run/Mark actions checked using the public demo persona. Review regressions: no passive polling; continuation preserves task filters or asks the user to confirm missing filters without invoking scoring. Evidence: `/private/tmp/p1d-evidence/`. Deployment, ChatGPT dry run, and scheduling availability remain integrator checks; manual handoff is verified locally.

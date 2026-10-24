@@ -236,3 +236,52 @@ it("reports unfinished Jobs batches as needing continuation instead of backgroun
     });
   }
 });
+
+it("preserves normalized scoring filters for resumption and never invents defaults for legacy tasks", async () => {
+  const filters = {
+    query: "Platform",
+    status: "saved",
+    employmentType: "contract",
+    remoteOnly: true,
+    hideUnlistedSalary: true,
+    limit: 17,
+  };
+  await db.insert(userState).values({
+    userId: "brief-a",
+    key: "task.jobs-v2",
+    value: {
+      taskId: "jobs-v2",
+      status: "running",
+      progress: { stage: "scoring", done: 2, total: 10 },
+      filters,
+    },
+    updatedAt: now,
+  });
+  expect((await call("get_brief_data")).structuredContent).toMatchObject({
+    progress: {
+      stage: "awaiting_scoring",
+      resumeFilters: {
+        query: "Platform",
+        status: "saved",
+        employmentType: "contract",
+        remoteOnly: true,
+        hideUnlistedSalary: true,
+        limit: 17,
+      },
+    },
+  });
+  await db.delete(userState);
+  await db.insert(userState).values({
+    userId: "brief-a",
+    key: "task.jobs-v2",
+    value: {
+      taskId: "jobs-v2",
+      status: "running",
+      progress: { stage: "scoring", done: 2, total: 10 },
+    },
+    updatedAt: now,
+  });
+  expect((await call("get_brief_data")).structuredContent).toMatchObject({
+    progress: { stage: "awaiting_scoring", resumeFilters: null },
+  });
+});

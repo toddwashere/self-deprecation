@@ -32,6 +32,11 @@ export const briefCopy = {
   lastRead: "Last read",
   scoring: "Matches scored",
   continueScoring: "Continue scoring",
+  reviewFilters: "Review job filters",
+  reviewFiltersReason:
+    "The original search filters were not saved. Review them in chat before continuing your Jobs search.",
+  reviewFiltersPrompt:
+    "Help me resume my unfinished Jobs search safely. Review the exact original query, status, employment type, remote-only setting, salary visibility, and result limit with me first. Do not call search_jobs or score_jobs until I confirm those filters. If the original filters cannot be recovered, ask me to choose them; never substitute empty or default filters.",
   continuation: "More matches need scoring. Continue when you are ready.",
   scoringLoading: "Scoring the next batch…",
   scoringError: "The next scoring batch could not be completed. Try Continue scoring again.",
