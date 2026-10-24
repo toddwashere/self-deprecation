@@ -1,0 +1,31 @@
+{
+  "search": {
+    "hits": [
+      {
+        "objectID": "4000",
+        "title": "Ask HN: Freelancer? Seeking freelancer? (October 2025)",
+        "author": "whoishiring",
+        "created_at_i": 1759330866
+      }
+    ]
+  },
+  "item": {
+    "id": 4000,
+    "title": "Ask HN: Freelancer? Seeking freelancer? (October 2025)",
+    "created_at_i": 1759330866,
+    "children": [
+      {
+        "id": 4001,
+        "created_at_i": 1759331000,
+        "text": "SEEKING FREELANCER<br>Human Systems | AI Product Engineer | Remote US<p>Short consulting engagement using Python and React.</p>",
+        "children": []
+      },
+      {
+        "id": 4002,
+        "created_at_i": 1759331100,
+        "text": "SEEKING WORK<br>Independent Engineer | Remote<p>Available for projects.</p>",
+        "children": []
+      }
+    ]
+  }
+}

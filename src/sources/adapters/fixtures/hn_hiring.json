@@ -1,0 +1,38 @@
+{
+  "search": {
+    "hits": [
+      {
+        "objectID": "5000",
+        "title": "Ask HN: Who is hiring? (October 2026)",
+        "author": "whoishiring",
+        "created_at_i": 1790866927
+      }
+    ]
+  },
+  "item": {
+    "id": 5000,
+    "title": "Ask HN: Who is hiring? (October 2026)",
+    "created_at_i": 1790866927,
+    "children": [
+      {
+        "id": 5001,
+        "created_at_i": 1790867000,
+        "text": "Migration Labs | Senior TypeScript Engineer | REMOTE (US) | 6-month contract<br><p>Build TypeScript &amp; Postgres services. <b>Contract</b> engagement.</p>",
+        "children": [
+          {
+            "id": 5999,
+            "created_at_i": 1790867100,
+            "text": "ReplyCo | Contract Engineer | Remote",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 5002,
+        "created_at_i": 1790867200,
+        "text": "Permanent Corp | Backend Engineer | ONSITE NYC | Full-time<p>Not a contract role.</p>",
+        "children": []
+      }
+    ]
+  }
+}
