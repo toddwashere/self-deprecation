@@ -81,10 +81,14 @@ export const newsTools: ToolDef[] = [
         );
       try {
         const now = ctx.now().getTime();
-        const catalog = await readNewsCatalog(ctx.db, {
-          ...parsed.data,
-          limit: parsed.data.limit ?? 20,
-        });
+        const catalog = await readNewsCatalog(
+          ctx.db,
+          {
+            ...parsed.data,
+            limit: parsed.data.limit ?? 20,
+          },
+          now,
+        );
         const running = catalog.sources.filter((source) => source.status === "running").length;
         const result: NewsOutput = {
           tab: "news",

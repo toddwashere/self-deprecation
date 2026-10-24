@@ -143,7 +143,7 @@ export function newsFeedAdapter(id: string): SourceAdapter<NormalizedNews> {
     async fetch(_env, opts) {
       const response = await fetchWithTimeout(feed.url, {
         allowedHosts: [new URL(feed.url).hostname],
-        redirect: "error",
+        redirect: "manual",
         timeoutMs: 6_000,
         maxBytes: 2_000_000,
         headers: {

@@ -168,4 +168,27 @@ describe("get_ai_news contract (T4)", () => {
     });
     expect(JSON.stringify(result)).not.toContain("private detail");
   });
+  it("reports active ingestion but stops polling an abandoned run", async () => {
+    const tool = newsFeature.tools.find((tool) => tool.name === "get_ai_news");
+    expect(tool).toBeDefined();
+    if (!tool) return;
+    await db.insert(fetchRuns).values({
+      id: "active",
+      source: "openai_news",
+      kind: "news",
+      startedAt: now - 1000,
+      status: "running",
+    });
+    const active = await tool.handler({}, ctx);
+    expect(active.structuredContent).toMatchObject({
+      progress: { stage: "fetching", done: 3, total: 4 },
+    });
+    const later = await tool.handler({}, { ...ctx, now: () => new Date(now + 180000) });
+    expect(later.structuredContent).toMatchObject({
+      progress: { stage: "done" },
+      sources: expect.arrayContaining([
+        expect.objectContaining({ id: "openai_news", status: "error" }),
+      ]),
+    });
+  });
 });
