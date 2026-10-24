@@ -35,6 +35,9 @@ describe("tool registry contract", () => {
         "update_criteria",
         "save_resume",
         "show_product_tour",
+        "save_event",
+        "list_events",
+        "update_event",
         "get_ai_news",
       ]
     `);
