@@ -107,3 +107,30 @@ it("filters public contract leads without admitting full-time rows", async () =>
     (await listContractLeads(db, "bridge-a", { remoteOnly: true, limit: 10 })).jobs,
   ).toHaveLength(1);
 });
+
+it("applies query and remote filters before bounding the SQL result", async () => {
+  const newerNoise = Array.from({ length: 201 }, (_, index) => ({
+    id: `noise-${index}`,
+    source: "hn_hiring",
+    sourceJobId: `noise-${index}`,
+    company: "Noise Corp",
+    title: "Unrelated Consultant",
+    location: "Onsite",
+    remote: false,
+    employmentType: "contract",
+    url: `https://news.ycombinator.com/item?id=noise-${index}`,
+    tags: ["contract"],
+    postedAt: 1_000 + index,
+    fetchedAt: 2_000 + index,
+    lastSeenAt: 2_000 + index,
+  }));
+  for (let index = 0; index < newerNoise.length; index += 5)
+    await db.insert(jobs).values(newerNoise.slice(index, index + 5));
+
+  expect((await listContractLeads(db, "bridge-a", { query: "bounded", limit: 10 })).jobs).toEqual([
+    expect.objectContaining({ id: "contract-one" }),
+  ]);
+  expect(
+    (await listContractLeads(db, "bridge-a", { remoteOnly: true, limit: 10 })).jobs,
+  ).toEqual([expect.objectContaining({ id: "contract-one" })]);
+});
