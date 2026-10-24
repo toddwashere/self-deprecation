@@ -17,7 +17,11 @@ interface OpenAIHost {
   callTool?: (
     name: string,
     args: object,
-  ) => Promise<{ structuredContent?: unknown; isError?: boolean }>;
+  ) => Promise<{
+    structuredContent?: unknown;
+    isError?: boolean;
+    _meta?: Record<string, unknown>;
+  }>;
   sendFollowUpMessage?: (args: { prompt: string }) => Promise<void>;
   toolOutput?: unknown;
   setWidgetState?: (state: object) => void;
@@ -172,14 +176,20 @@ function extractError(value: unknown): { code: string; message: string } | undef
 async function callTool<T>(name: string, args: object = {}): Promise<BridgeResult<T>> {
   try {
     const result = (await connected)
-      ? ((await app.callTool(name, args)) as { structuredContent?: unknown; isError?: boolean })
+      ? ((await app.callTool(name, args)) as {
+          structuredContent?: unknown;
+          isError?: boolean;
+          _meta?: Record<string, unknown>;
+        })
       : await window.openai?.callTool?.(name, args);
     if (!result) {
       return {
         error: { code: "HOST_UNAVAILABLE", message: "Open this panel from a connected MCP tool." },
       };
     }
-    const error = extractError(result?.structuredContent);
+    const error =
+      extractError(result?.structuredContent) ??
+      extractError({ error: result?._meta?.["self-deprecation/error"] });
     return result?.isError
       ? { error: error ?? { code: "TOOL_ERROR", message: "The tool could not complete." } }
       : { data: result?.structuredContent as T };

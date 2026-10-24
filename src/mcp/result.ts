@@ -21,7 +21,9 @@ export function fail(code: ErrorCode, message: string, hint?: string): ToolResul
   return {
     isError: true,
     content: [{ type: "text", text }],
-    structuredContent: { error: { code, message, ...(hint ? { hint } : {}) } },
+    _meta: {
+      "self-deprecation/error": { code, message, ...(hint ? { hint } : {}) },
+    },
   };
 }
 

@@ -173,6 +173,29 @@ describe("F1 Worker", () => {
     expect(resourceResult.contents[0].text).not.toMatch(/<script[^>]+src=/);
   });
 
+  it("accepts the shared structured error shape for typed tools", async () => {
+    const result = await mcpRequest<{
+      isError: boolean;
+      content: Array<{ type: string; text: string }>;
+      structuredContent?: unknown;
+      _meta: { "self-deprecation/error": { code: string; message: string; hint?: string } };
+    }>(4, "tools/call", {
+      name: "reset_my_data",
+      arguments: { confirm: "NOT_RESET" },
+    });
+
+    expect(result).toMatchObject({
+      isError: true,
+      _meta: {
+        "self-deprecation/error": {
+          code: "INVALID_INPUT",
+          message: "Reset requires confirm: RESET.",
+        },
+      },
+    });
+    expect(result.structuredContent).toBeUndefined();
+  });
+
   it("returns the bypass profile locally and challenges anonymous production calls", async () => {
     const profile = await mcpRequest<{
       structuredContent: { id: string; name: string; email?: string; nickname?: string };
