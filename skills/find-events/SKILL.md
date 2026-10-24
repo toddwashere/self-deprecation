@@ -1,6 +1,6 @@
 ---
 name: find-events
-description: Find relevant meetups, talks, hackathons, and community events near a city using current web search, then save events the user chooses in Self-Deprecation.
+description: Use when the user asks for local meetups, AI talks, hackathons, or community events, or wants to save a chosen event or pasted event URL in Self-Deprecation.
 ---
 
 # Find events
