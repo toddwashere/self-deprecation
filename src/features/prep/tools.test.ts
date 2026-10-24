@@ -210,6 +210,58 @@ describe("prep isolation and contracts", () => {
     );
   });
 
+  it("keeps each saved job prepared when another job has over 100 newer notes", async () => {
+    await db.insert(jobs).values({
+      id: "prep-older-job",
+      source: "seed",
+      sourceJobId: "prep-older-job",
+      company: "Other Labs",
+      title: "Staff Engineer",
+      url: "https://example.com/older-job",
+      fetchedAt: now,
+      lastSeenAt: now,
+    });
+    await db.insert(jobMatches).values({
+      id: "prep-older-match",
+      userId: "prep-a",
+      jobId: "prep-older-job",
+      status: "saved",
+      criteriaVersion: 1,
+      updatedAt: now,
+    });
+    await db.insert(notes).values({
+      id: "prep-older-note",
+      userId: "prep-a",
+      subjectType: "job",
+      subjectId: "prep-older-job",
+      kind: "prep",
+      title: "Earlier plan",
+      body: "Practice design",
+      createdAt: now - 1,
+      updatedAt: now - 1,
+    });
+    for (let index = 0; index < 101; index += 1) {
+      await db.insert(notes).values({
+        id: `prep-history-${index}`,
+        userId: "prep-a",
+        subjectType: "job",
+        subjectId: "prep-job",
+        kind: "prep",
+        title: "Practice summary",
+        body: "Practice graphs",
+        createdAt: now,
+        updatedAt: now + index,
+      });
+    }
+    const overview = await call("get_prep_context", {});
+    expect(overview.structuredContent?.savedJobs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "prep-job", prepStatus: "ready" }),
+        expect.objectContaining({ id: "prep-older-job", prepStatus: "ready" }),
+      ]),
+    );
+  });
+
   it("rejects invalid, uncited, oversized and unsafe report input before writing", async () => {
     for (const invalid of [
       { ...report, sources: [] },

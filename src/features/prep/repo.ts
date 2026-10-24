@@ -80,10 +80,10 @@ export async function getPrepContext(db: DB, userId: string, jobId?: string) {
           .limit(30)
       : Promise.resolve([]),
   ]);
-  // Overview statuses must reflect every saved job even when a selected job filters the prep list.
-  const savedPrep = jobId
+  // Preparation presence is independent of the bounded or selected-job note history.
+  const savedPrep = saved.length
     ? await db
-        .select({ subjectId: notes.subjectId })
+        .selectDistinct({ subjectId: notes.subjectId })
         .from(notes)
         .where(
           and(
@@ -96,7 +96,7 @@ export async function getPrepContext(db: DB, userId: string, jobId?: string) {
             ),
           ),
         )
-    : prepRows;
+    : [];
   return {
     savedJobs: saved.map((row) => ({
       ...row,
