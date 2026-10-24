@@ -180,7 +180,9 @@ export async function refreshJobs(
     const query = criteria.targetTitles[0];
     const location = criteria.locations[0];
     const key = await queryKey(query, location);
+    options.signal?.throwIfAborted();
     const claimed = await claimFreshFetch(ctx.db, key, now, 6 * 60 * 60 * 1_000);
+    options.signal?.throwIfAborted();
     if (!claimed) {
       const fresh = await hasRecentFetch(ctx.db, key, now - 6 * 60 * 60 * 1_000);
       cached.push({
@@ -213,21 +215,30 @@ export async function refreshJobs(
   options.signal?.throwIfAborted();
   result.sources.push(...cached);
   result.skipped = skipped;
-  if ((await getCatalogStats(ctx.db)).total === 0) {
+  const catalog = await getCatalogStats(ctx.db);
+  options.signal?.throwIfAborted();
+  if (catalog.total === 0) {
     const seeded = await fetchJobSources(ctx.db, ctx.env, [seedJobsAdapter], {
       now: () => SNAPSHOT_CAPTURED_AT,
       limit: 100,
       signal: options.signal,
       onProgress: options.onProgress,
     });
+    options.signal?.throwIfAborted();
     result.itemsUpserted += seeded.itemsUpserted;
     result.sources.push(...seeded.sources);
     result.fallback = seeded.itemsUpserted > 0;
     result.snapshotCapturedAt = SNAPSHOT_CAPTURED_AT;
   }
-  if (!(await hasLiveJobs(ctx.db)) && (await getCatalogStats(ctx.db)).total > 0) {
-    result.fallback = true;
-    result.snapshotCapturedAt = SNAPSHOT_CAPTURED_AT;
+  const liveJobs = await hasLiveJobs(ctx.db);
+  options.signal?.throwIfAborted();
+  if (!liveJobs) {
+    const finalCatalog = await getCatalogStats(ctx.db);
+    options.signal?.throwIfAborted();
+    if (finalCatalog.total > 0) {
+      result.fallback = true;
+      result.snapshotCapturedAt = SNAPSHOT_CAPTURED_AT;
+    }
   }
   result.progress = { stage: "done", done: result.sources.length, total: result.sources.length };
   return result;
