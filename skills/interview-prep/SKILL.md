@@ -23,5 +23,5 @@ result is stated plainly first ("7 months of runway"), with an optional gentle l
    - A 30/60/90-day talking point framed as a proposal, not a claim about the company's internal roadmap.
    - Evidence-based skill gaps, prioritized pattern drills, one mock design session, and a final review/rest block. Map tasks to available time; a near-term interview needs triage, not an impossible curriculum.
    - Source links, confidence/date caveats, and measurable outcomes (solve/explain one pattern unaided, articulate two tradeoffs).
-6. Call `save_prep({jobId,title,body})` with the Markdown plan (title ≤200 chars, body ≤50,000). To revise a plan, use its returned `noteId`; do not overwrite a mock summary unintentionally. Preserve personal notes literally and keep humor out of the saved data.
+6. Call `save_prep({jobId,title,body})` with the Markdown plan (title ≤200 chars, body ≤50,000). To revise a plan, pass its returned `prep.id` as `noteId`; do not overwrite a mock summary unintentionally. Preserve personal notes literally and keep humor out of the saved data.
 7. Confirm only after successful save, then show the first study task and offer `$mock-interview` using this same saved intel. If storage fails, leave the plan in chat and explain what remains unsaved.
