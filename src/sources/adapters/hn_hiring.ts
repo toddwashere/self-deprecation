@@ -4,6 +4,7 @@ export function createHnHiringAdapter(options: HnAdapterOptions = {}) {
   return createHnContractAdapter({
     id: "hn_hiring",
     query: "Ask HN: Who is hiring?",
+    tags: "story,author_whoishiring",
     title: /^Ask HN: Who is hiring\?/i,
     include: includesContractWork,
     options,

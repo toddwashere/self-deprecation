@@ -9,6 +9,28 @@
       }
     ]
   },
+  "comments": {
+    "hits": [
+      {
+        "objectID": "4001",
+        "story_id": 4000,
+        "created_at_i": 1759331000,
+        "comment_text": "SEEKING FREELANCER<br>Human Systems | AI Product Engineer | Remote US<p>Short consulting engagement using Python and React.</p>"
+      },
+      {
+        "objectID": "4002",
+        "story_id": 4000,
+        "created_at_i": 1759331100,
+        "comment_text": "SEEKING WORK<br>Independent Engineer | Remote<p>Available for projects.</p>"
+      },
+      {
+        "objectID": "4003",
+        "story_id": 3999,
+        "created_at_i": 1759331200,
+        "comment_text": "Discussion mentioning SEEKING FREELANCER posts, not an actual lead."
+      }
+    ]
+  },
   "item": {
     "id": 4000,
     "title": "Ask HN: Freelancer? Seeking freelancer? (October 2025)",
