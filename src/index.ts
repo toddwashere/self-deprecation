@@ -1,7 +1,11 @@
+import { OAuthProvider, type OAuthResourceContext } from "@cloudflare/workers-oauth-provider";
 import { McpServer } from "@modelcontextprotocol/server";
 import { OpenAIExtensions, type OpenAIUiToolMetadata } from "@openai/mcp-extensions/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import { githubAuthHandler } from "./auth/github-handler";
+import { localAuthProps, resolveUserId } from "./auth/guards";
+import type { AuthProps } from "./auth/types";
 import type { Env } from "./env";
 
 const UI_URI = "ui://self-deprecation/hello";
@@ -40,7 +44,14 @@ const pingOutputSchema = z.object({
   message: z.string(),
 });
 
-export function createServer(): McpServer {
+const profileOutputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().optional(),
+  nickname: z.string().optional(),
+});
+
+export function createServer(profile: AuthProps = localAuthProps("dev-user")): McpServer {
   const server = new McpServer({
     name: "Self-Deprecation",
     version: "0.1.0",
@@ -89,6 +100,7 @@ export function createServer(): McpServer {
         } satisfies OpenAIUiToolMetadata,
         "openai/toolInvocation/invoking": "Checking whether you're deprecated yet…",
         "openai/toolInvocation/invoked": "Still supported. Migration ready.",
+        securitySchemes: [{ type: "oauth2", scopes: ["mcp:read"] }],
       },
     },
     async () => ({
@@ -105,10 +117,68 @@ export function createServer(): McpServer {
     }),
   );
 
+  server.registerTool(
+    "get_profile",
+    {
+      title: "Get signed-in profile",
+      description:
+        "Returns the verified Self-Deprecation identity for the signed-in person. Use it to confirm which account is connected. Do not use it to fetch career criteria or resume data. Next, use open_dashboard to view the workspace.",
+      inputSchema: z.object({}),
+      outputSchema: profileOutputSchema,
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+      _meta: {
+        "openai/profile": true,
+        "openai/toolInvocation/invoking": "Checking your identity…",
+        "openai/toolInvocation/invoked": "Identity verified. Still you.",
+        securitySchemes: [{ type: "oauth2", scopes: ["mcp:read"] }],
+      },
+    },
+    async () => ({
+      content: [{ type: "text", text: `Signed in as ${profile.name}.` }],
+      structuredContent: {
+        id: profile.userId,
+        name: profile.name,
+        ...(profile.email ? { email: profile.email } : {}),
+        ...(profile.nickname ? { nickname: profile.nickname } : {}),
+      },
+    }),
+  );
+
   return server;
 }
 
-const mcpHandler = createMcpHandler(createServer, { route: "/mcp" });
+function handleMcp(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  profile: AuthProps,
+): Promise<Response> {
+  const handler = createMcpHandler(() => createServer(profile), { route: "/mcp" });
+  return handler(request, env, ctx);
+}
+
+function createOAuthProvider(env: Env) {
+  const resource = `${env.PUBLIC_BASE_URL.replace(/\/$/, "")}/mcp`;
+  const issuer = env.PUBLIC_BASE_URL.replace(/\/$/, "");
+  return new OAuthProvider<Env>({
+    apiRoute: "/mcp",
+    apiHandler: {
+      fetch(request, apiEnv, ctx) {
+        const oauthContext = ctx as OAuthResourceContext<AuthProps>;
+        const userId = resolveUserId(apiEnv, oauthContext.props);
+        return handleMcp(request, apiEnv, ctx, { ...oauthContext.props, userId });
+      },
+    },
+    defaultHandler: githubAuthHandler,
+    authorizeEndpoint: "/authorize",
+    tokenEndpoint: "/oauth/token",
+    clientRegistrationEndpoint: "/oauth/register",
+    scopesSupported: ["mcp:read", "offline_access"],
+    resourceMetadata: { resource, authorization_servers: [issuer] },
+    requiredScopes: ["mcp:read"],
+    clientIdMetadataDocumentEnabled: true,
+  });
+}
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
@@ -133,9 +203,21 @@ export default {
     }
 
     if (url.pathname === "/mcp" && ["GET", "POST", "DELETE"].includes(request.method)) {
-      return mcpHandler(request, env, ctx);
+      try {
+        const userId = resolveUserId(env, undefined);
+        return handleMcp(request, env, ctx, localAuthProps(userId));
+      } catch (error) {
+        if (env.DEV_AUTH_BYPASS === "1") {
+          return new Response(
+            error instanceof Error ? error.message : "Invalid auth configuration",
+            {
+              status: 500,
+            },
+          );
+        }
+      }
     }
 
-    return new Response("Not Found", { status: 404 });
+    return createOAuthProvider(env).fetch(request, env, ctx);
   },
 } satisfies ExportedHandler<Env>;

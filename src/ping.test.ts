@@ -1,5 +1,7 @@
-import { SELF } from "cloudflare:test";
+import { createExecutionContext, env, SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import type { Env } from "./env";
+import worker from "./index";
 
 const MCP_URL = "http://localhost/mcp";
 const UI_URI = "ui://self-deprecation/hello";
@@ -71,8 +73,8 @@ describe("F1 Worker", () => {
       }>;
     }>(1, "tools/list", {});
 
-    expect(result.tools).toHaveLength(1);
-    const [ping] = result.tools;
+    expect(result.tools).toHaveLength(2);
+    const ping = result.tools.find((tool) => tool.name === "ping");
     expect(ping).toMatchObject({
       name: "ping",
       description: expect.stringContaining("Do not use"),
@@ -97,6 +99,19 @@ describe("F1 Worker", () => {
         },
         "openai/toolInvocation/invoking": "Checking whether you're deprecated yet…",
         "openai/toolInvocation/invoked": "Still supported. Migration ready.",
+      },
+    });
+
+    expect(result.tools.find((tool) => tool.name === "get_profile")).toMatchObject({
+      name: "get_profile",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
+      _meta: {
+        "openai/profile": true,
+        securitySchemes: [{ type: "oauth2", scopes: ["mcp:read"] }],
       },
     });
   });
@@ -131,5 +146,41 @@ describe("F1 Worker", () => {
     });
     expect(resourceResult.contents[0].text).toContain("Hello from Self-Deprecation");
     expect(resourceResult.contents[0].text).toContain("Connection healthy");
+  });
+
+  it("returns the bypass profile locally and challenges anonymous production calls", async () => {
+    const profile = await mcpRequest<{
+      structuredContent: { id: string; name: string; email?: string; nickname?: string };
+    }>(4, "tools/call", {
+      name: "get_profile",
+      arguments: { userId: "forged-user" },
+    });
+    expect(profile.structuredContent).toEqual({
+      id: "dev-user",
+      name: "Local Developer",
+      nickname: "dev",
+    });
+
+    const productionEnv = {
+      ...env,
+      ENVIRONMENT: "production",
+      DEV_AUTH_BYPASS: "0",
+      PUBLIC_BASE_URL: "https://self-deprecation.metodd.workers.dev",
+    } as unknown as Env;
+    const response = await worker.fetch(
+      new Request("https://self-deprecation.metodd.workers.dev/mcp", {
+        method: "POST",
+        headers: {
+          accept: "application/json, text/event-stream",
+          "content-type": "application/json",
+          "mcp-protocol-version": "2025-11-25",
+        },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} }),
+      }) as unknown as Parameters<NonNullable<typeof worker.fetch>>[0],
+      productionEnv,
+      createExecutionContext(),
+    );
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toContain("resource_metadata=");
   });
 });
