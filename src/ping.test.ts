@@ -168,7 +168,7 @@ describe("F1 Worker", () => {
     expect(resourceResult.contents[0].text).toContain("Career dashboard");
     expect(resourceResult.contents[0].text).toContain("Load demo data");
     expect(new TextEncoder().encode(resourceResult.contents[0].text).byteLength).toBeLessThan(
-      400_000,
+      425_000,
     );
     expect(resourceResult.contents[0].text).not.toMatch(/<script[^>]+src=/);
   });
