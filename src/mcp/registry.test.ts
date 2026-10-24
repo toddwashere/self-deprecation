@@ -53,6 +53,8 @@ describe("tool registry contract", () => {
         "list_events",
         "update_event",
         "get_ai_news",
+        "get_brief_data",
+        "mark_brief_seen",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);
