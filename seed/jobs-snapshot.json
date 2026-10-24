@@ -1,0 +1,22 @@
+[
+  {
+    "jobId": "seed-staff-ai-platform",
+    "jobText": "Staff Software Engineer, AI Platform. Remote US. TypeScript, Node, Postgres, distributed systems, LLM evaluation, and product engineering. Compensation $210k-$260k."
+  },
+  {
+    "jobId": "seed-senior-backend",
+    "jobText": "Senior Backend Engineer. Salt Lake City hybrid. TypeScript, Node, Postgres, APIs, observability, and cloud infrastructure. Compensation $175k-$210k."
+  },
+  {
+    "jobId": "seed-ai-product",
+    "jobText": "AI Product Engineer. Remote US. React, TypeScript, agents, tool use, rapid product iteration, and customer-facing prototypes. Compensation $185k-$230k."
+  },
+  {
+    "jobId": "seed-data-scientist",
+    "jobText": "Data Scientist. Onsite New York. Python, statistics, experimentation, and forecasting. Compensation $150k-$185k."
+  },
+  {
+    "jobId": "seed-junior-designer",
+    "jobText": "Junior Brand Designer. Onsite Los Angeles. Illustration, typography, Figma, and agency portfolio required. Compensation $75k-$95k."
+  }
+]
