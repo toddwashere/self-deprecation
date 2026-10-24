@@ -178,3 +178,7 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 ## P0-C · Review fixes and wrapper authorization (2026-10-24)
 The integrator explicitly authorized the shared Decisions timeout repair and supplied commit `08d54ed`; P0-C integrated that approved repair as `9ae1382`. This review milestone changes only owned Jobs/scoring files and this log. JobsOutput now includes normalized initiating filters for panel refresh/continuation; remote geography no longer requires a literal work-mode keyword; batch-size zero follows the wrapper's clamp to one.
+
+## P1-I Learning Journal integration request — 2026-10-24
+
+[contract] P1-I owns only learning feature/skill files. Foundation registry has no learning stub. Please import `learningFeature` from `src/features/learning/index.ts` in the shared MCP registry; wire exported `LearningPanel` from `src/features/learning/panel.tsx` into the approved Learn → Journal navigation (`tab: learning` in structured outputs); list the five journal tools in docs/TOOLS.md. No schema change is needed. Registry, navigation, seed learning fixtures, deployment, Inspector, and ChatGPT connection checks require integrator work; P1-I does not modify frozen paths. All five tools use existing verified ToolContext and stored D1 data only.
