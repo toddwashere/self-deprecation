@@ -126,6 +126,47 @@ describe("Decisions scoring", () => {
     expect(recordUsage).not.toHaveBeenCalled();
   });
 
+  it("bounds usage persistence within the same deadline as the Decisions call", async () => {
+    vi.useFakeTimers();
+    const request: DecisionRequest = {
+      model: "gpt-6-luna",
+      input: [{ role: "user", content: [{ type: "input_text", text: "assessment" }] }],
+      questions: [
+        {
+          type: "choice",
+          name: "level",
+          instructions: [{ type: "input_text", text: "Choose a level." }],
+          choices: [{ value: "1" }, { value: "2" }],
+        },
+      ],
+    };
+    const decide = vi.fn(async () => ({
+      answers: [
+        {
+          type: "choice" as const,
+          name: "level",
+          choice: "2",
+          confidence: 0.8,
+          probabilities: [{ value: "2", probability: 0.8 }],
+        },
+      ],
+      usage: { input_tokens: 20 },
+    }));
+    const recordUsage = vi.fn(() => new Promise<void>(() => undefined));
+
+    const result = runBoundedDecision(scoringEnv(), request, {
+      decide,
+      timeoutMs: 1_000,
+      recordUsage,
+    });
+    const rejection = expect(result).rejects.toThrow("Decisions timed out");
+    await vi.advanceTimersByTimeAsync(1_000);
+    await rejection;
+    expect(decide).toHaveBeenCalledTimes(1);
+    expect(recordUsage).toHaveBeenCalledWith(20);
+    vi.useRealTimers();
+  });
+
   it("batches, maps names to job IDs, scales 0–4, and isolates a failed batch", async () => {
     let callIndex = 0;
     const decide = vi.fn(async (request: DecisionRequest) => {
