@@ -5,7 +5,7 @@
 - Replace the People placeholder with searchable contacts, selected-contact details, newest-first notes, add forms, follow-up editing, and ChatGPT outreach handoff. Use only Bridge and shared UI components, with loading/empty/error/saving states and live tool-output refresh.
 - Keep public-safe data and literal labels; keep one light joke in feature copy. No external API calls or server generation.
 
-Files: `src/features/crm/{index.ts,repo.ts,tools.ts,panel.tsx,copy.ts,repo.test.ts,tools.test.ts}` and this brief.
+Files: `src/features/crm/{index.ts,repo.ts,tools.ts,panel.tsx,copy.ts,panel.css,repo.test.ts,tools.test.ts}` and this brief.
 
 Tool contracts (all objects omit userId):
 - `add_contact`: name + optional company/title/email/linkedinUrl/whereMet/tags/lastContactedAt/followUpAt → `{tab:'people',contact}`.

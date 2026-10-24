@@ -141,3 +141,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - P1-B review proved the shared `fetchWithTimeout` helper buffered an entire response before applying `maxBytes` when `Content-Length` was absent. That allowed an untrusted upstream to consume Worker memory beyond the declared limit.
 - The helper now reads the response stream incrementally, cancels it immediately after the byte limit is crossed, and only constructs the returned response from bounded chunks. Declared oversized responses still fail before reading.
 - Affected tasks: shared HTTP foundation, all source adapters, P0-A jobs, P1-B event metadata, P1-C news.
+
+## 2026-10-24 — P0-D CRM registration integration request
+
+- P0-D registers `add_contact`, `update_contact`, `list_contacts`, `add_note`, and `list_notes` through its owned `src/features/crm/index.ts`. The frozen central registry snapshot must add those names after existing criteria tools. The integrator also owns the corresponding `docs/TOOLS.md` entries and final deploy/ChatGPT natural-language check.
+- Contact writes return `{tab:'people', contact}`; note writes return `{tab:'people', note}`; paginated lists return `{tab:'people', contacts|notes, hasMore}`. Timestamps are epoch milliseconds; contact update uses `contactId`; generic notes use `subjectType`, optional `subjectId`/`subjectLabel`.
+- The feature branch passes typecheck/lint and all CRM tests. Its full suite has only the expected central registry snapshot mismatch; no frozen paths were edited.
