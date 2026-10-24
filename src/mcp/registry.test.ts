@@ -50,6 +50,8 @@ describe("tool registry contract", () => {
         "save_prep",
         "save_interview_intel",
         "get_interview_intel",
+        "set_bridge_mode",
+        "list_contract_leads",
         "save_event",
         "list_events",
         "update_event",

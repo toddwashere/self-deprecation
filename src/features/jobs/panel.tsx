@@ -60,6 +60,8 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  const initialOutput = bridge.initialToolOutput<{ bridgeMode?: boolean }>();
+  const [bridgeMode, setBridgeModeState] = useState(initialOutput?.bridgeMode === true);
   const [detail, setDetail] = useState<JobCard | undefined>(
     () => bridge.initialToolOutput<Partial<JobOutput>>()?.job,
   );
@@ -90,6 +92,7 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
     () =>
       bridge.onToolOutput((output) => {
         if (isSearch(output)) {
+          if ("bridgeMode" in output && output.bridgeMode === true) setBridgeModeState(true);
           const incomingFilters = normalizeSearchFilters(output.filters);
           if (JSON.stringify(incomingFilters) !== JSON.stringify(filters)) {
             generation.current++;
@@ -103,6 +106,26 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
       }),
     [bridge, filters],
   );
+
+  const toggleBridgeMode = async () => {
+    const enabled = !bridgeMode;
+    setPending("bridge-mode");
+    setError(undefined);
+    const result = await bridge.callTool<{ bridgeMode: boolean }>("set_bridge_mode", { enabled });
+    setPending(undefined);
+    if (result.error || !result.data) {
+      setError(result.error?.message ?? copy.error);
+      return;
+    }
+    setBridgeModeState(result.data.bridgeMode);
+    const next = {
+      ...filters,
+      employmentType: result.data.bridgeMode ? ("contract" as const) : ("" as const),
+    };
+    setDraft(next);
+    setFilters(next);
+    setNotice(result.data.bridgeMode ? copy.bridgeOn : copy.bridgeOff);
+  };
 
   useEffect(() => {
     if (!data || data.progress.stage === "done" || busy || error) return;
@@ -259,7 +282,10 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
   return (
     <div className="stack">
       <div>
-        <h2>{copy.title}</h2>
+        <div className="card-heading">
+          <h2>{copy.title}</h2>
+          {bridgeMode ? <Chip tone="good">{copy.bridge}</Chip> : null}
+        </div>
         <p className="muted">{data?.fallback ? "Ranked for your criteria" : copy.subtitle}</p>
       </div>
       <Card>
@@ -340,6 +366,15 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
             <div className="actions" style={{ margin: 0 }}>
               <Button type="submit" disabled={busy}>
                 {copy.search}
+              </Button>
+              <Button
+                className="secondary"
+                type="button"
+                aria-pressed={bridgeMode}
+                disabled={pending === "bridge-mode"}
+                onClick={() => void toggleBridgeMode()}
+              >
+                {copy.bridge}
               </Button>
             </div>
           </div>

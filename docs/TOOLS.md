@@ -31,6 +31,8 @@ server/panel contract.
 | `save_prep` | prep | write | yes | Save a caller-owned interview preparation note. |
 | `save_interview_intel` | prep | write | yes | Save structured interview-stage intelligence. |
 | `get_interview_intel` | prep | read-only | yes | Read saved interview intelligence for a job. |
+| `set_bridge_mode` | jobs | write | yes | Explicitly include or exclude contract work from the caller's search. |
+| `list_contract_leads` | jobs | read-only | yes | List current public contract and freelance leads when Bridge mode is on. |
 | `save_event` | events | open-world write | yes | Save an event and optionally enrich its public metadata. |
 | `list_events` | events | read-only | yes | List caller-owned events with filters and pagination. |
 | `update_event` | events | write | yes | Update a caller-owned event or its status. |
