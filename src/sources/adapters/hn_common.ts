@@ -36,8 +36,10 @@ function fields(text: string) {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-  const heading = /^seeking\s+(?:freelancer|work)\b/i.test(lines[0] ?? "");
-  const metadata = lines[heading ? 1 : 0] ?? "";
+  const first = lines[0] ?? "";
+  const heading = first.match(/^seeking\s+(?:freelancer|work)\b\s*:?\s*(?:\|\s*)?/i);
+  const inlineMetadata = heading ? first.slice(heading[0].length).trim() : "";
+  const metadata = heading ? inlineMetadata || (lines[1] ?? "") : first;
   return metadata
     .split("|")
     .map((part) => part.trim())

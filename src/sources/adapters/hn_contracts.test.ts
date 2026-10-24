@@ -87,6 +87,21 @@ describe("HN contract sources", () => {
     });
   });
 
+  it("preserves metadata beside a Seeking Freelancer heading", () => {
+    const job = parseHnComment(
+      {
+        id: 8,
+        text: "SEEKING FREELANCER | Same Line Co | Platform Engineer | Remote US<br>Short engagement.",
+      },
+      "hn_freelance",
+    );
+    expect(job).toMatchObject({
+      company: "Same Line Co",
+      title: "Platform Engineer",
+      location: "Remote US",
+    });
+  });
+
   it("applies since and limit after parsing and returns empty when no thread exists", async () => {
     const fetcher = recorded({ hits: [] }, freelanceFixture.item);
     expect(await createHnFreelanceAdapter({ fetcher }).fetch(env, {})).toEqual([]);
