@@ -18,18 +18,16 @@ beforeEach(async () => {
   await db.delete(jobs);
   await db.delete(users);
   await db.insert(users).values(["a", "b"].map((id) => ({ id, createdAt: 1, updatedAt: 1 })));
-  await db
-    .insert(jobs)
-    .values({
-      id: "job",
-      source: "seed",
-      sourceJobId: "job",
-      company: "Example",
-      title: "Engineer",
-      url: "https://example.com/job",
-      fetchedAt: 1,
-      lastSeenAt: 1,
-    });
+  await db.insert(jobs).values({
+    id: "job",
+    source: "seed",
+    sourceJobId: "job",
+    company: "Example",
+    title: "Engineer",
+    url: "https://example.com/job",
+    fetchedAt: 1,
+    lastSeenAt: 1,
+  });
 });
 
 it("T1 keeps match scores, statuses and progress isolated per user", async () => {
