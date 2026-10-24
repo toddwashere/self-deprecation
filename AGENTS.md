@@ -48,6 +48,12 @@ default (take the default after 15 minutes). Commit the brief first.
 - **Mark unknowns.** If the plan says VERIFY, check current docs before coding against it and record
   the answer in `docs/decisions-log.md`.
 
+## Status and progress (see PLAN §27)
+
+Every tool sets `status.invoking` / `status.invoked` (≤ 64 chars, §24 voice). No tool blocks longer
+than ~8s: return what's ready plus a `progress` object, and let the panel poll `get_task_status`.
+Every panel view has loading, empty, error, and in-progress states.
+
 ## Voice (see PLAN §24)
 
 Gallows humor about being deprecated, then hope. Humor goes in chrome (subtitles, loaders, empty

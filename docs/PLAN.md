@@ -43,6 +43,8 @@ confirmed while planning and must be checked against current docs before relying
 24. Voice and humor guide ("laugh, then wince, then hope")
 25. The AI-Native Ladder (career level feature)
 26. Planning protocol and decisions that need Todd
+27. Progress and status UX
+28. Company interview intel ("know the gauntlet")
 
 ---
 
@@ -92,7 +94,9 @@ Feature list by tier (details in §17):
   panel shell, core tools (`get_profile`, `reset_my_data`, `load_demo_data`, `open_dashboard`),
   Decisions wrapper, cron dispatcher, source adapter interface, seed data, tests.
 - **P0:** job sources + normalization · criteria/profile/resume · Decisions scoring + Jobs tab ·
-  basic CRM (contacts + notes) · interview prep + mock interview skills · plugin packaging, skills,
+  basic CRM (contacts + notes) · interview prep + mock interview skills · **company interview intel**
+  (what this company's loop actually looks like: coding/LeetCode-style patterns, system design prompts,
+  behavioral themes, from public reports; §28) · plugin packaging, skills,
   demo seed, demo script.
 - **P1:** Bridge mode + contract leads · events (ChatGPT web search → saved events) · AI news
   aggregator (tool + skill) · daily brief + scheduled-task setup + "Run my brief" fallback ·
@@ -179,12 +183,12 @@ Verify current versions at install time; pin what you install.
 | DB | Cloudflare D1 (SQLite) | Local dev via `wrangler dev` (local SQLite). |
 | ORM/migrations | Drizzle ORM + drizzle-kit (D1 driver) | Schema in TS = shared contract. |
 | Validation | zod | Tool inputs/outputs. |
-| MCP server | `@modelcontextprotocol/sdk` + OpenAI `@openai/mcp-extensions` (server) | **VERIFY** package names/APIs in github.com/openai/mcp-extensions TypeScript README. |
+| MCP server | `@modelcontextprotocol/sdk` + MCP Apps (`@modelcontextprotocol/ext-apps/server`, `registerAppTool`) + OpenAI `@openai/mcp-extensions` for ChatGPT-only extensions (entrypoints, settings, forms) | Per OpenAI's plugin reference: use the open MCP Apps standard first (`_meta.ui.resourceUri`, UI resource mime `text/html;profile=mcp-app`), `window.openai` / `_meta["openai/*"]` only for ChatGPT-specific features. **VERIFY** exact package versions. |
 | MCP transport on Workers | Cloudflare `agents` `McpAgent` (Durable Object) **or** stateless streamable HTTP | Decide in F1 spike; prefer whatever the Cloudflare remote-MCP GitHub-OAuth template uses. |
 | OAuth | `@cloudflare/workers-oauth-provider` + GitHub OAuth App | Start from Cloudflare's `remote-mcp-github-oauth` template (**VERIFY** current name). |
 | OpenAI | `openai` npm SDK (`client.decisions.create`) | Decisions API, optional Agents API. |
 | Panel UI | React + Vite, built to a **single HTML file** (e.g. `vite-plugin-singlefile`) | Served as the MCP UI resource. Target < 400 KB. |
-| Panel host bridge | OpenAI extensions app SDK | Wrapped once in `web/src/bridge.ts`. **VERIFY** API. |
+| Panel host bridge | MCP Apps bridge, falling back to `window.openai` (`callTool`, `sendFollowUpMessage`, `toolOutput`, `widgetState`/`setWidgetState`, `theme`, `notifyIntrinsicHeight`, `requestDisplayMode`, `openExternal`) | Wrapped once in `web/src/bridge.ts`. |
 | Tests | vitest (+ `@cloudflare/vitest-pool-workers` for Worker/D1 tests) | Keep tests fast; seed DB per test. |
 | Feeds | `fetch` + small parsers (`fast-xml-parser` for RSS/Atom) | Watch CPU time. |
 | Lint/format | Biome (or ESLint + Prettier) | Pick one in F1; don't bikeshed. |
@@ -214,7 +218,7 @@ Verify current versions at install time; pin what you install.
 │  └─ ats-boards.json        # verified Greenhouse/Lever/Ashby board tokens
 ├─ skills/                   # ChatGPT plugin skills (each a folder with SKILL.md)
 │  ├─ onboarding/  daily-brief/  weekly-ai-news/  interview-prep/
-│  ├─ mock-interview/  outreach/  find-events/  level-up/
+│  ├─ mock-interview/  interview-intel/  outreach/  find-events/  level-up/
 ├─ plugin/                   # plugin package + local marketplace entry (P0-F, via plugin-creator)
 ├─ scripts/                  # db:reset, seed, snapshot-feeds, smoke tests
 ├─ src/
@@ -436,7 +440,8 @@ export interface ToolDef<I extends z.ZodRawShape = z.ZodRawShape> {
   description: string;       // written for the model: when to use, when NOT to use
   input: I;
   output?: z.ZodTypeAny;     // structuredContent schema
-  annotations: { readOnlyHint: boolean; destructiveHint?: boolean; openWorldHint?: boolean };
+  annotations: { readOnlyHint: boolean; destructiveHint: boolean; openWorldHint: boolean; idempotentHint?: boolean }; // first three required by ChatGPT
+  status: { invoking: string; invoked: string };  // ≤ 64 chars each → _meta["openai/toolInvocation/*"] (§27)
   opensPanel?: boolean;      // attach UI resource meta so ChatGPT can render the panel
   handler: (args: z.infer<z.ZodObject<I>>, ctx: ToolContext) => Promise<ToolResult>;
 }
@@ -514,7 +519,10 @@ export interface Bridge {
   sendPrompt(text: string): Promise<void>;     // hand off to ChatGPT ("Prep me for this job")
   initialToolOutput<T>(): T | undefined;       // structuredContent of the tool that opened the panel
   theme(): 'light' | 'dark';
+  saveViewState(state: object): void;          // window.openai.setWidgetState (remember tab/filters)
+  openExternal(url: string): void;             // job/apply links
 }
+// Implementation prefers the MCP Apps bridge (tools/call etc.), falls back to window.openai.* (see OpenAI plugin reference).
 ```
 
 Each feature's `panel.tsx` renders from `bridge.callTool(...)` results and uses `web/src/ui/*`
@@ -609,6 +617,7 @@ All tools require OAuth unless noted. `RO` = readOnlyHint, `D` = destructiveHint
 | `open_dashboard` | F | RO, panel | Open the panel to a tab: `{tab?}`. Returns summary counts. |
 | `reset_my_data` | F | D | Wipe the caller's personal data (requires `{confirm: "RESET"}`). |
 | `load_demo_data` | F | — | Reset, then load `seed/demo-todd.json` into the caller's account. |
+| `get_task_status` | F | RO | Progress for a long-running task ID (§27). |
 | `get_criteria` | P0 | RO | Current criteria/profile (no resume text unless `{includeResume:true}`). |
 | `update_criteria` | P0 | — | Partial update of profile fields; bumps `criteria_version`. |
 | `save_resume` | P0 | — | `{text, extracted?: {skills, titles, seniority, …}}`. ChatGPT reads the user's resume and passes text + extraction. |
@@ -621,6 +630,8 @@ All tools require OAuth unless noted. `RO` = readOnlyHint, `D` = destructiveHint
 | `add_note` / `list_notes` | P0 | — / RO | Notes on contact/company/job/event/general. |
 | `get_prep_context` | P0 | RO | Job + profile + related notes, so ChatGPT can generate prep. |
 | `save_prep` | P0 | — | Save prep as `notes.kind='prep'` on the job. |
+| `save_interview_intel` | P0 | — | Save a structured, cited interview report for a company (§28) as `notes.kind='interview_intel'`. |
+| `get_interview_intel` | P0 | RO | Saved intel for a company/job (used by prep + mock interview). |
 | `set_bridge_mode` | P1 | — | Toggle Bridge mode. |
 | `list_contract_leads` | P1 | RO, panel | Contract/freelance matches (HN freelancer threads, contract jobs). |
 | `save_event` / `list_events` / `update_event` | P1 | — / RO / — | Events found by ChatGPT web search or pasted URLs. |
@@ -653,6 +664,7 @@ tools). Every tab has loading, empty, and error states (`web/src/ui/Empty`, `Err
 |---|---|---|
 | `onboarding` | P0 | Ask ~6 questions (titles, seniority, remote, salary/hourly floor, stack, avoid list, Bridge mode?), accept a resume, call `update_criteria`/`save_resume`, then `search_jobs` and open the panel. Offer to set up the daily brief. |
 | `interview-prep` | P0 | `get_prep_context` → produce: 5 likely technical Qs, 3 behavioral Qs, 3 questions to ask them, a 30/60/90 talking point, and gaps to study → `save_prep`. |
+| `interview-intel` | P0 | Web-search public interview reports for the company + role (§28), synthesize the loop, coding patterns, system-design prompts, behavioral themes, and a study plan with practice links; cite sources; `save_interview_intel`. |
 | `mock-interview` | P0 | Run a timed mock interview for a saved job, one question at a time, give feedback; suggest voice mode. Save a summary with `save_prep`. |
 | `outreach` | P1 | Draft a short LinkedIn/email intro to a contact using CRM notes; save as `outreach_draft`. |
 | `find-events` | P1 | Web-search meetups/hackathons near the user's city for the next 30 days (Meetup, Luma, Eventbrite, community sites), confirm picks, call `save_event`. |
@@ -683,9 +695,14 @@ ToS/attribution. Drop anything flaky. Store verified board tokens in `seed/ats-b
 | Remotive | `GET https://remotive.com/api/remote-jobs?category=software-dev` | Low rate limits; fetch ≤ a few times/day. |
 | HN "Who is hiring?" | Algolia: `GET https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring` → latest thread → `GET https://hn.algolia.com/api/v1/items/{id}` | Comments are free text; parse first line `Company \| Role \| Location \| …`. Also the "Freelancer? Seeking freelancer?" thread → contract leads (P1-A). |
 | Arbeitnow | `GET https://www.arbeitnow.com/api/job-board-api` | Optional. |
+| **Adzuna** (location search) | `GET https://api.adzuna.com/v1/api/jobs/us/search/{page}?app_id=…&app_key=…&what=…&where=…` | Free API key. Makes city/state targeting ("Salt Lake City", "Utah") work for any user without a hand-picked board list. Queried per user criteria in `refresh_jobs` + a daily cron for active users' locations. |
+| USAJobs (optional) | `GET https://data.usajobs.gov/api/search?...` | Free key; government roles. |
 
-Target 30–50 ATS boards across companies that hire senior backend/AI engineers (mix of remote-first
-and Utah/Mountain-time companies). The adapter skips boards that 404.
+Seed `seed/ats-boards.json` with 30–50 verified boards in three groups: **Utah tech employers**
+(Silicon Slopes), **remote-first companies**, and **AI labs and AI-tooling companies** (for the
+OpenAI-hackathon fun factor: OpenAI and peers, if their boards are public on Greenhouse/Lever/Ashby).
+Location-specific coverage for every user comes from Adzuna; the board list adds depth and freshness.
+The adapter skips boards that 404. Secrets: `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`.
 
 **CPU/subrequest budget (Workers Free):** 10 ms CPU per invocation and 50 subrequests per request.
 Waiting on network calls doesn't count toward CPU time, but JSON parsing and HTML stripping do. Strategy:
@@ -725,8 +742,9 @@ Facts (OpenAI docs): `POST /v1/decisions`, model `gpt-6-luna`; question types `p
 ### 12.1 Pipeline
 
 1. **Candidate selection (code, free):** for the user's latest `criteria_version`, pick jobs not yet
-   scored, passing hard filters (employment type, remote preference, `avoid` lists, salary floor when
-   salary is known, posted within 45 days). Rank by keyword/stack overlap; take the top **60**.
+   scored, passing the user's own filters (employment type, remote/hybrid/onsite + location, `avoid` lists,
+   salary floor only when the posting lists pay, unless the user turned on "hide unlisted salary",
+   posted within 45 days). Rank by keyword/stack overlap; take the top **60**.
 2. **Batch requests:** small batches, several calls. Default **20 jobs per request** (40 questions),
    up to **3 requests in flight**, configurable via `DECISIONS_BATCH_SIZE` / `DECISIONS_CONCURRENCY`.
    The API allows up to 400 questions per request, but job descriptions are long. Small batches keep
@@ -817,7 +835,8 @@ risky after the demo path is stable.
 - `vars`: `ENVIRONMENT`, `DECISIONS_ENABLED`, `DECISIONS_DAILY_JOB_CAP`, `DECISIONS_BATCH_SIZE` (20),
   `DECISIONS_CONCURRENCY` (3), `PUBLIC_BASE_URL`
 
-**Secrets:** `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `COOKIE_ENCRYPTION_KEY`, `OPENAI_API_KEY`.
+**Secrets:** `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `COOKIE_ENCRYPTION_KEY`, `OPENAI_API_KEY`,
+`ADZUNA_APP_ID`, `ADZUNA_APP_KEY`.
 Local copies in `.dev.vars` (with a separate GitHub OAuth app for `http://localhost:8787/callback`).
 
 **npm scripts (F1):** `dev`, `build:web`, `build`, `deploy`, `typecheck`, `test`, `lint`,
@@ -835,19 +854,20 @@ Do these while F1 starts; agents can't do them for you.
 2. **Cloudflare:** `npx wrangler login` in the repo (browser login; no API token needed locally).
    An API token is only needed for CI later (dash → My Profile → API Tokens → "Edit Cloudflare
    Workers" template).
-3. **OpenAI API key:** https://platform.openai.com/api-keys, in the project holding the hackathon
+3. **Adzuna API key** (free): https://developer.adzuna.com → app ID + key → Wrangler secrets.
+4. **OpenAI API key:** https://platform.openai.com/api-keys, in the project holding the hackathon
    credits. `npx wrangler secret put OPENAI_API_KEY`. Confirm Decisions access in the Playground
    (https://platform.openai.com/decisions).
-4. **GitHub OAuth apps** (github.com → Settings → Developer settings → OAuth Apps):
+5. **GitHub OAuth apps** (github.com → Settings → Developer settings → OAuth Apps):
    - *Prod:* homepage `https://self-deprecation.<your-subdomain>.workers.dev`, callback `…/callback`.
    - *Local:* homepage `http://localhost:8787`, callback `http://localhost:8787/callback`.
    Put client ID/secret in Wrangler secrets / `.dev.vars`.
-5. **ChatGPT desktop:** Plugins → **+** → *Add custom MCP server* → URL
+6. **ChatGPT desktop:** Plugins → **+** → *Add custom MCP server* → URL
    `https://self-deprecation.<sub>.workers.dev/mcp` → OAuth → *Create as a plugin*. After metadata
    or UI changes: redeploy → **Refresh** on the connection → new chat.
-6. **Demo hygiene:** phone hotspot ready; ChatGPT desktop logged in; a dedicated demo chat; run
+7. **Demo hygiene:** phone hotspot ready; ChatGPT desktop logged in; a dedicated demo chat; run
    `load_demo_data` before going on stage.
-7. **Seed persona:** fill `seed/demo-todd.json` with what you're comfortable showing (headline,
+8. **Seed persona:** fill `seed/demo-todd.json` with what you're comfortable showing (headline,
    skills, target titles, 3–4 contacts, a couple of notes, 2 events). Your `todd-fisher-resume` repo
    is a good source; paste only public-safe content.
 
@@ -930,7 +950,8 @@ Global Definition of Done is in `AGENTS.md`.
 - Depends on: F8.
 - Deliver: adapters for Greenhouse, Lever, Ashby, RemoteOK, Remotive (+ HN in P1-A); normalization,
   HTML stripping, tag extraction, upsert by `(source, source_job_id)`, rotating batch cron,
-  `refresh_jobs` (bounded), snapshot script capturing ~60 relevant jobs for fallback.
+  Adzuna location search driven by the user's criteria, `refresh_jobs` (bounded), snapshot script
+  capturing ~60 relevant jobs (incl. Utah + AI-lab roles) for fallback.
 - Done when: catalog has ≥ 300 jobs from ≥ 3 sources; a forced adapter failure shows in
   `fetch_runs` and doesn't break others; unit tests per adapter using recorded fixtures.
 
@@ -960,12 +981,14 @@ Global Definition of Done is in `AGENTS.md`.
   map to `add_contact` + `add_note`.
 - Done when: natural-language add works in ChatGPT and appears live in the panel; isolation test.
 
-**P0-E · Interview prep + mock interview**
-- Owns: `features/prep/*`, `skills/interview-prep/`, `skills/mock-interview/`.
-- Deliver: `get_prep_context`, `save_prep`; Prep tab (saved jobs with prep status; prep notes
-  rendered as markdown); both skills.
-- Done when: "Prep me for <saved job>" produces and saves prep visible in the Prep tab; mock
-  interview runs (try it in voice mode once).
+**P0-E · Interview prep, company interview intel, mock interview**
+- Owns: `features/prep/*`, `skills/interview-prep/`, `skills/interview-intel/`, `skills/mock-interview/`.
+- Deliver: `get_prep_context`, `save_prep`, `save_interview_intel`, `get_interview_intel`; Prep tab
+  (saved jobs with prep status; per-company "Interview loop" card: stages, coding patterns with
+  practice links, system-design prompts, behavioral themes, sources, confidence); all three skills.
+  Mock interview pulls the company's intel so practice matches the real loop.
+- Done when: "What's the interview like at <company>?" produces cited intel visible in the Prep tab;
+  "Prep me for <saved job>" builds on it; mock interview runs (try it in voice mode once).
 
 **P0-F · Packaging, skills wiring, demo**
 - Owns: `plugin/`, `docs/DEMO.md`, `seed/demo-todd.json` (content with Todd), tool descriptions
@@ -1033,7 +1056,7 @@ sequences · email digests · public launch (OpenAI plugin submission + review).
 | `features/criteria/*`, `skills/onboarding` | P0-B (P1-F may add `native-*` files) |
 | `features/scoring/*`, `features/jobs/{tools.ts,panel.tsx}` | P0-C |
 | `features/crm/*` | P0-D |
-| `features/prep/*`, `skills/{interview-prep,mock-interview}` | P0-E |
+| `features/prep/*`, `skills/{interview-prep,interview-intel,mock-interview}` | P0-E |
 | `plugin/*`, `docs/DEMO.md`, `seed/demo-todd.json`, `scripts/smoke-prod.ts` | P0-F |
 | `features/contracts/*`, `src/sources/adapters/hn_*.ts` | P1-A |
 | `features/events/*`, `skills/find-events` | P1-B |
@@ -1077,7 +1100,9 @@ every deprecation notice deserves a migration guide."
    while I look." → onboarding fills criteria → **Profile tab updates**.
 2. "Find my best matches." → `search_jobs` → **Jobs tab**: ranked list with fit 0–100 and why chips.
    Say: "The Decisions API scores every job against my profile; it costs fractions of a cent."
-3. Save the top job → click **Prep me** → ChatGPT generates and saves prep → **Prep tab**.
+3. Save the top job → "What's their interview process like?" → ChatGPT researches public reports →
+   **Prep tab** shows the loop, likely coding patterns, and a system-design prompt with sources. Click
+   **Prep me** for a study plan. (Fun option: run it on an OpenAI role.)
 4. "I met Jane Doe at this hackathon; she's a staff engineer at <company> and offered an intro." →
    contact + note → **People tab**.
 5. (If P1-H is ready) "Where am I as an AI-native engineer?" → `level-up` skill → **Level tab**:
@@ -1190,7 +1215,7 @@ If the user mentions a layoff, rejection, or money stress, skip the humor and be
 
 1. Call `get_criteria`. If criteria exist, summarize them and ask what changed.
 2. Ask at most six short questions, one or two at a time: target titles; seniority; remote/hybrid/onsite
-   and locations; minimum salary (and hourly rate if open to contract); core stack; companies or
+   and which city/state (suggest the user's approximate city if ChatGPT shared one); minimum salary (and hourly rate if open to contract); core stack; companies or
    industries to avoid. Ask whether to turn on Bridge mode (contract work while searching).
 3. If the user shares a resume, read it, extract skills, titles, and seniority, and call `save_resume`
    with the text and the extraction.
@@ -1414,6 +1439,23 @@ dimension bars, quest checklist for the next level, assessment history sparkline
 "Ask ChatGPT for a plan" (`sendPrompt`) buttons. Subtitle: "Your migration path from legacy to
 AI-native."
 
+### 25.7 More self-assessment lenses (beyond the ladder)
+
+The ladder is the headline; these add depth (P1 if cheap, otherwise P2). Each reuses
+`ladder_assessments` with a `lens` key in `answers`/`dimension_scores` (no schema change).
+
+- **AI Toolbelt inventory:** which tools you actually use, by category (autocomplete, chat, coding
+  agents, agent orchestration, MCP/custom tools, evals/observability, voice). Shows gaps vs. what
+  your target job postings mention.
+- **Agentic habits checklist:** weekly yes/no habits (wrote a spec before delegating; ran 2+ agents
+  in parallel; added tests as the agent's done-condition; reviewed diffs, not keystrokes; automated
+  one recurring chore). Streaks for the Today tab.
+- **General AI fluency (beyond code):** research, writing, meetings, planning, learning. For
+  engineers moving toward the "builder" generalist that crosses product, design, and engineering.
+- **Market-pull lens:** from saved job matches, how often target roles demand L4+ skills ("72% of
+  your top matches mention agents or evals").
+- **Monthly re-assessment** with a trend line: the "you@vX" changelog.
+
 ### 25.6 Later (P2)
 
 Infer level signals from the user's job matches (which postings demand L4+ skills), connect to the
@@ -1452,12 +1494,79 @@ Settle these yourself; everything else is delegated.
 
 | # | Decision | When | Recommended default |
 |---|---|---|---|
-| D1 | F1 spike result: Workers vs. Node fallback; `McpAgent` vs stateless | Fri ~00:30 | Stay on Workers unless the extensions SDK or panel fails to render. |
-| D2 | Signup policy on the public deployment (anyone with GitHub can use our Decisions budget) | F2 | `ALLOWED_GITHUB_LOGINS` allowlist (env var, comma-separated) during the hackathon; open signup later with per-user caps. |
-| D3 | Target companies for ATS feeds (30–50 boards) | P0-A start | Todd lists 10–15 real targets; the agent fills the rest with verified remote-first companies. |
-| D4 | What "fit" means: hard filters vs. soft preferences (e.g. is salary a hard floor?) | P0-B/P0-C | Hard: employment type, remote pref, avoid lists. Soft: salary (unknown salary is allowed), stack, seniority. |
-| D5 | Demo seed content: which real details appear on stage (contacts, notes, resume bits) | P0-F | Public-safe only; use permission-given or fictional contacts. |
-| D6 | Panel visual direction (one look, used by every tab) | F5 | Quiet, ChatGPT-native, one accent color; humor in copy, not visuals. Approve a screenshot at F9. |
-| D7 | Ladder level names, dimension wording, and the Boris attribution | P1-H start | §25 as written, labeled "inspired by" until the source is verified. |
+| D1 | **Decided:** Cloudflare Workers is not a Node server; it's its own JavaScript runtime with partial Node compatibility. If the MCP/extensions libraries fail on it in the F1 spike, the agent switches to the Node fallback (R1) on its own and logs why. | F1 | Stay on Workers. |
+| D2 | **Decided:** open signup for anyone with GitHub. Cost is protected by per-user daily Decisions caps (`DECISIONS_DAILY_JOB_CAP`) and the global kill switch. | — | Open signup. |
+| D3 | **Decided:** location is user-driven (onboarding asks remote/hybrid/onsite + city/state). Sources must cover location search (Adzuna, §11.1) plus an ATS board list seeded with Utah tech employers, remote-first companies, and AI labs (OpenAI etc., if their boards are public). | — | As stated. |
+| D4 | **Decided:** every threshold is the user's setting (junior to staff). Jobs whose listed max pay is below the user's floor are hidden; jobs with no salary listed are kept and labeled "salary not listed" (toggle "hide unlisted salary", default off). | — | As stated. |
+| D5 | **Decided:** public-safe details only; fictional or permission-given contacts. | — | — |
+| D6 | **Decided (pre-approved):** quiet, ChatGPT-native, one accent color; humor in copy, not visuals. No review gate. | — | — |
+| D7 | **Decided:** §25 names as written, labeled "inspired by" Boris Cherny's public comments; add more assessment lenses (§25.7). | — | — |
 | D8 | Auth fallback trigger (R2) | F2 + 90 min | Demo-only single-user mode behind a flag; OAuth continues on a branch. |
 | D9 | P1 priority order if time is short | Sat 11:15 | P1-D brief → P1-H ladder → P1-C news → P1-B events → P1-A bridge → P1-E calculators. |
+
+---
+
+## 27. Progress and status UX
+
+The user should always know what's happening. Use every layer ChatGPT gives us:
+
+1. **Tool status lines (all tools, F4 enforces).** Each `ToolDef.status` maps to
+   `_meta["openai/toolInvocation/invoking"]` and `…/invoked` (≤ 64 chars), shown by ChatGPT while and
+   after the tool runs. Written in the §24 voice, e.g.:
+   - `search_jobs`: "Asking the robots to rank your jobs…" → "Ranked. Still employable."
+   - `refresh_jobs`: "Scanning job boards…" → "Fresh jobs in"
+   - `assess_ai_level`: "Measuring your AI-native level…" → "Level computed"
+   - `save_interview_intel`: "Filing the interview intel…" → "Intel saved"
+   - `reset_my_data`: "Running rm -rf on your data…" → "Clean install complete"
+2. **Fast first response, then progress.** No tool blocks longer than ~8s. Long work (scoring 60 jobs,
+   multi-source refresh) returns immediately with what's ready plus a `progress` object
+   (`{ stage: 'fetching'|'filtering'|'scoring'|'done', done, total }`); the panel shows a stepper
+   ("Fetch → Filter → Score → Rank") and polls a lightweight status tool (`get_task_status`) until done.
+   Also emit MCP progress notifications when the client sends a progress token (**VERIFY** ChatGPT
+   support; harmless if ignored).
+3. **Panel states.** Skeleton loaders (with §24 rotating loading lines), inline progress bars for
+   batches ("Scoring 20 of 60…"), optimistic updates for saves, toasts for completed actions, and
+   `ErrorBanner` with retry. Remember tab/filters via `setWidgetState`.
+4. **Skills narrate briefly.** One short line before long steps ("Checking 6 job sources and scoring
+   your top 60 matches, about 10 seconds.") and a one-line result after. No play-by-play.
+5. **Source health.** Jobs tab footer shows each source's last successful fetch and any outage.
+
+`get_task_status` (F4): read-only, returns progress for a task ID from `user_state`
+(key `task.<id>`); added to the F tool list.
+
+---
+
+## 28. Company interview intel ("know the gauntlet")
+
+**Problem:** software engineering interviews still mean LeetCode-style coding rounds and
+whiteboard architecture, and every company's loop is different. Candidates who know the format and
+likely problem patterns in advance do much better.
+
+**How it works (no scraping, $0 to us):**
+1. The `interview-intel` skill has ChatGPT **web-search** public sources for the company + role:
+   company careers/engineering blogs that describe their own process, Glassdoor interview reviews,
+   Blind, Reddit (r/cscareerquestions, r/ExperiencedDevs), LeetCode Discuss/company tags, Levels.fyi,
+   and public interview-prep guides. ChatGPT reads what it can access on the user's plan; our server
+   does not crawl these sites (their terms forbid scraping, and they block bots).
+2. ChatGPT synthesizes a **structured report** and calls `save_interview_intel` with:
+   - `stages[]`: e.g. recruiter screen → online assessment → technical phone screen → onsite
+     (coding ×2, system design, behavioral) → team match, with durations if reported.
+   - `coding`: problem **patterns** and difficulty (e.g. "graphs/BFS, intervals, LRU-cache-style
+     design; mostly medium"), languages allowed, live vs. take-home, with links to practice problems
+     of the same pattern.
+   - `systemDesign`: likely prompts and themes ("design a rate limiter"), expected depth for the level.
+   - `behavioral`: themes and values they probe.
+   - `tips[]`, `redFlags[]`, `confidence` (`high|medium|low` based on recency and number of reports),
+     `sources[]` (title, URL, date), `lastResearchedAt`.
+3. The Prep tab renders it as an **Interview loop card**; `interview-prep` turns it into a study plan
+   (days until interview → pattern drills + one mock design session), and `mock-interview` asks
+   questions in the same patterns.
+
+**Integrity rules (in the skill):** summarize and paraphrase with links; never reproduce paywalled
+or copyrighted content verbatim; present **patterns**, not "the exact questions"; don't solicit or
+share content that candidates were asked to keep confidential; flag thin or stale data with low
+confidence instead of guessing.
+
+**Later (P2):** practice tracker per pattern (done/struggled), spaced repetition, pairing intel
+with the user's ladder level ("Level 4 tip: ask an agent to generate 10 interval problems, solve 3
+without it").
