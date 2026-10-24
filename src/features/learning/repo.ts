@@ -93,12 +93,18 @@ export async function listLearningEntries(db: DB, userId: string, filters: Learn
       sql`exists (select 1 from json_each(${learningEntries.tags}) where lower(value) = lower(${filters.tag}))`,
     );
   if (filters.query) {
-    conditions.push(sql`instr(lower(
-      coalesce(${learningEntries.title}, '') || char(10) || coalesce(${learningEntries.body}, '') || char(10) ||
-      coalesce(${learningEntries.sourceTitle}, '') || char(10) || coalesce(${learningEntries.sourceUrl}, '') || char(10) ||
-      coalesce(${learningEntries.author}, '') || char(10) || ${learningEntries.tags} || char(10) ||
-      ${learningEntries.takeaways} || char(10) || ${learningEntries.followUpQuestions} || char(10) || ${learningEntries.nextActions}
-    ), lower(${filters.query})) > 0`);
+    const query = filters.query;
+    conditions.push(sql`(
+      instr(lower(
+        coalesce(${learningEntries.title}, '') || char(10) || coalesce(${learningEntries.body}, '') || char(10) ||
+        coalesce(${learningEntries.sourceTitle}, '') || char(10) || coalesce(${learningEntries.sourceUrl}, '') || char(10) ||
+        coalesce(${learningEntries.author}, '')
+      ), lower(${query})) > 0
+      or exists (select 1 from json_each(${learningEntries.tags}) where instr(lower(value), lower(${query})) > 0)
+      or exists (select 1 from json_each(${learningEntries.takeaways}) where instr(lower(value), lower(${query})) > 0)
+      or exists (select 1 from json_each(${learningEntries.followUpQuestions}) where instr(lower(value), lower(${query})) > 0)
+      or exists (select 1 from json_each(${learningEntries.nextActions}) where instr(lower(value), lower(${query})) > 0)
+    )`);
   }
   const limit = filters.limit ?? 50;
   const rows = await db

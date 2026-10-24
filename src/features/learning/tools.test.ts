@@ -60,7 +60,7 @@ describe("Learning journal T1/T4", () => {
       tab: "learning",
       entry: { ...entry, pinned: false, archived: false },
     });
-    const id = (saved.structuredContent?.entry as { id: string }).id;
+    const id = (saved.structuredContent?.entry as { id: string } | undefined)?.id;
     expect((await call("get_learning_entry", { entryId: id })).structuredContent).toMatchObject({
       entry,
     });
@@ -76,7 +76,7 @@ describe("Learning journal T1/T4", () => {
 
   it("isolates get/list/search/update-by-ID and ignores spoofed user identity (T1)", async () => {
     const saved = await call("save_learning_entry", { ...entry, userId: "learning-b" });
-    const id = (saved.structuredContent?.entry as { id: string }).id;
+    const id = (saved.structuredContent?.entry as { id: string } | undefined)?.id;
     expect((await call("list_learning_entries", {}, "learning-b")).structuredContent).toMatchObject(
       { entries: [] },
     );
@@ -121,6 +121,25 @@ describe("Learning journal T1/T4", () => {
         (await call("search_learning_entries", { query, limit: 1 })).structuredContent,
       ).toMatchObject({ entries: [expect.objectContaining({ title: entry.title })] });
     }
+    expect(
+      (
+        await call("search_learning_entries", {
+          query: "boundary",
+          kind: "talk",
+          tag: "agents",
+          limit: 1,
+        })
+      ).structuredContent,
+    ).toMatchObject({
+      filters: {
+        query: "boundary",
+        kind: "talk",
+        tag: "agents",
+        archived: false,
+        limit: 1,
+        offset: 0,
+      },
+    });
     expect((await call("search_learning_entries", { query: "%" })).structuredContent).toMatchObject(
       { entries: [expect.objectContaining({ title: "Another" })] },
     );
@@ -138,7 +157,7 @@ describe("Learning journal T1/T4", () => {
     expect(
       (await call("list_learning_entries", { limit: 1, offset: 1 })).structuredContent,
     ).toMatchObject({ entries: [expect.objectContaining({ title: entry.title })], hasMore: false });
-    const id = (first.structuredContent?.entries as { id: string }[])[0]?.id;
+    const id = (first.structuredContent?.entries as { id: string }[] | undefined)?.[0]?.id;
     await call("update_learning_entry", { entryId: id, archived: true });
     expect((await call("list_learning_entries", {})).structuredContent).toMatchObject({
       entries: [expect.objectContaining({ title: entry.title })],
@@ -146,6 +165,19 @@ describe("Learning journal T1/T4", () => {
     expect(
       (await call("list_learning_entries", { archived: true })).structuredContent,
     ).toMatchObject({ entries: [expect.objectContaining({ title: "Another" })] });
+  });
+
+  it("searches quoted and multiline list text as user wording rather than JSON escapes", async () => {
+    await call("save_learning_entry", {
+      title: "Literal lists",
+      takeaways: ['Check "quoted" facts'],
+      nextActions: ["Line one\nLine two"],
+    });
+    for (const query of ['Check "quoted"', "one\nLine"]) {
+      expect((await call("search_learning_entries", { query })).structuredContent).toMatchObject({
+        entries: [expect.objectContaining({ title: "Literal lists" })],
+      });
+    }
   });
 
   it("rejects invalid inputs without saving and leaves absent facts unknown", async () => {

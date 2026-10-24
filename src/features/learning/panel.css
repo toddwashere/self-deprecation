@@ -1,0 +1,45 @@
+.learning-panel button {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 13px;
+  font: inherit;
+  color: CanvasText;
+  background: Canvas;
+}
+.learning-panel button[type="submit"] {
+  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.learning-panel button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.learning-panel button:disabled { opacity: 0.55; }
+.learning-panel :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.learning-panel h3 button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: CanvasText;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.learning-panel input[type="checkbox"] { accent-color: var(--accent); }
+.learning-panel textarea { resize: vertical; min-height: 80px; }
+.learning-panel .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.learning-panel article section h3 { margin: 0; font-size: 14px; }
+.learning-panel article section p { margin: 8px 0 0; }
