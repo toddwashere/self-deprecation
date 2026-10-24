@@ -122,3 +122,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Approved information architecture: frequent workflows are Today, Jobs, People, Prep, and Learn. Learn groups Journal, News, Events, and the renamed Growth plan. Profile and Settings are utility destinations; Money moves to secondary planning tools rather than permanent primary navigation.
 - Contract repair required: every non-Foundation feature `index.ts` is still a `tools: []` stub even though PLAN F4 says feature registration seams were prewired. Feature owners must not edit these shared/frozen seams. The integrator may update feature `index.ts` exports and `web/src/tabs.ts` centrally after reviewed branches land, preserving tool contracts and hiding unfinished destinations.
 - Affected tasks: P0-A, P0-C, P0-D, P0-E, P0-F, P1-B, P1-C, P1-D, P1-E, P1-G, P1-H, P1-I, Foundation integrator.
+
+## 2026-10-24 11:37 — Decisions timeout remains inside the tool budget
+
+- P0-C found that the Foundation Decisions wrapper always allowed 15 seconds per batch, while every product tool must return in roughly eight seconds. `scoreFit` now accepts an optional bounded `timeoutMs` (1–15 seconds) and retains 15 seconds as the backward-compatible default for smoke and non-tool callers.
+- Jobs will request a six-second timeout. A timeout still follows the existing per-batch heuristic fallback, so no detached promise can record usage after the tool already returned.
+- Affected tasks: F7 shared wrapper, P0-C Jobs scoring, P1-H AI-native assessment.

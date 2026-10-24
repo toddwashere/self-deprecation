@@ -167,4 +167,33 @@ describe("Decisions scoring", () => {
     expect(strong.score).toBeGreaterThan(weak.score ?? 0);
     expect(strong.source).toBe("heuristic");
   });
+
+  it("uses the caller's bounded Decisions timeout", async () => {
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    const decide = vi.fn(async (request: DecisionRequest) => ({
+      answers: request.questions.map((question) =>
+        question.type === "score"
+          ? {
+              type: "score" as const,
+              name: question.name,
+              score: 3,
+              confidence: 0.8,
+              probabilities: [],
+            }
+          : { type: "predicate" as const, name: question.name, probability: 0.7 },
+      ),
+      usage: { input_tokens: 20 },
+    }));
+
+    await scoreFit(scoringEnv(), "typescript", jobs.slice(0, 1), {
+      db,
+      userId: "user-a",
+      decide,
+      now: () => new Date("2026-10-24T06:00:00Z"),
+      timeoutMs: 6_000,
+    });
+
+    expect(timeout).toHaveBeenCalledWith(6_000);
+    timeout.mockRestore();
+  });
 });

@@ -74,6 +74,7 @@ interface ScoreFitOptions {
   userId: string;
   decide?: Decide;
   now?: () => Date;
+  timeoutMs?: number;
 }
 
 const LEVELS = [
@@ -287,11 +288,15 @@ export async function scoreFit(
   );
   const decide =
     options.decide ?? ((request, signal) => defaultDecide(env.OPENAI_API_KEY, request, signal));
+  const timeoutMs = Math.min(15_000, Math.max(1_000, options.timeoutMs ?? 15_000));
 
   const scored = await runPool(
     batches.map((batch) => async () => {
       try {
-        const response = await decide(makeRequest(profileText, batch), AbortSignal.timeout(15_000));
+        const response = await decide(
+          makeRequest(profileText, batch),
+          AbortSignal.timeout(timeoutMs),
+        );
         await recordDecisionUsage(
           options.db,
           options.userId,
