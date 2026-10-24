@@ -8,6 +8,7 @@
 - F5–F6: replace the spike HTML with a single-file React panel and host bridge, then implement core profile/dashboard/demo/reset tools through the core repository.
 - F7–F8: add the capped Decisions batching/fallback wrapper, then the cron/source contracts and one Greenhouse ingestion path with `fetch_runs` observability.
 - F9 feedback: before freezing MCP contracts, make an empty workspace open the Profile onboarding surface and add server guidance so ordinary phrases such as “get started” select the onboarding tools once P0-B lands.
+- F9 approved amendment: reserve the `learning_entries` table before the Foundation schema freeze, include caller-owned entries in reset, and leave all Learning Journal tools/UI to P1-I.
 - Use strict TDD for T1–T5, commit every working slice, deploy/push at milestones, and stop before F9 for the shared gate review.
 
 ## Files
@@ -32,6 +33,7 @@
 
 - F2/T3: verified grant is the only user-ID source; forged `userId` input is rejected/ignored; production bypass fails closed; anonymous production `/mcp` returns a PRM challenge; local bypass works.
 - F3/T1: real D1 fixtures prove user A data is unreadable/unmodifiable/undeletable by user B; local and remote migrations apply.
+- F9/T1: journal reservation is caller-scoped and reset deletes only the caller's learning entries.
 - F4/T4: snapshot every tool contract, annotations, security scheme, status length, unique snake_case name, and output validation.
 - F6/T2: reset affects only the caller and leaves global rows; demo load is idempotent.
 - F7/T5: literal fixtures cover batching, answer mapping, 0–4 normalization, cap, and per-batch fallback.
@@ -44,4 +46,5 @@
 - `[local]` F5 precedes the F6 implementations used by its Settings buttons. Ship the bridge/button states in F5; the actions become live and satisfy the combined done condition in F6.
 - `[local]` §8.5 labels `decisions.ts` as F8, while §17 and §29 assign it to F7. Follow the explicit work breakdown/testing ownership: F7.
 - `[local]` OAuth uses the current provider API with S256, PRM, exact `resource` propagation, DCR/CIMD compatibility, and the ChatGPT management page's redirect URI; trigger R2 only after the 90-minute F2 timebox.
+- `[contract]` Approved by Todd: reserve a dedicated Learning Journal table before `foundation-v1`; do not overload generic CRM notes or expose unfinished journal capabilities.
 - No `[contract]` or `[product]` question blocks implementation.
