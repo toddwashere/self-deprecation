@@ -41,6 +41,14 @@ button:disabled {
   padding: 22px;
   color: CanvasText;
 }
+.shell[data-theme="light"] {
+  color-scheme: light;
+  background: Canvas;
+}
+.shell[data-theme="dark"] {
+  color-scheme: dark;
+  background: Canvas;
+}
 
 header {
   display: flex;
