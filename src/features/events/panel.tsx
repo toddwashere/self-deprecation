@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, Loading } from "../../../web/src/ui";
 import { eventsCopy } from "./copy";
@@ -20,27 +20,34 @@ export function EventsPanel({ bridge }: { bridge: Bridge }) {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [period, setPeriod] = useState<Period>("all");
   const [status, setStatus] = useState("all");
+  const loadVersion = useRef(0);
 
   const load = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     setError("");
     try {
-      const result = await bridge.callTool<ListEventsOutput>("list_events", { limit: 100 });
+      const result = await bridge.callTool<ListEventsOutput>("list_events", {
+        period,
+        ...(status === "all" ? {} : { status }),
+        limit: 100,
+      });
+      if (version !== loadVersion.current) return;
       if (result.error || !result.data) setError(result.error?.message ?? eventsCopy.error);
       else {
         setEvents(result.data.events);
         setAsOf(result.data.asOf);
       }
     } catch {
-      setError(eventsCopy.error);
+      if (version === loadVersion.current) setError(eventsCopy.error);
     } finally {
-      setLoading(false);
+      if (version === loadVersion.current) setLoading(false);
     }
-  }, [bridge]);
+  }, [bridge, period, status]);
 
   useEffect(() => {
     void load();
-    return bridge.onToolOutput((output) => {
+    const unsubscribe = bridge.onToolOutput((output) => {
       const data = output as Partial<ListEventsOutput & EventOutput> | undefined;
       if (data?.tab !== "events") return;
       if (Array.isArray(data.events)) {
@@ -52,6 +59,10 @@ export function EventsPanel({ bridge }: { bridge: Bridge }) {
         setEvents((current) => [event, ...current.filter((item) => item.id !== event.id)]);
       }
     });
+    return () => {
+      loadVersion.current++;
+      unsubscribe();
+    };
   }, [bridge, load]);
 
   async function changeStatus(event: SavedEvent, next: SavedEvent["status"]) {
@@ -127,7 +138,7 @@ export function EventsPanel({ bridge }: { bridge: Bridge }) {
       {!loading && events.length === 0 && !error ? (
         <Empty title={eventsCopy.emptyTitle}>{eventsCopy.empty}</Empty>
       ) : null}
-      {events.length > 0 ? (
+      {events.length > 0 || period !== "all" || status !== "all" ? (
         <>
           <div className="event-filters">
             <label>

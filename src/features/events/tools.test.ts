@@ -82,7 +82,7 @@ describe("Events tools", () => {
     const id = (saved.structuredContent?.event as { id: string } | undefined)?.id;
     expect(await call("update_event", { eventId: id, status: "going" }, "events-b")).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "NOT_FOUND" } },
+      _meta: { "self-deprecation/error": { code: "NOT_FOUND" } },
     });
     expect(
       (await call("update_event", { eventId: id, status: "going" })).structuredContent,
@@ -102,16 +102,16 @@ describe("Events tools", () => {
     ]) {
       expect(await call("save_event", args)).toMatchObject({
         isError: true,
-        structuredContent: { error: { code: "INVALID_INPUT" } },
+        _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
       });
     }
     expect(await call("update_event", { eventId: "missing" })).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "INVALID_INPUT" } },
+      _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
     });
     expect(await call("list_events", { limit: 101 })).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "INVALID_INPUT" } },
+      _meta: { "self-deprecation/error": { code: "INVALID_INPUT" } },
     });
   });
 });
@@ -180,4 +180,86 @@ describe("Events isolation and metadata", () => {
     await call("save_event", { url: "https://127.0.0.1/private" });
     expect(fetcher.mock.calls.length).toBe(requests);
   });
+});
+
+it("enriches metadata using Workers manual redirects and refuses 3xx responses", async () => {
+  const fetcher = vi.fn(async (_url: URL, init: RequestInit) => {
+    if (init.redirect !== "manual") throw new TypeError("Unsupported redirect mode in Workers");
+    return new Response('<meta property="og:title" content="Workers-compatible event">', {
+      headers: { "content-type": "text/html" },
+    });
+  });
+  vi.stubGlobal("fetch", fetcher);
+  expect(
+    (await call("save_event", { url: "https://lu.ma/runtime" })).structuredContent,
+  ).toMatchObject({
+    event: { title: "Workers-compatible event" },
+    metadata: { status: "enriched" },
+  });
+  fetcher.mockImplementation(
+    async () =>
+      new Response("", { status: 302, headers: { location: "https://untrusted.example/private" } }),
+  );
+  expect(
+    (await call("save_event", { title: "Chosen event", url: "https://lu.ma/redirect" }))
+      .structuredContent,
+  ).toMatchObject({ event: { title: "Chosen event" }, metadata: { status: "unavailable" } });
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
+it("keeps upcoming events visible beyond 100 past rows and filters before limiting", async () => {
+  const history = Array.from({ length: 100 }, (_, index) => ({
+    id: `history-${index}`,
+    userId: "events-a",
+    title: `Past event ${index}`,
+    startsAt: now - (index + 1) * 60_000,
+    source: "manual",
+    status: "attended",
+    createdAt: now,
+    updatedAt: now,
+  }));
+  for (let offset = 0; offset < history.length; offset += 10)
+    await db.insert(savedEvents).values(history.slice(offset, offset + 10));
+  await call("save_event", { title: "Future event", startsAt: now + 60_000, status: "going" });
+  const all = await call("list_events", { limit: 100 });
+  expect((all.structuredContent?.events as { title: string }[] | undefined)?.[0]?.title).toBe(
+    "Future event",
+  );
+  expect(
+    (await call("list_events", { period: "upcoming", limit: 100 })).structuredContent,
+  ).toMatchObject({ events: [expect.objectContaining({ title: "Future event" })] });
+  expect(
+    (await call("list_events", { status: "going", limit: 100 })).structuredContent,
+  ).toMatchObject({ events: [expect.objectContaining({ title: "Future event" })] });
+  expect((await call("list_events", { period: "past", limit: 1 })).structuredContent).toMatchObject(
+    { events: [expect.objectContaining({ title: "Past event 0" })] },
+  );
+});
+
+it("saves chosen facts when an unannounced metadata stream exceeds its size cap", async () => {
+  let cancelled = false;
+  let producedBytes = 0;
+  vi.stubGlobal(
+    "fetch",
+    async () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            producedBytes += 100_000;
+            controller.enqueue(new Uint8Array(100_000));
+            if (producedBytes >= 1_000_000) controller.close();
+          },
+          cancel() {
+            cancelled = true;
+          },
+        }),
+        { headers: { "content-type": "text/html" } },
+      ),
+  );
+  expect(
+    (await call("save_event", { title: "Confirmed event", url: "https://lu.ma/stream" }))
+      .structuredContent,
+  ).toMatchObject({ event: { title: "Confirmed event" }, metadata: { status: "unavailable" } });
+  expect(cancelled).toBe(true);
+  expect(producedBytes).toBeLessThanOrEqual(500_000);
 });
