@@ -5,25 +5,26 @@
   "compatibility_date": "2026-10-23",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "preview_urls": false,
   "vars": {
     "ENVIRONMENT": "production",
     "DECISIONS_ENABLED": "1",
     "DECISIONS_DAILY_JOB_CAP": "300",
     "DECISIONS_BATCH_SIZE": "20",
     "DECISIONS_CONCURRENCY": "3",
-    "PUBLIC_BASE_URL": "https://self-deprecation.workers.dev"
+    "PUBLIC_BASE_URL": "https://self-deprecation.metodd.workers.dev"
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "self-deprecation",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "3d1f8b6d-94bd-4312-ae2f-17c193625e1c"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "OAUTH_KV",
-      "id": "00000000000000000000000000000000"
+      "id": "0a0a35152ec44683b00826681e97bb20"
     }
   ],
   "observability": {
