@@ -1,12 +1,76 @@
 import type { CandidateJob, JobFilters, ScoringProfile } from "./types";
 
+const US_STATES: Record<string, string> = {
+  alabama: "al",
+  alaska: "ak",
+  arizona: "az",
+  arkansas: "ar",
+  california: "ca",
+  colorado: "co",
+  connecticut: "ct",
+  delaware: "de",
+  florida: "fl",
+  georgia: "ga",
+  hawaii: "hi",
+  idaho: "id",
+  illinois: "il",
+  indiana: "in",
+  iowa: "ia",
+  kansas: "ks",
+  kentucky: "ky",
+  louisiana: "la",
+  maine: "me",
+  maryland: "md",
+  massachusetts: "ma",
+  michigan: "mi",
+  minnesota: "mn",
+  mississippi: "ms",
+  missouri: "mo",
+  montana: "mt",
+  nebraska: "ne",
+  nevada: "nv",
+  "new hampshire": "nh",
+  "new jersey": "nj",
+  "new mexico": "nm",
+  "new york": "ny",
+  "north carolina": "nc",
+  "north dakota": "nd",
+  ohio: "oh",
+  oklahoma: "ok",
+  oregon: "or",
+  pennsylvania: "pa",
+  "rhode island": "ri",
+  "south carolina": "sc",
+  "south dakota": "sd",
+  tennessee: "tn",
+  texas: "tx",
+  utah: "ut",
+  vermont: "vt",
+  virginia: "va",
+  washington: "wa",
+  "west virginia": "wv",
+  wisconsin: "wi",
+  wyoming: "wy",
+  "district of columbia": "dc",
+};
+const US_STATE_CODES = new Set(Object.values(US_STATES));
+const US_STATE_NAMES = new RegExp(
+  `\\b(${Object.keys(US_STATES)
+    .sort((a, b) => b.length - a.length)
+    .join("|")})\\b`,
+  "g",
+);
+
 function normalized(value: string): string {
   return value
     .toLowerCase()
     .replace(/\bunited states(?: of america)?\b|\busa\b/g, "us")
-    .replace(/\butah\b/g, "ut")
     .replace(/[^a-z0-9+#.]+/g, " ")
     .trim();
+}
+
+function normalizedLocation(value: string): string {
+  return normalized(value).replace(US_STATE_NAMES, (state) => US_STATES[state]);
 }
 
 function evidence(job: CandidateJob): string {
@@ -27,19 +91,14 @@ function matchedSkills(profile: ScoringProfile, job: CandidateJob): string[] {
 
 function locationMatches(profile: ScoringProfile, job: CandidateJob): boolean {
   if (!profile.locations.length) return true;
-  const location = normalized(job.location ?? "");
+  const location = normalizedLocation(job.location ?? "");
   if (!location) return false;
   return profile.locations.some((preferred) => {
-    const target = normalized(preferred);
+    const target = normalizedLocation(preferred);
     if (job.remote) {
       const geography = target.replace(/\bremote\b/g, "").trim();
-      const usStates = new Set(
-        "al ak az ar ca co ct de dc fl ga hi id il in ia ks ky la me md ma mi mn ms mo mt ne nv nh nj nm ny nc nd oh ok or pa ri sc sd tn tx ut vt va wa wv wi wy".split(
-          " ",
-        ),
-      );
       const state = geography.split(" ").at(-1) ?? "";
-      const region = usStates.has(state) ? "us" : geography;
+      const region = US_STATE_CODES.has(state) ? "us" : geography;
       return (
         !region ||
         hasTerm(location, geography) ||
