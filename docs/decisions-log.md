@@ -116,3 +116,18 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 ## P0-C · Jobs tool registration contract (2026-10-24)
 `src/features/jobs/index.ts` is a Foundation stub with `tools: []`, but P0-C owns only jobs tools/panel and scoring. Integrator: import `jobsTools` from `./tools` and register it alongside P0-A catalog tools. P0-C will export the four user-facing tools cleanly. Catalog reads and user match writes stay behind `scoring/repo.ts`; bounded scoring returns progress for subsequent `score_jobs` calls, with no waitUntil dependency (integrator ruling).
+
+## 2026-10-24 11:32 — Parallel feature rollout and navigation contract
+
+- Todd approved a rolling parallel rollout rather than gated waves. Three isolated feature agents may work concurrently; the lead/integrator owns shared-contract changes, integration, production deploys, and ChatGPT verification. Slots are refilled as soon as a feature reaches its reviewed milestone.
+- Demo-critical order is job sources plus Jobs/Decisions, AI News, Events, People, Prep, Today, Learning Journal, AI-native growth, Money, then the optional Agents API company dossier. Jobs may develop against the public snapshot while live sources land; Today can scaffold against typed fixtures but integrates only after producer tool shapes stabilize.
+- Decisions API remains product-visible in Jobs ranking and the AI-native growth assessment. The OpenAI Agents API is reserved for an optional budget-capped company dossier launched from Jobs/Prep; it is unrelated to the Cloudflare `agents` transport package and to Codex implementation subagents.
+- Approved information architecture: frequent workflows are Today, Jobs, People, Prep, and Learn. Learn groups Journal, News, Events, and the renamed Growth plan. Profile and Settings are utility destinations; Money moves to secondary planning tools rather than permanent primary navigation.
+- Contract repair required: every non-Foundation feature `index.ts` is still a `tools: []` stub even though PLAN F4 says feature registration seams were prewired. Feature owners must not edit these shared/frozen seams. The integrator may update feature `index.ts` exports and `web/src/tabs.ts` centrally after reviewed branches land, preserving tool contracts and hiding unfinished destinations.
+- Affected tasks: P0-A, P0-C, P0-D, P0-E, P0-F, P1-B, P1-C, P1-D, P1-E, P1-G, P1-H, P1-I, Foundation integrator.
+
+## 2026-10-24 11:37 — Decisions timeout remains inside the tool budget
+
+- P0-C found that the Foundation Decisions wrapper always allowed 15 seconds per batch, while every product tool must return in roughly eight seconds. `scoreFit` now accepts an optional bounded `timeoutMs` (1–15 seconds) and retains 15 seconds as the backward-compatible default for smoke and non-tool callers.
+- Jobs will request a six-second timeout. A timeout still follows the existing per-batch heuristic fallback, so no detached promise can record usage after the tool already returned.
+- Affected tasks: F7 shared wrapper, P0-C Jobs scoring, P1-H AI-native assessment.
