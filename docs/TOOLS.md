@@ -44,6 +44,7 @@ server/panel contract.
 | `get_learning_entry` | journal | read-only | yes | Open one caller-owned journal entry. |
 | `update_learning_entry` | journal | write | yes | Edit, pin, or archive a caller-owned journal entry. |
 | `search_learning_entries` | journal | read-only | yes | Search the caller's journal text and tags. |
+| `run_company_dossier` | people | guarded open-world write | yes | Start or poll a cited company dossier; currently fails closed while the live Agents API rejects server spend control. |
 | `assess_ai_level` | growth | bounded scoring | yes | Assess five AI-native dimensions with Decisions and a deterministic fallback. |
 | `get_ladder` | growth | read-only | yes | Read the caller's latest level, dimension scores, and active quests. |
 | `update_quest` | growth | write | yes | Update a caller-owned quest status or evidence without erasing omitted fields. |
@@ -58,3 +59,5 @@ panel metadata.
   available now.
 - The native ChatGPT scheduled-task flow for the daily brief must be verified after production
   deployment; the manual **Run my brief** path is complete.
+- Agents dossiers remain disabled in production until the beta API accepts documented server-side
+  `spend_control`; the tool returns a typed unavailable result and never retries uncapped.
