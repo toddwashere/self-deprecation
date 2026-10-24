@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
-import { contacts, notes } from "../../db/schema";
+import { contacts, notes, savedEvents } from "../../db/schema";
 
 export type ContactInput = Pick<
   typeof contacts.$inferInsert,
@@ -162,4 +162,12 @@ export async function deleteNote(db: DB, userId: string, id: string) {
     .where(and(eq(notes.userId, userId), eq(notes.id, id)))
     .returning({ id: notes.id });
   return result.length;
+}
+
+export async function getOwnedEvent(db: DB, userId: string, id: string) {
+  return db
+    .select({ id: savedEvents.id })
+    .from(savedEvents)
+    .where(and(eq(savedEvents.userId, userId), eq(savedEvents.id, id)))
+    .get();
 }
