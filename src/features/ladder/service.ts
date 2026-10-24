@@ -142,6 +142,7 @@ export async function assessLadder(
   answers: LadderAnswers,
   options: {
     decide?: Decide;
+    timeoutMs?: number;
     reserveUsage: () => Promise<
       | {
           complete: (inputTokens: number) => Promise<void>;
@@ -163,14 +164,14 @@ export async function assessLadder(
   try {
     const response = await runBoundedDecision(env, requestFor(answers), {
       decide: options.decide,
-      timeoutMs: 6_000,
+      timeoutMs: options.timeoutMs ?? 6_000,
       recordUsage: reservation.complete,
     });
     return mapDecision(response) ?? fallback;
   } catch (error) {
-    // Only a known pre-response failure is safe to release. Once a response exists,
-    // metering failure must retain the reservation so paid calls cannot escape the cap.
-    if (error instanceof DecisionExecutionError && error.phase === "request") {
+    // Only an explicitly classified no-dispatch failure is safe to release. Request
+    // timeouts and metering failures retain quota because upstream usage is possible.
+    if (error instanceof DecisionExecutionError && !error.usagePossible) {
       await releaseWithinBudget(reservation.release);
     }
     return fallback;

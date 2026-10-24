@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Env } from "../../env";
-import type { DecisionRequest } from "../../lib/decisions";
+import { DecisionExecutionError, type DecisionRequest } from "../../lib/decisions";
 import { assessLadder, heuristicAssessment, type LadderAnswers } from "./service";
 
 const enabledEnv = { DECISIONS_ENABLED: "1" } as Env;
@@ -108,12 +108,17 @@ describe("T8 ladder heuristic", () => {
     expect(release).not.toHaveBeenCalled();
   });
 
-  it("bounds failed-request cleanup and falls back while retaining a stalled reservation", async () => {
+  it("bounds no-dispatch cleanup and falls back while retaining a stalled reservation", async () => {
     vi.useFakeTimers();
     const release = vi.fn(() => new Promise<void>(() => undefined));
     const result = assessLadder(enabledEnv, assessedAnswers, {
       decide: async () => {
-        throw new Error("upstream failed before responding");
+        throw new DecisionExecutionError(
+          "request",
+          "configuration failed before dispatch",
+          undefined,
+          false,
+        );
       },
       reserveUsage: async () => ({ complete: async () => undefined, release }),
     });
@@ -122,6 +127,32 @@ describe("T8 ladder heuristic", () => {
     await vi.advanceTimersByTimeAsync(1_000);
     await settled;
     expect(release).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("retains the reservation when a timed-out request succeeds later", async () => {
+    vi.useFakeTimers();
+    const complete = vi.fn(async () => undefined);
+    const release = vi.fn(async () => undefined);
+    const result = assessLadder(enabledEnv, assessedAnswers, {
+      decide: async (request) => {
+        await new Promise((resolve) => setTimeout(resolve, 1_500));
+        return validDecision(request);
+      },
+      timeoutMs: 1_000,
+      reserveUsage: async () => ({ complete, release }),
+    });
+    const settled = expect(result).resolves.toMatchObject({ source: "heuristic" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await settled;
+    expect(release).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(complete).toHaveBeenCalledWith(30);
+    expect(release).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 });
