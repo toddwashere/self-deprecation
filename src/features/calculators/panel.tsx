@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, FormRow, Loading } from "../../../web/src/ui";
 import { CALCULATOR_COPY as copy } from "./copy";
 import "./panel.css";
-import { type CalculatorOutput, formatMoney, isCalculatorOutput } from "./panel-state";
+import {
+  type CalculatorFormValues,
+  type CalculatorOutput,
+  calculatorFormForOutput,
+  formatMoney,
+  isCalculatorOutput,
+  isRequiredCalculatorField,
+  parseCalculatorForm,
+  updateCalculatorForm,
+} from "./panel-state";
 import type { RateOutput, RunwayOutput } from "./tools";
 
 type Mode = "rate" | "runway";
@@ -88,56 +97,72 @@ function RunwayResult({ result }: { result: RunwayOutput }) {
 export function MoneyPanel({ bridge }: { bridge: Bridge }) {
   const initial = bridge.initialToolOutput<unknown>();
   const initialResult = isCalculatorOutput(initial) ? initial : undefined;
+  const initialForm = initialResult ? calculatorFormForOutput(initialResult) : undefined;
   const [mode, setMode] = useState<Mode>(initialResult?.kind ?? "rate");
   const [result, setResult] = useState<CalculatorOutput | undefined>(initialResult);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [rate, setRate] = useState({
-    annualSalary: "120000",
-    benefitsPercent: "25",
-    reservePercent: "25",
-    billableWeeks: "46",
-    billableHoursPerWeek: "30",
-    hoursPerDay: "8",
-  });
-  const [runway, setRunway] = useState({
-    liquidCash: "50000",
-    monthlyExpenses: "8000",
-    monthlyIncome: "0",
-    oneTimeCosts: "0",
-  });
+  const [rate, setRate] = useState<CalculatorFormValues>(() =>
+    initialResult?.kind === "rate"
+      ? (initialForm ?? {})
+      : {
+          annualSalary: "120000",
+          benefitsPercent: "25",
+          reservePercent: "25",
+          billableWeeks: "46",
+          billableHoursPerWeek: "30",
+          hoursPerDay: "8",
+        },
+  );
+  const [runway, setRunway] = useState<CalculatorFormValues>(() =>
+    initialResult?.kind === "runway"
+      ? (initialForm ?? {})
+      : {
+          liquidCash: "50000",
+          monthlyExpenses: "8000",
+          monthlyIncome: "0",
+          oneTimeCosts: "0",
+        },
+  );
+
+  const applyOutput = useCallback((output: CalculatorOutput) => {
+    setResult(output);
+    setMode(output.kind);
+    const form = calculatorFormForOutput(output);
+    if (output.kind === "rate") setRate(form);
+    else setRunway(form);
+    setError(undefined);
+  }, []);
 
   useEffect(
     () =>
       bridge.onToolOutput((output) => {
-        if (isCalculatorOutput(output)) {
-          setResult(output);
-          setMode(output.kind);
-          setError(undefined);
-        }
+        if (isCalculatorOutput(output)) applyOutput(output);
       }),
-    [bridge],
+    [applyOutput, bridge],
   );
 
   const calculate = async () => {
-    setBusy(true);
     setError(undefined);
-    const args = Object.fromEntries(
-      Object.entries(mode === "rate" ? rate : runway).map(([key, value]) => [key, Number(value)]),
-    );
+    const parsed = parseCalculatorForm(mode, mode === "rate" ? rate : runway);
+    if (!parsed.ok) {
+      setError(parsed.reason === "required" ? copy.requiredError : copy.numberError);
+      return;
+    }
+    setBusy(true);
     const response =
       mode === "rate"
-        ? await bridge.callTool<RateOutput>("calc_rate", args)
-        : await bridge.callTool<RunwayOutput>("calc_runway", args);
+        ? await bridge.callTool<RateOutput>("calc_rate", parsed.args)
+        : await bridge.callTool<RunwayOutput>("calc_runway", parsed.args);
     setBusy(false);
     if (response.error || !response.data) setError(response.error?.message ?? copy.error);
-    else setResult(response.data);
+    else applyOutput(response.data);
   };
   const values: Record<string, string> = mode === "rate" ? rate : runway;
   const fields = mode === "rate" ? rateFields : runwayFields;
   const updateValue = (key: string, value: string) => {
-    if (mode === "rate") setRate({ ...rate, [key]: value });
-    else setRunway({ ...runway, [key]: value });
+    if (mode === "rate") setRate(updateCalculatorForm(rate, key, value));
+    else setRunway(updateCalculatorForm(runway, key, value));
   };
 
   return (
@@ -170,6 +195,7 @@ export function MoneyPanel({ bridge }: { bridge: Bridge }) {
               <input
                 aria-label={label}
                 min="0"
+                required={isRequiredCalculatorField(mode, key)}
                 step="any"
                 type="number"
                 value={values[key]}

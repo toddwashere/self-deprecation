@@ -4,6 +4,8 @@ export const CALCULATOR_COPY = {
   intro: "Choose a calculator. Every assumption stays visible and editable.",
   loading: "Checking the math twice…",
   error: "The calculation could not be completed. Check the numbers and try again.",
+  requiredError: "Enter the required amounts before calculating.",
+  numberError: "Enter valid numbers before calculating.",
   rateTitle: "Contract rate",
   rateDescription:
     "Estimate revenue needed to replace salary, benefits, and a tax/overhead reserve.",
