@@ -16,7 +16,7 @@ const match = z.object({
   scoredAt: timestamp.nullable(),
 });
 const progressSchema = z.object({
-  stage: z.enum(["done", "scoring"]),
+  stage: z.enum(["done", "awaiting_scoring"]),
   done: z.number().int().nonnegative(),
   total: z.number().int().nonnegative(),
   taskId: z.string().optional(),
@@ -79,7 +79,7 @@ export const briefTools: ToolDef[] = [
     name: "get_brief_data",
     title: "Get daily brief data",
     description:
-      "Read the caller's stored new job matches and contract leads since the last viewed brief, upcoming events, due follow-ups, and five public AI headlines. Use for a daily brief or Today dashboard. Do not use to refresh feeds, score jobs, or schedule delivery. Next: summarize ready sections with links, acknowledge unavailable or scoring sections, then mark_brief_seen with this result's asOf after the user reads a brief with no unavailable sections.",
+      "Read the caller's stored new job matches and contract leads since the last viewed brief, upcoming events, due follow-ups, and five public AI headlines. Use for a daily brief or Today dashboard. Do not use to refresh feeds, score jobs, or schedule delivery. Next: summarize ready sections with links, acknowledge unavailable sections and any awaiting_scoring state (which requires a score_jobs call to advance), then mark_brief_seen with this result's asOf after the user reads a brief with no unavailable sections.",
     input: {},
     output: briefOutputSchema,
     annotations: {
@@ -105,7 +105,11 @@ export const briefTools: ToolDef[] = [
         const pending = taskSchema.safeParse(task);
         const progress =
           pending.success && pending.data.progress.done < pending.data.progress.total
-            ? { ...pending.data.progress, stage: "scoring" as const, taskId: pending.data.taskId }
+            ? {
+                ...pending.data.progress,
+                stage: "awaiting_scoring" as const,
+                taskId: pending.data.taskId,
+              }
             : { stage: "done" as const, done: 5 - data.unavailable.length, total: 5 };
         return ok(
           `${data.matches.length} new matches, ${data.events.length} upcoming events, ${data.followUps.length} follow-ups due, ${data.headlines.length} headlines.${data.unavailable.length ? " Some sections are unavailable." : ""}`,

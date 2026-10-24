@@ -63,6 +63,8 @@ export function TodayContent({
   error,
   marking = false,
   running = false,
+  scoring = false,
+  onContinueScoring,
   onRefresh,
   onRun,
   onMark,
@@ -74,6 +76,8 @@ export function TodayContent({
   error?: string;
   marking?: boolean;
   running?: boolean;
+  scoring?: boolean;
+  onContinueScoring: () => void;
   onRefresh: () => void;
   onRun: () => void;
   onMark: () => void;
@@ -121,7 +125,7 @@ export function TodayContent({
         <Button onClick={onRun} disabled={running}>
           {copy.run}
         </Button>
-        <Button className="secondary" onClick={onRefresh} disabled={loading}>
+        <Button className="secondary" onClick={onRefresh} disabled={loading || scoring}>
           {copy.refresh}
         </Button>
         <Button
@@ -131,6 +135,7 @@ export function TodayContent({
             !data ||
             loading ||
             marking ||
+            scoring ||
             Boolean(data.unavailable.length) ||
             (data.lastSeenAt !== null && data.lastSeenAt >= data.asOf)
           }
@@ -140,6 +145,7 @@ export function TodayContent({
       </div>
       {error ? <ErrorBanner message={error} retry={onRefresh} /> : null}
       {loading ? <Loading line={copy.loading} /> : null}
+      {scoring ? <Loading line={copy.scoringLoading} /> : null}
       {data ? (
         <>
           <p className="muted">
@@ -148,11 +154,15 @@ export function TodayContent({
               ? copy.neverSeen
               : `${copy.lastRead} ${dateLabel(data.lastSeenAt, data.timezone)}`}
           </p>
-          {data.progress.stage !== "done" ? (
+          {data.progress.stage === "awaiting_scoring" ? (
             <div role="status">
               <p>
                 {copy.scoring}: {data.progress.done} of {data.progress.total}. {copy.ready}
               </p>
+              <p>{copy.continuation}</p>
+              <Button onClick={onContinueScoring} disabled={scoring || loading}>
+                {copy.continueScoring}
+              </Button>
               <progress
                 aria-label={copy.scoring}
                 value={data.progress.done}
@@ -280,6 +290,7 @@ export function TodayPanel({ bridge }: { bridge: Bridge }) {
   const [error, setError] = useState<string>();
   const [marking, setMarking] = useState(false);
   const [running, setRunning] = useState(false);
+  const [scoring, setScoring] = useState(false);
   const request = useRef(0);
   const mounted = useRef(true);
   const load = useCallback(async () => {
@@ -329,26 +340,21 @@ export function TodayPanel({ bridge }: { bridge: Bridge }) {
       unsubscribe();
     };
   }, [bridge, load]);
-  useEffect(() => {
-    if (data?.progress.stage !== "scoring" || loading || error) return;
-    const timer = setTimeout(async () => {
-      if (!data.progress.taskId) {
-        void load();
-        return;
-      }
-      try {
-        const result = await bridge.callTool<{ status: string }>("get_task_status", {
-          taskId: data.progress.taskId,
-        });
-        if (!mounted.current) return;
-        if (result.error) setError(result.error.message);
-        else void load();
-      } catch {
-        if (mounted.current) setError(copy.error);
-      }
-    }, 3_000);
-    return () => clearTimeout(timer);
-  }, [bridge, data, error, load, loading]);
+  const continueScoring = async () => {
+    if (scoring || loading || data?.progress.stage !== "awaiting_scoring") return;
+    setScoring(true);
+    setError(undefined);
+    try {
+      const result = await bridge.callTool("score_jobs", {});
+      if (!mounted.current) return;
+      if (result.error) setError(result.error.message);
+      else await load();
+    } catch {
+      if (mounted.current) setError(copy.scoringError);
+    } finally {
+      if (mounted.current) setScoring(false);
+    }
+  };
   const prompt = async (text: string) => {
     setRunning(true);
     setError(undefined);
@@ -388,6 +394,8 @@ export function TodayPanel({ bridge }: { bridge: Bridge }) {
       error={error}
       marking={marking}
       running={running}
+      scoring={scoring}
+      onContinueScoring={() => void continueScoring()}
       onRefresh={() => void load()}
       onRun={() => void prompt(copy.runPrompt)}
       onMark={() => void mark()}
