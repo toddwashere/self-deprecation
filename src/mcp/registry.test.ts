@@ -30,6 +30,10 @@ describe("tool registry contract", () => {
         "open_dashboard",
         "reset_my_data",
         "load_demo_data",
+        "start_onboarding",
+        "get_criteria",
+        "update_criteria",
+        "save_resume",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);

@@ -12,6 +12,10 @@ server/panel contract.
 | `open_dashboard` | core | read-only | yes | Open the shared panel on a requested tab with summary counts. |
 | `reset_my_data` | core | destructive | no | Reset only the caller's personal workspace after exact confirmation. |
 | `load_demo_data` | core | destructive | no | Replace the caller's workspace with deterministic public-safe demo data. |
+| `start_onboarding` | criteria | read-only | yes | Start or resume conversational job-search setup. |
+| `get_criteria` | criteria | read-only | no | Return the caller's current criteria; resume text is opt-in. |
+| `update_criteria` | criteria | write | no | Partially update only the caller's confirmed criteria. |
+| `save_resume` | criteria | write | no | Save ≤50 KB resume text and supported extracted fields. |
 
 Feature folders are predeclared in `src/mcp/registry.ts`. Adding a tool to a feature's exported
 `tools` array registers it automatically with annotations, status text, OAuth metadata, and optional
