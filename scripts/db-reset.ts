@@ -18,9 +18,10 @@ const tables = [
   "d1_migrations",
 ];
 
-const dropSql = ["PRAGMA foreign_keys = OFF", ...tables.map((table) => `DROP TABLE IF EXISTS ${table}`)].join(
-  "; ",
-);
+const dropSql = [
+  "PRAGMA foreign_keys = OFF",
+  ...tables.map((table) => `DROP TABLE IF EXISTS ${table}`),
+].join("; ");
 
 execFileSync("npx", ["wrangler", "d1", "execute", "DB", "--local", "--command", dropSql], {
   stdio: "inherit",
