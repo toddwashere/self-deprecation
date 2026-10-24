@@ -48,7 +48,7 @@ export interface NewsQuery {
   topics?: string[];
 }
 
-export async function readNewsCatalog(db: DB, query: NewsQuery) {
+export async function readNewsCatalog(db: DB, query: NewsQuery, now: number) {
   const topicClauses = query.topics?.map(
     (topic) =>
       sql`exists (select 1 from json_each(${newsItems.tags}) where lower(value) = ${topic.toLowerCase()})`,
@@ -81,15 +81,17 @@ export async function readNewsCatalog(db: DB, query: NewsQuery) {
         .from(fetchRuns)
         .where(and(condition, eq(fetchRuns.status, "ok")));
       const status: "ok" | "error" | "running" | "partial" | "never" =
-        latest?.status === "ok"
-          ? "ok"
-          : latest?.status === "error"
-            ? "error"
-            : latest?.status === "running"
-              ? "running"
-              : latest
-                ? "partial"
-                : "never";
+        latest?.status === "running" && now - latest.startedAt > 120_000
+          ? "error"
+          : latest?.status === "ok"
+            ? "ok"
+            : latest?.status === "error"
+              ? "error"
+              : latest?.status === "running"
+                ? "running"
+                : latest
+                  ? "partial"
+                  : "never";
       return {
         id: feed.id,
         label: feed.label,

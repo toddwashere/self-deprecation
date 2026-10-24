@@ -73,4 +73,23 @@ describe("public news normalization (T7)", () => {
     vi.stubGlobal("fetch", async () => new Response("<html>blocked</html>"));
     await expect(openAiNewsAdapter.fetch({} as Env, {})).rejects.toThrow();
   });
+  it("uses Workers-compatible manual redirects and refuses redirect responses", async () => {
+    vi.stubGlobal("fetch", async (_url: unknown, init: RequestInit) => {
+      if (init.redirect === "error")
+        throw new TypeError("Workers does not implement redirect:error");
+      if (init.redirect !== "manual")
+        throw new Error("Feed requests must not follow redirects outside the allowlist");
+      return new Response(`<rss>${recordedFeeds.openai}</rss>`);
+    });
+    expect(await openAiNewsAdapter.fetch({} as Env, {})).toHaveLength(1);
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        new Response(null, {
+          status: 302,
+          headers: { location: "https://untrusted.example/feed" },
+        }),
+    );
+    await expect(openAiNewsAdapter.fetch({} as Env, {})).rejects.toThrow("302");
+  });
 });
