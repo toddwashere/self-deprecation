@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { apiUsage, fetchRuns, jobMatches, jobs, profiles, userState } from "../../db/schema";
+import type { JobSearchFilters } from "../jobs/tools";
 
 export async function getDecisionUnitsSince(
   db: DB,
@@ -106,9 +107,15 @@ export async function writeScoringProgress(
   taskId: string,
   progress: { stage: string; done: number; total: number },
   now: number,
+  filters?: JobSearchFilters,
 ): Promise<void> {
   const key = `task.${taskId}`;
-  const value = { taskId, status: progress.done >= progress.total ? "done" : "running", progress };
+  const value = {
+    taskId,
+    status: progress.done >= progress.total ? "done" : "running",
+    progress,
+    ...(filters ? { filters } : {}),
+  };
   await db
     .insert(userState)
     .values({ userId, key, value, updatedAt: now })

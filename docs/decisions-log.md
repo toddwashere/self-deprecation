@@ -183,6 +183,11 @@ The integrator explicitly authorized the shared Decisions timeout repair and sup
 
 - P1-I requested a public-safe learning fixture so the Learning tab has immediate value after **See demo**. The P0-F integrator extended the existing demo contract additively: `load_demo_data` now also replaces and reports one deterministic learning entry linked to the demo event.
 - The fixture contains synthetic presentation notes only. It preserves the existing reset-first, per-user insertion path and is covered by an idempotency regression.
+
+## 2026-10-24 — Jobs task state retains continuation filters
+
+- Independent P1-D review found that Today could not safely continue a partial Jobs scoring task because `user_state` retained progress but not the normalized initiating filters. Calling `score_jobs` with defaults could score a different pool and spend the caller's budget without advancing the visible search.
+- New scoring tasks now persist their validated normalized filters alongside user-scoped progress. Today may pass those filters back to `score_jobs`; older task rows without filters fall back to asking the user to resume in Jobs. The existing task key and progress contract remain compatible.
 ## 2026-10-24 — P0-D CRM registration integration request
 
 - P0-D registers `add_contact`, `update_contact`, `list_contacts`, `add_note`, and `list_notes` through its owned `src/features/crm/index.ts`. The frozen central registry snapshot must add those names after existing criteria tools. The integrator also owns the corresponding `docs/TOOLS.md` entries and final deploy/ChatGPT natural-language check.

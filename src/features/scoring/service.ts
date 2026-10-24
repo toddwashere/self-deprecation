@@ -120,7 +120,14 @@ export async function runJobSearch(
     total: ranked.length,
   };
   const taskId = `jobs-v${profile.criteriaVersion}`;
-  await writeScoringProgress(ctx.db, ctx.userId, taskId, progress, ctx.now().getTime());
+  await writeScoringProgress(
+    ctx.db,
+    ctx.userId,
+    taskId,
+    progress,
+    ctx.now().getTime(),
+    normalizedFilters,
+  );
   return {
     tab: "jobs",
     jobs: ranked.slice(0, normalizedFilters.limit),

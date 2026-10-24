@@ -1,5 +1,6 @@
 import { applyD1Migrations, env } from "cloudflare:test";
 import type { D1Migration } from "@cloudflare/vitest-plugin";
+import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, expect, it } from "vitest";
 import demo from "../../../seed/demo-todd.json";
 import { createDb } from "../../db/client";
@@ -66,10 +67,15 @@ const decide = async (request: DecisionRequest) => ({
 });
 
 it("scores a bounded batch, resumes the remainder, and reuses current-version scores", async () => {
-  const first = await runJobSearch(ctx, {}, { decide });
+  const first = await runJobSearch(ctx, { query: "TypeScript", remoteOnly: true }, { decide });
   expect(first?.progress).toEqual({ stage: "scoring", done: 20, total: 25 });
   expect(first?.jobs.filter((j) => j.fitScore === 75)).toHaveLength(20);
-  const second = await runJobSearch(ctx, {}, { decide });
+  expect(
+    (await db.select().from(userState).where(eq(userState.userId, "a")).get())?.value,
+  ).toMatchObject({
+    filters: { query: "TypeScript", remoteOnly: true },
+  });
+  const second = await runJobSearch(ctx, { query: "TypeScript", remoteOnly: true }, { decide });
   expect(second?.progress).toEqual({ stage: "done", done: 25, total: 25 });
   expect(second?.jobs.every((j) => j.scoreSource === "decisions")).toBe(true);
   const cached = await runJobSearch(
