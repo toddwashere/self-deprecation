@@ -95,3 +95,27 @@ it("T1 reads only the caller's status and requires their own criteria for search
     structuredContent: { error: { code: "NOT_FOUND" } },
   });
 });
+
+it("returns normalized initiating filters for panel refresh and continuation", async () => {
+  await tool("update_job_status").handler({ jobId: "job", status: "saved" }, ctx);
+  const result = await tool("search_jobs").handler(
+    {
+      query: "  engineer  ",
+      status: "saved",
+      remoteOnly: true,
+      hideUnlistedSalary: true,
+      limit: 7,
+    },
+    ctx,
+  );
+  expect(result.structuredContent).toMatchObject({
+    filters: {
+      query: "engineer",
+      status: "saved",
+      employmentType: "",
+      remoteOnly: true,
+      hideUnlistedSalary: true,
+      limit: 7,
+    },
+  });
+});

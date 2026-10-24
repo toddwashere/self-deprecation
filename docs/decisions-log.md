@@ -131,3 +131,6 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - P0-C found that the Foundation Decisions wrapper always allowed 15 seconds per batch, while every product tool must return in roughly eight seconds. `scoreFit` now accepts an optional bounded `timeoutMs` (1–15 seconds) and retains 15 seconds as the backward-compatible default for smoke and non-tool callers.
 - Jobs will request a six-second timeout. A timeout still follows the existing per-batch heuristic fallback, so no detached promise can record usage after the tool already returned.
 - Affected tasks: F7 shared wrapper, P0-C Jobs scoring, P1-H AI-native assessment.
+
+## P0-C · Review fixes and wrapper authorization (2026-10-24)
+The integrator explicitly authorized the shared Decisions timeout repair and supplied commit `08d54ed`; P0-C integrated that approved repair as `9ae1382`. This review milestone changes only owned Jobs/scoring files and this log. JobsOutput now includes normalized initiating filters for panel refresh/continuation; remote geography no longer requires a literal work-mode keyword; batch-size zero follows the wrapper's clamp to one.

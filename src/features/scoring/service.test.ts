@@ -116,22 +116,29 @@ it("returns NEEDS_CRITERIA behavior without another user's data", async () => {
   expect(await runJobSearch({ ...ctx, userId: "b" }, {}, { decide })).toBeUndefined();
 });
 
-it("falls back within the tool deadline when Decisions never answers", async () => {
-  const started = performance.now();
-  const result = await runJobSearch(
-    ctx,
-    {},
-    {
-      decide: async (_request, signal) =>
-        new Promise((_resolve, reject) => {
-          signal.addEventListener("abort", () => reject(new Error("timed out")), { once: true });
-        }),
-    },
-  );
-  expect(performance.now() - started).toBeLessThan(8000);
-  expect(result?.fallback).toBe(true);
-  expect(result?.jobs.filter((job) => job.fitScore !== null)).toHaveLength(20);
-}, 9000);
+it.each([
+  { batchSize: "20", scored: 20 },
+  { batchSize: "0", scored: 1 },
+])(
+  "falls back within the tool deadline with batch size $batchSize",
+  async ({ batchSize, scored }) => {
+    const started = performance.now();
+    const result = await runJobSearch(
+      { ...ctx, env: { ...ctx.env, DECISIONS_BATCH_SIZE: batchSize, DECISIONS_CONCURRENCY: "1" } },
+      {},
+      {
+        decide: async (_request, signal) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener("abort", () => reject(new Error("timed out")), { once: true });
+          }),
+      },
+    );
+    expect(performance.now() - started).toBeLessThan(8000);
+    expect(result?.fallback).toBe(true);
+    expect(result?.jobs.filter((job) => job.fitScore !== null)).toHaveLength(scored);
+  },
+  9000,
+);
 
 it("keeps saved matches discoverable beyond the unfiltered top sixty", async () => {
   for (let i = 25; i < 65; i++) {
@@ -161,4 +168,14 @@ it("keeps saved matches discoverable beyond the unfiltered top sixty", async () 
   });
   const result = await runJobSearch(ctx, { status: "saved" }, { decide });
   expect(result?.jobs.map((job) => job.id)).toEqual(["job-64"]);
+});
+
+it("normalizes a zero batch size to one scored candidate per invocation", async () => {
+  const result = await runJobSearch(
+    { ...ctx, env: { ...ctx.env, DECISIONS_BATCH_SIZE: "0", DECISIONS_CONCURRENCY: "1" } },
+    {},
+    { decide },
+  );
+  expect(result?.progress).toEqual({ stage: "scoring", done: 1, total: 25 });
+  expect(result?.jobs.filter((job) => job.fitScore !== null)).toHaveLength(1);
 });

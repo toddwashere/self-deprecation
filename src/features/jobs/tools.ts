@@ -35,7 +35,17 @@ export const jobCardSchema = z.object({
   status: jobStatusSchema,
   scoredAt: z.number().nullable(),
 });
+export const jobSearchFiltersSchema = z.object({
+  query: z.string(),
+  status: jobStatusSchema.or(z.literal("")),
+  employmentType: z.enum(["full_time", "contract", "part_time", "unknown", ""]),
+  remoteOnly: z.boolean(),
+  hideUnlistedSalary: z.boolean(),
+  limit: z.number().int().min(1).max(60),
+});
+export type JobSearchFilters = z.infer<typeof jobSearchFiltersSchema>;
 export const jobsOutputSchema = z.object({
+  filters: jobSearchFiltersSchema,
   tab: z.literal("jobs"),
   jobs: z.array(jobCardSchema),
   criteriaVersion: z.number().int(),
