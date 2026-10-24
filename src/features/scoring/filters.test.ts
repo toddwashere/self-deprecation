@@ -119,3 +119,63 @@ it("matches remote geography independently of the work-mode preference", () => {
     candidateJobs(localRemote, [{ ...job, remote: false, location: "Salt Lake City, UT" }], now),
   ).toHaveLength(0);
 });
+
+it.each([
+  ["Seattle, Washington", "Seattle, WA"],
+  ["City, Alabama", "City, AL"],
+  ["City, Alaska", "City, AK"],
+  ["City, Arizona", "City, AZ"],
+  ["City, Arkansas", "City, AR"],
+  ["City, California", "City, CA"],
+  ["City, Colorado", "City, CO"],
+  ["City, Connecticut", "City, CT"],
+  ["City, Delaware", "City, DE"],
+  ["City, Florida", "City, FL"],
+  ["City, Georgia", "City, GA"],
+  ["City, Hawaii", "City, HI"],
+  ["City, Idaho", "City, ID"],
+  ["City, Illinois", "City, IL"],
+  ["City, Indiana", "City, IN"],
+  ["City, Iowa", "City, IA"],
+  ["City, Kansas", "City, KS"],
+  ["City, Kentucky", "City, KY"],
+  ["City, Louisiana", "City, LA"],
+  ["City, Maine", "City, ME"],
+  ["City, Maryland", "City, MD"],
+  ["City, Massachusetts", "City, MA"],
+  ["City, Michigan", "City, MI"],
+  ["City, Minnesota", "City, MN"],
+  ["City, Mississippi", "City, MS"],
+  ["City, Missouri", "City, MO"],
+  ["City, Montana", "City, MT"],
+  ["City, Nebraska", "City, NE"],
+  ["City, Nevada", "City, NV"],
+  ["City, New Hampshire", "City, NH"],
+  ["City, New Jersey", "City, NJ"],
+  ["City, New Mexico", "City, NM"],
+  ["City, New York", "City, NY"],
+  ["City, North Carolina", "City, NC"],
+  ["City, North Dakota", "City, ND"],
+  ["City, Ohio", "City, OH"],
+  ["City, Oklahoma", "City, OK"],
+  ["City, Oregon", "City, OR"],
+  ["City, Pennsylvania", "City, PA"],
+  ["City, Rhode Island", "City, RI"],
+  ["City, South Carolina", "City, SC"],
+  ["City, South Dakota", "City, SD"],
+  ["City, Tennessee", "City, TN"],
+  ["City, Texas", "City, TX"],
+  ["City, Utah", "City, UT"],
+  ["City, Vermont", "City, VT"],
+  ["City, Virginia", "City, VA"],
+  ["City, West Virginia", "City, WV"],
+  ["City, Wisconsin", "City, WI"],
+  ["City, Wyoming", "City, WY"],
+  ["District of Columbia", "DC"],
+])("accepts remote US roles for %s and %s consistently", (fullName, abbreviation) => {
+  for (const location of [fullName, abbreviation]) {
+    const local = { ...profile, locations: [location] };
+    expect(candidateJobs(local, [job], now).map((item) => item.id)).toEqual(["good"]);
+    expect(candidateJobs(local, [{ ...job, location: "Remote Europe" }], now)).toHaveLength(0);
+  }
+});
