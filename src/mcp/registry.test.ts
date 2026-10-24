@@ -14,6 +14,7 @@ describe("tool registry contract", () => {
       "events",
       "news",
       "brief",
+      "learning",
       "calculators",
       "dossier",
       "ladder",
@@ -55,6 +56,11 @@ describe("tool registry contract", () => {
         "get_ai_news",
         "get_brief_data",
         "mark_brief_seen",
+        "save_learning_entry",
+        "list_learning_entries",
+        "get_learning_entry",
+        "update_learning_entry",
+        "search_learning_entries",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);

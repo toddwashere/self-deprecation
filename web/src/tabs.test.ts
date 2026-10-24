@@ -8,6 +8,7 @@ describe("workspace navigation", () => {
       { id: "jobs", enabled: true },
       { id: "people", enabled: true },
       { id: "prep", enabled: true },
+      { id: "learning", enabled: true },
       { id: "events", enabled: true },
       { id: "news", enabled: true },
       { id: "profile", enabled: true },

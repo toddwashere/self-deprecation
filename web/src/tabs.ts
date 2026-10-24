@@ -5,6 +5,7 @@ import { ProfilePanel } from "../../src/features/criteria/panel";
 import { PeoplePanel } from "../../src/features/crm/panel";
 import { EventsPanel } from "../../src/features/events/panel";
 import { JobsPanel } from "../../src/features/jobs/panel";
+import { LearningPanel } from "../../src/features/learning/panel";
 import { NewsPanel } from "../../src/features/news/panel";
 import { PrepPanel } from "../../src/features/prep/panel";
 import type { Bridge } from "./bridge";
@@ -16,6 +17,7 @@ export type TabId =
   | "prep"
   | "events"
   | "news"
+  | "learning"
   | "profile"
   | "settings";
 
@@ -31,6 +33,7 @@ export const TABS: TabDef[] = [
   { id: "jobs", label: "Jobs", component: JobsPanel, enabled: true },
   { id: "people", label: "People", component: PeoplePanel, enabled: true },
   { id: "prep", label: "Prep", component: PrepPanel, enabled: true },
+  { id: "learning", label: "Journal", component: LearningPanel, enabled: true },
   { id: "events", label: "Events", component: EventsPanel, enabled: true },
   { id: "news", label: "News", component: NewsPanel, enabled: true },
   { id: "profile", label: "Profile", component: ProfilePanel, enabled: true },

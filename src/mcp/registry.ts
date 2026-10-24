@@ -8,6 +8,7 @@ import { dossierFeature } from "../features/dossier";
 import { eventsFeature } from "../features/events";
 import { jobsFeature } from "../features/jobs";
 import { ladderFeature } from "../features/ladder";
+import { learningFeature } from "../features/learning";
 import { newsFeature } from "../features/news";
 import { prepFeature } from "../features/prep";
 import { scoringFeature } from "../features/scoring";
@@ -24,6 +25,7 @@ export const FEATURES: FeatureModule[] = [
   eventsFeature,
   newsFeature,
   briefFeature,
+  learningFeature,
   calculatorsFeature,
   dossierFeature,
   ladderFeature,

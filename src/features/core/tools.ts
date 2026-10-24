@@ -35,6 +35,7 @@ const tabSchema = z.enum([
   "prep",
   "events",
   "news",
+  "learning",
   "money",
   "level",
   "profile",
