@@ -1,4 +1,4 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import type { DB } from "../../db/client";
 import { fetchRuns, jobMatches, jobs, profiles } from "../../db/schema";
 
@@ -37,23 +37,23 @@ export async function setBridgeMode(db: DB, userId: string, enabled: boolean, no
 
 export async function listContractLeads(db: DB, userId: string, filters: ContractFilters) {
   const profile = await getBridgeProfile(db, userId);
+  const query = filters.query?.trim().toLowerCase() ?? "";
   const rows = await db
     .select({ job: jobs, match: jobMatches })
     .from(jobs)
     .leftJoin(jobMatches, and(eq(jobMatches.jobId, jobs.id), eq(jobMatches.userId, userId)))
-    .where(or(eq(jobs.employmentType, "contract"), eq(jobs.source, "hn_freelance")))
+    .where(
+      and(
+        or(eq(jobs.employmentType, "contract"), eq(jobs.source, "hn_freelance")),
+        filters.remoteOnly ? eq(jobs.remote, true) : undefined,
+        query
+          ? sql`instr(lower(coalesce(${jobs.company}, '') || ' ' || coalesce(${jobs.title}, '') || ' ' || coalesce(${jobs.location}, '') || ' ' || coalesce(${jobs.descriptionText}, '') || ' ' || coalesce(${jobs.tags}, '')), ${query}) > 0`
+          : undefined,
+      ),
+    )
     .orderBy(desc(jobs.postedAt), desc(jobs.fetchedAt))
     .limit(200);
-  const query = filters.query?.trim().toLowerCase() ?? "";
   const visible = rows
-    .filter(({ job }) => !filters.remoteOnly || job.remote === true)
-    .filter(
-      ({ job }) =>
-        !query ||
-        `${job.company} ${job.title} ${job.location ?? ""} ${job.descriptionText ?? ""} ${job.tags.join(" ")}`
-          .toLowerCase()
-          .includes(query),
-    )
     .slice(0, filters.limit)
     .map(({ job, match }) => {
       const current = match?.criteriaVersion === profile.criteriaVersion;
