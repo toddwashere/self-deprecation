@@ -41,23 +41,19 @@ export function App({ bridge }: { bridge: Bridge }) {
             <p className="brand">SELF-DEPRECATION</p>
             <Chip tone="good">{COPY.status}</Chip>
           </div>
-          <h1>Your career migration guide</h1>
-          <p className="subtitle">Less panic. Better queries. A path forward.</p>
+          <h1>Career dashboard</h1>
         </div>
-        <span className="version">{COPY.version}</span>
       </header>
 
       <nav aria-label="Workspace tabs">
         {TABS.map((tab) => (
           <button
             className={tab.id === active.id ? "tab active" : "tab"}
-            disabled={!tab.enabled}
             key={tab.id}
             onClick={() => chooseTab(tab)}
             type="button"
           >
             {tab.label}
-            {!tab.enabled ? <span className="soon">soon</span> : null}
           </button>
         ))}
       </nav>
@@ -65,8 +61,6 @@ export function App({ bridge }: { bridge: Bridge }) {
       <main>
         <Panel bridge={bridge} />
       </main>
-
-      <footer>{COPY.hope}</footer>
     </div>
   );
 }
