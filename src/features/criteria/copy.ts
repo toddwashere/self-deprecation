@@ -42,5 +42,6 @@ export const CRITERIA_COPY = {
   criteriaVersion: "criteria v",
   updateInChat: "Update in chat",
   loadingProfile: "Checking whether your migration has a plan…",
+  missingProfile: "The server returned no profile data. Refresh the connection and try again.",
   retry: "The profile got lost between releases.",
 } as const;

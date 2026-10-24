@@ -75,7 +75,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
     else if (result.data) {
       setCriteria(result.data);
       setForm(toForm(result.data));
-    }
+    } else setError(CRITERIA_COPY.missingProfile);
   }, [bridge]);
 
   useEffect(() => {
@@ -163,6 +163,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
           <>
             <FormRow label={CRITERIA_COPY.targetTitles}>
               <input
+                aria-label={CRITERIA_COPY.targetTitles}
                 value={form.targetTitles}
                 onChange={(event) => setForm({ ...form, targetTitles: event.target.value })}
                 style={fieldStyle}
@@ -175,6 +176,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </FormRow>
             <FormRow label={CRITERIA_COPY.skills}>
               <input
+                aria-label={CRITERIA_COPY.skills}
                 value={form.skills}
                 onChange={(event) => setForm({ ...form, skills: event.target.value })}
                 style={fieldStyle}
@@ -189,6 +191,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </FormRow>
             <FormRow label={CRITERIA_COPY.remotePreference}>
               <select
+                aria-label={CRITERIA_COPY.remotePreference}
                 value={form.remotePref}
                 onChange={(event) =>
                   setForm({ ...form, remotePref: event.target.value as RemotePreference })
@@ -204,6 +207,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </FormRow>
             <FormRow label={CRITERIA_COPY.salaryMinimum}>
               <input
+                aria-label={CRITERIA_COPY.salaryMinimum}
                 type="number"
                 min="0"
                 step="1000"
@@ -214,6 +218,7 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </FormRow>
             <FormRow label={CRITERIA_COPY.hourlyMinimum}>
               <input
+                aria-label={CRITERIA_COPY.hourlyMinimum}
                 type="number"
                 min="0"
                 step="1"
@@ -256,10 +261,17 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
           </>
         ) : (
           <div className="actions">
-            <Button onClick={() => void startChat(CRITERIA_COPY.startPrompt)}>
+            <Button
+              disabled={action.kind === "busy"}
+              onClick={() => void startChat(CRITERIA_COPY.startPrompt)}
+            >
               {CRITERIA_COPY.getStarted}
             </Button>
-            <Button className="secondary" onClick={() => void loadDemo()}>
+            <Button
+              className="secondary"
+              disabled={action.kind === "busy"}
+              onClick={() => void loadDemo()}
+            >
               {CRITERIA_COPY.seeDemo}
             </Button>
           </div>
