@@ -2,7 +2,7 @@ import { applyD1Migrations, env } from "cloudflare:test";
 import type { D1Migration } from "@cloudflare/vitest-plugin";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb } from "../../db/client";
-import { contacts, notes, users } from "../../db/schema";
+import { contacts, notes, savedEvents, users } from "../../db/schema";
 import type { Env } from "../../env";
 import { createLogger } from "../../lib/log";
 import type { ToolContext } from "../../mcp/types";
@@ -51,6 +51,74 @@ async function person() {
 }
 
 describe("CRM tool contracts", () => {
+  it("T1: event notes require the caller's saved event; external events use a label", async () => {
+    await db
+      .insert(savedEvents)
+      .values({
+        id: "event-a",
+        userId: "a",
+        title: "Synthetic meetup",
+        source: "manual",
+        createdAt: now,
+        updatedAt: now,
+      });
+    error(
+      await call(
+        "add_note",
+        { subjectType: "event", subjectId: "event-a", body: "Foreign attachment" },
+        "b",
+      ),
+      "NOT_FOUND",
+    );
+    error(
+      await call("add_note", {
+        subjectType: "event",
+        subjectId: "missing-event",
+        subjectLabel: "Synthetic meetup",
+        body: "Missing attachment",
+      }),
+      "NOT_FOUND",
+    );
+    expect((await call("list_notes", {}, "b")).structuredContent?.notes).toEqual([]);
+    expect((await call("list_notes")).structuredContent?.notes).toEqual([]);
+    expect(
+      (
+        await call("add_note", {
+          subjectType: "event",
+          subjectId: "event-a",
+          body: "Owner attachment",
+        })
+      ).structuredContent,
+    ).toMatchObject({ note: { subjectType: "event", subjectId: "event-a" } });
+    expect(
+      (
+        await call("add_note", {
+          subjectType: "event",
+          subjectLabel: "External meetup",
+          body: "Public event context",
+        })
+      ).structuredContent,
+    ).toMatchObject({
+      note: { subjectType: "event", subjectId: null, subjectLabel: "External meetup" },
+    });
+  });
+  it("returns normalized list filters so the panel can retain search and contact intent", async () => {
+    const contact = await person();
+    expect(
+      (
+        await call("list_contacts", {
+          query: "  Stripe  ",
+          contactId: contact.id,
+          limit: 1,
+          offset: 0,
+        })
+      ).structuredContent,
+    ).toMatchObject({ filters: { query: "Stripe", contactId: contact.id, limit: 1, offset: 0 } });
+    expect((await call("list_contacts")).structuredContent).toMatchObject({
+      filters: { query: null, contactId: null, limit: 50, offset: 0 },
+    });
+  });
+
   it("registers all five tools with bounded metadata and caller-only identity", () => {
     expect(crmFeature.tools.map((t) => t.name)).toEqual([
       "add_contact",

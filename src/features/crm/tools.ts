@@ -1,7 +1,15 @@
 import { z } from "zod";
 import { fail, ok } from "../../mcp/result";
 import type { ToolContext, ToolDef, ToolResult } from "../../mcp/types";
-import { addContact, addNote, getContact, listContacts, listNotes, updateContact } from "./repo";
+import {
+  addContact,
+  addNote,
+  getContact,
+  getOwnedEvent,
+  listContacts,
+  listNotes,
+  updateContact,
+} from "./repo";
 
 const id = z.string().trim().min(1).max(200);
 const timestamp = z.number().int().nonnegative().max(8_640_000_000_000_000);
@@ -50,6 +58,12 @@ export const contactOutputSchema = z.object({ tab: z.literal("people"), contact:
 export const contactsOutputSchema = z.object({
   tab: z.literal("people"),
   contacts: z.array(contactSchema),
+  filters: z.object({
+    query: z.string().nullable(),
+    contactId: z.string().nullable(),
+    limit: z.number().int(),
+    offset: z.number().int(),
+  }),
   hasMore: z.boolean(),
 });
 export const noteOutputSchema = z.object({ tab: z.literal("people"), note: noteSchema });
@@ -174,6 +188,12 @@ export const crmTools: ToolDef[] = [
       return ok(`${Math.min(rows.length, limit)} contacts loaded.`, {
         tab: "people",
         contacts: rows.slice(0, limit),
+        filters: {
+          query: args.query ?? null,
+          contactId: args.contactId ?? null,
+          limit,
+          offset: args.offset ?? 0,
+        },
         hasMore: rows.length > limit,
       });
     }),
@@ -182,7 +202,7 @@ export const crmTools: ToolDef[] = [
     name: "add_note",
     title: "Add a note",
     description:
-      "Use this to save user-provided notes on a contact, company, job, event, or general topic. After 'I met Jane from Stripe at…', first call add_contact (or find her with list_contacts), then use its contact.id as subjectId and subjectType contact here for what was discussed. Do not invent conversations or use notes as a substitute for adding a contact. Next, show the note and offer to set followUpAt via update_contact or draft outreach in ChatGPT.",
+      "Use this to save user-provided notes on a contact, company, job, event, or general topic. After 'I met Jane from Stripe at…', first call add_contact (or find her with list_contacts), then use its contact.id as subjectId and subjectType contact here for what was discussed. For a saved event, subjectId must belong to the caller; for an external or unsaved event, omit subjectId and provide subjectLabel. Do not invent conversations or use notes as a substitute for adding a contact. Next, show the note and offer to set followUpAt via update_contact or draft outreach in ChatGPT.",
     input: noteInput,
     output: noteOutputSchema,
     annotations: write,
@@ -200,6 +220,17 @@ export const crmTools: ToolDef[] = [
             "Use list_contacts or add_contact first.",
           );
         if (!(await getContact(ctx.db, ctx.userId, args.subjectId))) return missingContact();
+      }
+      if (
+        args.subjectType === "event" &&
+        args.subjectId &&
+        !(await getOwnedEvent(ctx.db, ctx.userId, args.subjectId))
+      ) {
+        return fail(
+          "NOT_FOUND",
+          "Saved event not found.",
+          "Use your saved event ID, or omit subjectId and provide subjectLabel for an external event.",
+        );
       }
       if (
         ["company", "job", "event"].includes(args.subjectType) &&
