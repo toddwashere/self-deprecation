@@ -5,7 +5,14 @@ import { createDb } from "../../db/client";
 import { apiUsage, notes, userState, users } from "../../db/schema";
 import type { Env } from "../../env";
 import type { CompanyDossier } from "./agent";
-import { claimDossierRun, getDossierTask, listDossiers, putDossierTask, saveDossier } from "./repo";
+import {
+  claimDossierRun,
+  completeDossierTask,
+  getDossierTask,
+  listDossiers,
+  putDossierTask,
+  saveDossier,
+} from "./repo";
 
 const bound = env as unknown as Env & { TEST_MIGRATIONS: D1Migration[] };
 const db = createDb(bound.DB);
@@ -65,9 +72,11 @@ describe("dossier repository", () => {
       {
         taskId: "dossier-1",
         sessionId: "session-private",
+        noteId: "note-private",
         company: "Example Labs",
         researchedAt: now,
-        status: "researching",
+        status: "running",
+        progress: { stage: "researching", done: 0, total: 1 },
       },
       now,
     );
@@ -75,7 +84,36 @@ describe("dossier repository", () => {
     expect(await getDossierTask(db, "b", "dossier-1")).toBeUndefined();
     expect(await getDossierTask(db, "a", "dossier-1")).toMatchObject({
       sessionId: "session-private",
-      status: "researching",
+      status: "running",
+      progress: { stage: "researching", done: 0, total: 1 },
+    });
+  });
+
+  it("completes one stable note and task atomically across concurrent polls", async () => {
+    const task = {
+      taskId: "dossier-concurrent",
+      sessionId: "session-concurrent",
+      noteId: "note-concurrent",
+      company: "Example Labs",
+      researchedAt: now,
+      status: "running" as const,
+      progress: { stage: "researching" as const, done: 0, total: 1 },
+    };
+    await putDossierTask(db, "a", task, now);
+
+    const [first, second] = await Promise.all([
+      completeDossierTask(db, "a", task, dossier, now + 1),
+      completeDossierTask(db, "a", task, dossier, now + 2),
+    ]);
+
+    expect(first.noteId).toBe("note-concurrent");
+    expect(second.noteId).toBe("note-concurrent");
+    expect(await listDossiers(db, "a", "Example Labs")).toHaveLength(1);
+    expect(await getDossierTask(db, "a", task.taskId)).toMatchObject({
+      taskId: task.taskId,
+      noteId: "note-concurrent",
+      status: "done",
+      progress: { stage: "done", done: 1, total: 1 },
     });
   });
 });

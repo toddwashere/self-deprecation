@@ -4,7 +4,7 @@ import { fail, ok } from "../../mcp/result";
 import type { ToolContext, ToolDef, ToolResult } from "../../mcp/types";
 import { dossierSchema, pollDossierAgent, startDossierAgent } from "./agent";
 import { dossierCopy as copy } from "./copy";
-import { claimDossierRun, getDossierTask, putDossierTask, saveDossier } from "./repo";
+import { claimDossierRun, completeDossierTask, getDossierTask, putDossierTask } from "./repo";
 
 const inputShape = {
   company: z.string().trim().min(1).max(200).optional(),
@@ -125,16 +125,17 @@ export function createDossierTools(
               "Dossier research task not found.",
               "Start a new dossier with a company name.",
             );
-          if (task.status === "complete" && task.dossier)
+          if (task.status === "done" && task.dossier)
             return ok(copy.complete, {
               tab: "people",
               status: "complete",
               company: task.company,
               dossier: task.dossier,
-              noteId: task.noteId ?? null,
+              noteId: task.noteId,
               taskId: task.taskId,
               progress: { stage: "done", done: 1, total: 1 },
             });
+          if (task.status === "error") return unavailable(task.company, "unavailable", task.taskId);
           try {
             const result = await agent.poll(
               agentEnv.OPENAI_API_KEY,
@@ -156,22 +157,11 @@ export function createDossierTools(
                 taskId: task.taskId,
                 progress: { stage: "researching", done: 0, total: 1 },
               });
-            const note = await saveDossier(
+            const completed = await completeDossierTask(
               ctx.db,
               ctx.userId,
-              task.company,
+              task,
               result.dossier,
-              ctx.now().getTime(),
-            );
-            await putDossierTask(
-              ctx.db,
-              ctx.userId,
-              {
-                ...task,
-                status: "complete",
-                dossier: result.dossier,
-                noteId: note?.id,
-              },
               ctx.now().getTime(),
             );
             return ok(copy.complete, {
@@ -179,11 +169,25 @@ export function createDossierTools(
               status: "complete",
               company: task.company,
               dossier: result.dossier,
-              noteId: note?.id ?? null,
+              noteId: completed.noteId,
               taskId: task.taskId,
               progress: { stage: "done", done: 1, total: 1 },
             });
           } catch {
+            try {
+              await putDossierTask(
+                ctx.db,
+                ctx.userId,
+                {
+                  ...task,
+                  status: "error",
+                  progress: { stage: "done", done: 0, total: 1 },
+                },
+                ctx.now().getTime(),
+              );
+            } catch {
+              // Preserve the bounded fallback even if task-state persistence is unavailable.
+            }
             return unavailable(task.company, "unavailable", task.taskId);
           }
         }
@@ -216,16 +220,19 @@ export function createDossierTools(
           if (started.status === "failed" || started.status === "requires_action")
             return unavailable(company, "unavailable");
           const taskId = `dossier-${crypto.randomUUID()}`;
+          const noteId = `dossier-note-${crypto.randomUUID()}`;
           await putDossierTask(
             ctx.db,
             ctx.userId,
             {
               taskId,
               sessionId: started.sessionId,
+              noteId,
               company,
               ...(args.website ? { website: args.website } : {}),
               researchedAt: current.getTime(),
-              status: "researching",
+              status: "running",
+              progress: { stage: "researching", done: 0, total: 1 },
             },
             ctx.now().getTime(),
           );

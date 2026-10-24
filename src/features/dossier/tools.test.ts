@@ -5,6 +5,7 @@ import { createDb } from "../../db/client";
 import { apiUsage, notes, userState, users } from "../../db/schema";
 import type { Env } from "../../env";
 import type { ToolContext } from "../../mcp/types";
+import { coreTools } from "../core/tools";
 import type { CompanyDossier } from "./agent";
 import { createDossierTools, dossierOutputSchema } from "./tools";
 
@@ -61,6 +62,11 @@ describe("run_company_dossier", () => {
     );
     const taskId = (started.structuredContent as { taskId: string }).taskId;
     const completed = await tool.handler({ taskId }, context());
+    const taskStatus = await (
+      coreTools.find((item) => item.name === "get_task_status") as NonNullable<
+        (typeof coreTools)[number]
+      >
+    ).handler({ taskId }, context());
 
     expect(started.structuredContent).toMatchObject({
       status: "researching",
@@ -76,8 +82,53 @@ describe("run_company_dossier", () => {
       taskId,
       progress: { stage: "done", done: 1, total: 1 },
     });
+    expect(taskStatus.structuredContent).toMatchObject({
+      taskId,
+      status: "done",
+      progress: { stage: "done", done: 1, total: 1 },
+    });
     expect(await db.select().from(notes)).toHaveLength(1);
     expect(await db.select().from(apiUsage)).toHaveLength(1);
+  });
+
+  it("stores shared running progress and returns one stable note for concurrent completion polls", async () => {
+    let release: (() => void) | undefined;
+    const wait = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let polls = 0;
+    const operations = {
+      start: vi.fn(async () => ({ sessionId: "session-1", status: "in_progress" as const })),
+      poll: vi.fn(async () => {
+        polls += 1;
+        if (polls === 2) release?.();
+        await wait;
+        return { status: "complete" as const, dossier };
+      }),
+    };
+    const tool = createDossierTools(operations)[0];
+    const started = await tool.handler({ company: "Example Labs" }, context());
+    const taskId = (started.structuredContent as { taskId: string }).taskId;
+    const taskTool = coreTools.find((item) => item.name === "get_task_status") as NonNullable<
+      (typeof coreTools)[number]
+    >;
+    const running = await taskTool.handler({ taskId }, context());
+    const [first, second] = await Promise.all([
+      tool.handler({ taskId }, context()),
+      tool.handler({ taskId }, context()),
+    ]);
+
+    expect(running.structuredContent).toMatchObject({
+      taskId,
+      status: "running",
+      progress: { stage: "researching", done: 0, total: 1 },
+    });
+    expect(first.structuredContent).toMatchObject({ status: "complete" });
+    expect(second.structuredContent).toMatchObject({ status: "complete" });
+    expect((first.structuredContent as { noteId: string }).noteId).toBe(
+      (second.structuredContent as { noteId: string }).noteId,
+    );
+    expect(await db.select().from(notes)).toHaveLength(1);
   });
 
   it("never starts a fourth user attempt in one UTC day", async () => {
@@ -116,6 +167,31 @@ describe("run_company_dossier", () => {
     expect(JSON.stringify(result)).not.toContain("private upstream detail");
     expect(await db.select().from(notes)).toEqual([]);
     expect(await db.select().from(apiUsage)).toHaveLength(1);
+  });
+
+  it("persists a shared error task state when polling fails", async () => {
+    const operations = {
+      start: vi.fn(async () => ({ sessionId: "session-1", status: "in_progress" as const })),
+      poll: vi.fn(async () => {
+        throw new Error("private upstream detail");
+      }),
+    };
+    const tool = createDossierTools(operations)[0];
+    const started = await tool.handler({ company: "Example Labs" }, context());
+    const taskId = (started.structuredContent as { taskId: string }).taskId;
+    await tool.handler({ taskId }, context());
+    const taskStatus = await (
+      coreTools.find((item) => item.name === "get_task_status") as NonNullable<
+        (typeof coreTools)[number]
+      >
+    ).handler({ taskId }, context());
+
+    expect(taskStatus.structuredContent).toMatchObject({
+      taskId,
+      status: "error",
+      progress: { stage: "done", done: 0, total: 1 },
+    });
+    expect(JSON.stringify(taskStatus)).not.toContain("private upstream detail");
   });
 
   it("does not spend quota when disabled or input is invalid", async () => {

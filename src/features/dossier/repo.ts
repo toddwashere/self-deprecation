@@ -9,12 +9,13 @@ export type DossierClaim = "ok" | "user_limit" | "global_limit";
 export interface DossierTask {
   taskId: string;
   sessionId: string;
+  noteId: string;
   company: string;
   website?: string;
   researchedAt: number;
-  status: "researching" | "complete" | "unavailable";
+  status: "pending" | "running" | "done" | "error";
+  progress: { stage: "researching" | "done"; done: number; total: number };
   dossier?: CompanyDossier;
-  noteId?: string;
 }
 
 export async function claimDossierRun(
@@ -124,6 +125,46 @@ export async function putDossierTask(db: DB, userId: string, task: DossierTask, 
       set: { value: task, updatedAt: now },
       setWhere: eq(userState.userId, userId),
     });
+}
+
+export async function completeDossierTask(
+  db: DB,
+  userId: string,
+  task: DossierTask,
+  dossier: CompanyDossier,
+  now: number,
+) {
+  const completed: DossierTask = {
+    ...task,
+    status: "done",
+    progress: { stage: "done", done: 1, total: 1 },
+    dossier,
+  };
+  const noteWrite = db
+    .insert(notes)
+    .values({
+      id: task.noteId,
+      userId,
+      subjectType: "company",
+      subjectLabel: task.company,
+      kind: "dossier",
+      title: `${task.company} company dossier`,
+      body: JSON.stringify(dossier),
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing({ target: notes.id });
+  const taskWrite = db
+    .insert(userState)
+    .values({ userId, key: `task.${task.taskId}`, value: completed, updatedAt: now })
+    .onConflictDoUpdate({
+      target: [userState.userId, userState.key],
+      set: { value: completed, updatedAt: now },
+      setWhere: eq(userState.userId, userId),
+    });
+
+  await db.batch([noteWrite, taskWrite]);
+  return completed;
 }
 
 export async function getDossierTask(db: DB, userId: string, taskId: string) {
