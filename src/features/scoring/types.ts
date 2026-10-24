@@ -27,6 +27,7 @@ export type ScoringProfile = Pick<
   | "remotePref"
   | "salaryMin"
   | "employmentTypes"
+  | "bridgeMode"
   | "avoid"
   | "criteriaVersion"
   | "summary"

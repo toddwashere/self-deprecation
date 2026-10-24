@@ -116,6 +116,7 @@ async function detail(jobId: string, ctx: ToolContext): Promise<JobCard | undefi
       remotePref: null,
       salaryMin: null,
       employmentTypes: [],
+      bridgeMode: false,
       avoid: { companies: [], industries: [], keywords: [] },
       criteriaVersion: 0,
       summary: null,

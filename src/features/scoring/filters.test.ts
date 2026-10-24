@@ -11,6 +11,7 @@ const profile: ScoringProfile = {
   remotePref: "remote",
   salaryMin: 175000,
   employmentTypes: ["full_time"],
+  bridgeMode: false,
   avoid: { companies: ["Avoid Inc"], industries: ["gambling"], keywords: ["clearance"] },
   criteriaVersion: 1,
   summary: null,
@@ -86,6 +87,12 @@ describe("T6 candidate filtering", () => {
     const result = candidateJobs(profile, [...many, high], now);
     expect(result).toHaveLength(60);
     expect(result[0].id).toBe("high");
+  });
+
+  it("admits contract work outside full-time preferences only while Bridge mode is on", () => {
+    const contract = { ...job, id: "contract", employmentType: "contract" };
+    expect(candidateJobs(profile, [contract], now)).toEqual([]);
+    expect(candidateJobs({ ...profile, bridgeMode: true }, [contract], now)).toEqual([contract]);
   });
 
   it("derives truthful chips from evidence and labels unknown salary", () => {

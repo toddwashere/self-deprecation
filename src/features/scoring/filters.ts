@@ -123,7 +123,12 @@ export function candidateJobs(
   return jobs
     .filter((job) => {
       if (job.postedAt !== null && job.postedAt < now - 45 * 86_400_000) return false;
-      if (profile.employmentTypes.length && !profile.employmentTypes.includes(job.employmentType))
+      const bridgeContract = profile.bridgeMode && job.employmentType === "contract";
+      if (
+        !bridgeContract &&
+        profile.employmentTypes.length &&
+        !profile.employmentTypes.includes(job.employmentType)
+      )
         return false;
       if (filters.employmentType && job.employmentType !== filters.employmentType) return false;
       if ((filters.remoteOnly || profile.remotePref === "remote") && job.remote !== true)
