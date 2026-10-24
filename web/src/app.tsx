@@ -46,7 +46,7 @@ export function App({ bridge }: { bridge: Bridge }) {
       </header>
 
       <nav aria-label="Workspace tabs">
-        {TABS.map((tab) => (
+        {TABS.filter((tab) => tab.nav !== false).map((tab) => (
           <button
             className={tab.id === active.id ? "tab active" : "tab"}
             key={tab.id}

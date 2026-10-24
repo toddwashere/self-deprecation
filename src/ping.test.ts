@@ -165,7 +165,7 @@ describe("F1 Worker", () => {
       uri: UI_URI,
       mimeType: MCP_APP_MIME,
     });
-    expect(resourceResult.contents[0].text).toContain("Your career migration guide");
+    expect(resourceResult.contents[0].text).toContain("Career dashboard");
     expect(resourceResult.contents[0].text).toContain("Load demo data");
     expect(new TextEncoder().encode(resourceResult.contents[0].text).byteLength).toBeLessThan(
       400_000,

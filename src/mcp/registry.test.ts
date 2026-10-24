@@ -61,6 +61,9 @@ describe("tool registry contract", () => {
         "get_learning_entry",
         "update_learning_entry",
         "search_learning_entries",
+        "assess_ai_level",
+        "get_ladder",
+        "update_quest",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);

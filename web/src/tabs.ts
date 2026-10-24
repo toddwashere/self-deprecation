@@ -5,6 +5,7 @@ import { ProfilePanel } from "../../src/features/criteria/panel";
 import { PeoplePanel } from "../../src/features/crm/panel";
 import { EventsPanel } from "../../src/features/events/panel";
 import { JobsPanel } from "../../src/features/jobs/panel";
+import { LevelPanel } from "../../src/features/ladder/panel";
 import { LearningPanel } from "../../src/features/learning/panel";
 import { NewsPanel } from "../../src/features/news/panel";
 import { PrepPanel } from "../../src/features/prep/panel";
@@ -18,6 +19,7 @@ export type TabId =
   | "events"
   | "news"
   | "learning"
+  | "level"
   | "profile"
   | "settings";
 
@@ -26,6 +28,7 @@ export interface TabDef {
   label: string;
   component: ComponentType<{ bridge: Bridge }>;
   enabled: boolean;
+  nav?: boolean;
 }
 
 export const TABS: TabDef[] = [
@@ -36,6 +39,7 @@ export const TABS: TabDef[] = [
   { id: "learning", label: "Journal", component: LearningPanel, enabled: true },
   { id: "events", label: "Events", component: EventsPanel, enabled: true },
   { id: "news", label: "News", component: NewsPanel, enabled: true },
+  { id: "level", label: "Level", component: LevelPanel, enabled: true, nav: false },
   { id: "profile", label: "Profile", component: ProfilePanel, enabled: true },
   { id: "settings", label: "Settings", component: SettingsPanel, enabled: true },
 ];

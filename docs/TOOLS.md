@@ -42,6 +42,9 @@ server/panel contract.
 | `get_learning_entry` | journal | read-only | yes | Open one caller-owned journal entry. |
 | `update_learning_entry` | journal | write | yes | Edit, pin, or archive a caller-owned journal entry. |
 | `search_learning_entries` | journal | read-only | yes | Search the caller's journal text and tags. |
+| `assess_ai_level` | growth | bounded scoring | yes | Assess five AI-native dimensions with Decisions and a deterministic fallback. |
+| `get_ladder` | growth | read-only | yes | Read the caller's latest level, dimension scores, and active quests. |
+| `update_quest` | growth | write | yes | Update a caller-owned quest status or evidence without erasing omitted fields. |
 
 Feature folders are predeclared in `src/mcp/registry.ts`. Adding a tool to a feature's exported
 `tools` array registers it automatically with annotations, status text, OAuth metadata, and optional
