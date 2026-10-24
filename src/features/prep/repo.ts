@@ -156,19 +156,17 @@ export async function savePrep(
       .returning({ id: notes.id });
     if (!updated.length) return null;
   } else {
-    await db
-      .insert(notes)
-      .values({
-        id,
-        userId,
-        subjectType: "job",
-        subjectId: input.jobId,
-        kind: "prep",
-        title: input.title,
-        body: input.body,
-        createdAt: now,
-        updatedAt: now,
-      });
+    await db.insert(notes).values({
+      id,
+      userId,
+      subjectType: "job",
+      subjectId: input.jobId,
+      kind: "prep",
+      title: input.title,
+      body: input.body,
+      createdAt: now,
+      updatedAt: now,
+    });
   }
   return { id, jobId: input.jobId, title: input.title, body: input.body, updatedAt: now };
 }
@@ -212,20 +210,18 @@ export async function saveInterviewIntel(
       .set({ body, subjectLabel: report.company, updatedAt: now })
       .where(and(scope, eq(notes.id, id)));
   } else {
-    await db
-      .insert(notes)
-      .values({
-        id,
-        userId,
-        subjectType: "company",
-        subjectId: companyKey(report.company),
-        subjectLabel: report.company,
-        kind: "interview_intel",
-        title: roleKey(report.role),
-        body,
-        createdAt: now,
-        updatedAt: now,
-      });
+    await db.insert(notes).values({
+      id,
+      userId,
+      subjectType: "company",
+      subjectId: companyKey(report.company),
+      subjectLabel: report.company,
+      kind: "interview_intel",
+      title: roleKey(report.role),
+      body,
+      createdAt: now,
+      updatedAt: now,
+    });
   }
   return { id, report, updatedAt: now };
 }
