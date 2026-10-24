@@ -2,7 +2,7 @@
 
 ## Approach
 
-Add one bounded open-world tool that researches a company through the current OpenAI Agents API, using live web search and a strict structured-output schema. Reserve quota atomically before the first network call (maximum three attempts per user per UTC day plus a global daily cap), start the hosted session in under four seconds, and return a caller-owned task ID. Repeating the tool with that ID polls without charging another run; only a completed dossier is saved as a caller-owned `notes.kind='dossier'` row. Failures return a typed fallback without pretending work continues.
+Add one bounded open-world tool that researches a company through the current OpenAI Agents API, using live web search and a strict structured-output schema. Reserve quota atomically before the first network call (maximum three attempts per user per UTC day plus a global daily cap), require the API to accept the documented server-side spend limit, start the hosted session in under four seconds, and return a caller-owned task ID. Repeating the tool with that ID polls without charging another run; only a successfully completed root turn is saved as one stable caller-owned `notes.kind='dossier'` row. Failures return a typed fallback without pretending work continues.
 
 Official docs verified 2026-10-24: `POST /v1/agents/sessions`; JavaScript `client.beta.agents.sessions.create`; `environment:{type:'none'}`; `tools:[{type:'web_search',mode:'live'}]`; `agent.text.format` JSON Schema; streaming `finalResult()`; required key permissions `api.agents.read`, `api.agents.write`, and `api.responses.write`.
 
@@ -21,7 +21,8 @@ Official docs verified 2026-10-24: `POST /v1/agents/sessions`; JavaScript `clien
 
 - T1: user B cannot list/read user A's dossier; quota accounting is isolated while the global cap is shared.
 - Atomic daily quota: fourth user attempt and the global overflow never call the runner.
-- Request contract: live web search, strict structured output, `environment:none`, documented spend control with a live-beta compatibility retry, asynchronous start/poll, and bounded abort signals.
+- Request contract: live web search, strict structured output, `environment:none`, mandatory documented spend control with fail-closed live-beta handling, successful root-turn verification, asynchronous start/poll, and bounded abort signals.
+- Completion: concurrent polls are idempotent and atomically write one preallocated note ID plus shared `pending|running|done|error` task state and progress.
 - Tool contract: valid success persists one dossier; invalid input, timeout/failure, disabled mode, and caps return bounded typed results with no accidental note.
 
 ## Open questions

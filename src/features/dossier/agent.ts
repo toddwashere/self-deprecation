@@ -93,11 +93,21 @@ interface DossierAgentRequest {
 }
 
 type AgentSessionStatus = "idle" | "in_progress" | "requires_action" | "failed";
+type AgentTurnStatus = "queued" | "in_progress" | "waiting" | "completed" | "failed" | "cancelled";
+
+interface AgentTurn {
+  id: string;
+  sessionId: string;
+  status: AgentTurnStatus;
+  subagentId: string | null;
+}
 
 interface AgentOutputItem {
   type: string;
   role?: string;
   status?: string;
+  phase?: string | null;
+  turnId?: string;
   content?: Array<{ type: string; text?: string }>;
 }
 
@@ -110,7 +120,12 @@ export interface AgentSessionClient {
     sessionId: string,
     options: { signal: AbortSignal },
   ) => Promise<{ status: AgentSessionStatus }>;
-  items: (sessionId: string, options: { signal: AbortSignal }) => Promise<AgentOutputItem[]>;
+  turns: (sessionId: string, options: { signal: AbortSignal }) => Promise<AgentTurn[]>;
+  items: (
+    sessionId: string,
+    turnId: string,
+    options: { signal: AbortSignal },
+  ) => Promise<AgentOutputItem[]>;
 }
 
 async function defaultClient(apiKey: string): Promise<AgentSessionClient> {
@@ -126,9 +141,37 @@ async function defaultClient(apiKey: string): Promise<AgentSessionClient> {
       client.beta.agents.sessions.retrieve(sessionId, options) as unknown as Promise<{
         status: AgentSessionStatus;
       }>,
-    items: async (sessionId, options) => {
-      const page = await client.beta.agents.sessions.items.list(sessionId, { limit: 50 }, options);
-      return page.data as AgentOutputItem[];
+    turns: async (sessionId, options) => {
+      const page = await client.beta.agents.sessions.turns.list(
+        sessionId,
+        { limit: 10, order: "desc" },
+        options,
+      );
+      return page.data.map((turn) => ({
+        id: turn.id,
+        sessionId: turn.session_id,
+        status: turn.status,
+        subagentId: turn.subagent_id,
+      }));
+    },
+    items: async (sessionId, turnId, options) => {
+      const page = await client.beta.agents.sessions.turns.items.list(
+        turnId,
+        { session_id: sessionId, limit: 50, order: "desc" },
+        options,
+      );
+      return page.data.map((item) => ({
+        type: item.type,
+        ...(item.type === "message"
+          ? {
+              role: item.role,
+              status: item.status,
+              phase: item.phase,
+              turnId: item.turn_id,
+              content: item.content,
+            }
+          : {}),
+      })) as AgentOutputItem[];
     },
   };
 }
@@ -141,6 +184,13 @@ function rejectsSpendControl(error: unknown): boolean {
     (candidate.param === "spend_control" ||
       (typeof candidate.message === "string" && candidate.message.includes("spend_control")))
   );
+}
+
+export class AgentsSpendLimitUnavailableError extends Error {
+  constructor() {
+    super("The Agents API did not accept the required server-enforced spend limit.");
+    this.name = "AgentsSpendLimitUnavailableError";
+  }
 }
 
 function requestFor(input: { company: string; website?: string }, researchedAt: number) {
@@ -181,15 +231,13 @@ export async function startDossierAgent(
   const timeoutMs = Math.min(7_000, Math.max(1, options.timeoutMs ?? 4_000));
   const signal = AbortSignal.timeout(timeoutMs);
   const client = options.client ?? (await defaultClient(apiKey));
-  let session: { id: string; status: AgentSessionStatus };
   try {
-    session = await client.start(request, { signal });
+    const session = await client.start(request, { signal });
+    return { sessionId: session.id, status: session.status };
   } catch (error) {
     if (!rejectsSpendControl(error)) throw error;
-    const { spend_control: _removed, ...compatibleRequest } = request;
-    session = await client.start(compatibleRequest, { signal });
+    throw new AgentsSpendLimitUnavailableError();
   }
-  return { sessionId: session.id, status: session.status };
 }
 
 export async function pollDossierAgent(
@@ -204,10 +252,24 @@ export async function pollDossierAgent(
   if (session.status === "in_progress") return { status: "researching" };
   if (session.status !== "idle") throw new Error("Agent session did not complete.");
 
-  const items = await client.items(sessionId, { signal });
+  const rootTurns = (await client.turns(sessionId, { signal })).filter(
+    (turn) => turn.sessionId === sessionId && turn.subagentId === null,
+  );
+  if (rootTurns.length !== 1) throw new Error("Agent session has no unambiguous research turn.");
+  const turn = rootTurns[0];
+  if (turn?.status === "queued" || turn?.status === "in_progress") return { status: "researching" };
+  if (turn?.status !== "completed")
+    throw new Error("Agent research turn did not complete successfully.");
+
+  const items = await client.items(sessionId, turn.id, { signal });
   const text = items
     .filter(
-      (item) => item.type === "message" && item.role === "assistant" && item.status === "completed",
+      (item) =>
+        item.type === "message" &&
+        item.role === "assistant" &&
+        item.status === "completed" &&
+        item.phase === "final_answer" &&
+        item.turnId === turn.id,
     )
     .flatMap((item) => item.content ?? [])
     .find((content) => content.type === "output_text")?.text;
