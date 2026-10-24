@@ -7,6 +7,7 @@
 - Replace the Profile placeholder with a bridge-only panel: empty users choose **Get started** or **See demo**; configured users edit title/skill chips, work mode, compensation, and Bridge mode directly or update through chat.
 - Add a replayable first-run product tour with **Get started**, **See demo**, and **Quick tour** paths. The tour presents the continuous **Orient → Focus → Move → Evolve** journey and doubles as a concise hackathon presenter flow.
 - Give returning users a compact journey card in Profile with one current recommendation and literal actions, while keeping the humor in supporting copy rather than user data.
+- Simplify the first-run and returning-user copy so each screen explains the current state and one useful action. Remove requirement-shaped prose, repeated motivational lines, roadmap labels, and most quips; keep one restrained brand joke on the empty state.
 - Package `skills/onboarding/SKILL.md`; server instructions added during F9 provide the same trigger guidance for direct custom-MCP installations.
 
 ## Files
@@ -31,6 +32,7 @@
 - Onboarding reports the intended missing fields and treats headline-only profiles as incomplete.
 - Product tour returns the Profile route, tour mode, and configured state without changing the profile row or criteria version; registry contract includes the tool and its read-only annotations.
 - Tour and journey UI are verified in MCP Inspector for empty, demo, configured, dark/light, narrow, and error/loading states per PLAN §29.2.
+- The simplified UI is visually verified with empty, tour, configured, loading, and error states; the tour uses one explanation per step and the configured view presents one concrete next step instead of four equal framework cards.
 - Full typecheck, lint, tests, build, production audit, local tool calls, and ChatGPT/Profile visual gate.
 
 ## Open questions and rulings
@@ -41,4 +43,7 @@
 - `[local]` Tour state is ephemeral panel state seeded by tool output; it is not stored in D1. Closing or skipping returns to the normal Profile state.
 - `[local]` The journey card uses current profile data only. It recommends **Focus** when core criteria are incomplete and **Move** when the profile is ready; Orient and Evolve remain available actions rather than invented progress metrics.
 - `[local]` The Learning Journal is named as planned in Evolve, but its data tools and panel surface remain P1-I work.
-- No `[contract]` or `[product]` question blocks implementation.
+- `[local]` Unbuilt features are removed from the normal Profile experience; Learning Journal returns when P1-I provides a working action.
+- `[local]` Orient → Focus → Move → Evolve remains a compact tour structure, not persistent explanatory furniture on the configured screen.
+- `[contract]` The global shell subtitle/footer/version language is outside P0-B ownership and includes copy the user explicitly wants removed. Request the integrator apply the shared-shell cleanup; continue with the independent Profile cleanup.
+- No `[product]` question blocks implementation.
