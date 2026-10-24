@@ -1,2 +1,2 @@
-import { emptyNewsSource } from "./placeholder";
-export const openAiNewsAdapter = emptyNewsSource("openai_news");
+import { newsFeedAdapter } from "../../features/news/adapters";
+export const openAiNewsAdapter = newsFeedAdapter("openai_news");

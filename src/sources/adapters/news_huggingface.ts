@@ -1,2 +1,2 @@
-import { emptyNewsSource } from "./placeholder";
-export const huggingFaceNewsAdapter = emptyNewsSource("hf_blog");
+import { newsFeedAdapter } from "../../features/news/adapters";
+export const huggingFaceNewsAdapter = newsFeedAdapter("hf_blog");
