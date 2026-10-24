@@ -198,3 +198,10 @@ The integrator explicitly authorized the shared Decisions timeout repair and sup
 ## P1-I Learning Journal integration request — 2026-10-24
 
 [contract] P1-I owns only learning feature/skill files. Foundation registry has no learning stub. Please import `learningFeature` from `src/features/learning/index.ts` in the shared MCP registry; wire exported `LearningPanel` from `src/features/learning/panel.tsx` into the approved Learn → Journal navigation (`tab: learning` in structured outputs); list the five journal tools in docs/TOOLS.md. No schema change is needed. Registry, navigation, seed learning fixtures, deployment, Inspector, and ChatGPT connection checks require integrator work; P1-I does not modify frozen paths. All five tools use existing verified ToolContext and stored D1 data only.
+
+## 2026-10-24 — P1-H ladder Decisions integration request
+
+- Integrator authorized P1-H to make the minimal shared-wrapper patch in `src/lib/decisions.ts` with focused T5 tests, committed separately for independent review. The wrapper caps this assessment transport at six seconds, honors the kill switch, and records usage only after a successful response.
+- P1-H needs one bounded shared-wrapper export for a typed Decisions request containing one five-way `choice` question and five 0–4 `score` questions. The existing `scoreFit` wrapper is job-specific and exposes only `score` / `predicate`; calling the OpenAI SDK from the feature would violate the server-wide AI boundary. Integrator: add or authorize an `assessAiLevel`-shaped export in `src/lib/decisions.ts`, meter it in `api_usage`, cap it independently from job units, and use a ≤6-second timeout with heuristic fallback.
+- P1-H will keep request construction, deterministic heuristic scoring, result normalization, persistence, and UI in `features/ladder/*`; the shared wrapper should only own the SDK call, timeout, usage accounting, and typed transport boundary.
+- Integrator also owns the frozen registry snapshot (`assess_ai_level`, `get_ladder`, `update_quest`), `docs/TOOLS.md`, Level navigation placement, generated panel, deploy, and ChatGPT verification.

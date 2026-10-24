@@ -41,6 +41,13 @@ interface PredicateQuestion {
   instructions: Array<{ type: "input_text"; text: string }>;
 }
 
+interface ChoiceQuestion {
+  type: "choice";
+  name: string;
+  instructions: Array<{ type: "input_text"; text: string }>;
+  choices: Array<{ value: string | boolean; description?: string }>;
+}
+
 export interface DecisionRequest {
   model: "gpt-6-luna";
   input: Array<{
@@ -49,10 +56,10 @@ export interface DecisionRequest {
       { type: "input_text"; text: string } | { type: "input_json"; data: Record<string, unknown> }
     >;
   }>;
-  questions: Array<ScoreQuestion | PredicateQuestion>;
+  questions: Array<ScoreQuestion | PredicateQuestion | ChoiceQuestion>;
 }
 
-interface DecisionResponse {
+export interface DecisionResponse {
   answers: Array<
     | {
         type: "score";
@@ -62,12 +69,25 @@ interface DecisionResponse {
         probabilities: unknown[];
       }
     | { type: "predicate"; name: string | null; probability: number }
+    | {
+        type: "choice";
+        name: string | null;
+        choice: string | boolean;
+        confidence: number;
+        probabilities: Array<{ value: string | boolean; probability: number }>;
+      }
     | { type: "refusal"; name: string | null }
   >;
   usage: { input_tokens: number };
 }
 
 export type Decide = (request: DecisionRequest, signal: AbortSignal) => Promise<DecisionResponse>;
+
+interface BoundedDecisionOptions {
+  decide?: Decide;
+  timeoutMs?: number;
+  recordUsage?: (inputTokens: number) => Promise<void>;
+}
 
 interface ScoreFitOptions {
   db: DB;
@@ -234,6 +254,20 @@ async function defaultDecide(
   const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey });
   return client.decisions.create(request, { signal }) as unknown as Promise<DecisionResponse>;
+}
+
+export async function runBoundedDecision(
+  env: Env,
+  request: DecisionRequest,
+  options: BoundedDecisionOptions = {},
+): Promise<DecisionResponse> {
+  if (env.DECISIONS_ENABLED !== "1") throw new Error("Decisions disabled");
+  const timeoutMs = Math.min(6_000, Math.max(1_000, options.timeoutMs ?? 6_000));
+  const decide =
+    options.decide ?? ((input, signal) => defaultDecide(env.OPENAI_API_KEY, input, signal));
+  const response = await decide(request, AbortSignal.timeout(timeoutMs));
+  await options.recordUsage?.(response.usage.input_tokens);
+  return response;
 }
 
 export async function smokeScoreBatch(
