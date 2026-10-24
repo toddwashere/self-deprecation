@@ -4,7 +4,13 @@ import { fail, ok } from "../../mcp/result";
 import type { ToolContext, ToolDef, ToolResult } from "../../mcp/types";
 import { dossierSchema, pollDossierAgent, startDossierAgent } from "./agent";
 import { dossierCopy as copy } from "./copy";
-import { claimDossierRun, completeDossierTask, getDossierTask, putDossierTask } from "./repo";
+import {
+  claimDossierRun,
+  completeDossierTask,
+  failDossierTaskIfActive,
+  getDossierTask,
+  putDossierTask,
+} from "./repo";
 
 const inputShape = {
   company: z.string().trim().min(1).max(200).optional(),
@@ -175,16 +181,7 @@ export function createDossierTools(
             });
           } catch {
             try {
-              await putDossierTask(
-                ctx.db,
-                ctx.userId,
-                {
-                  ...task,
-                  status: "error",
-                  progress: { stage: "done", done: 0, total: 1 },
-                },
-                ctx.now().getTime(),
-              );
+              await failDossierTaskIfActive(ctx.db, ctx.userId, task, ctx.now().getTime());
             } catch {
               // Preserve the bounded fallback even if task-state persistence is unavailable.
             }

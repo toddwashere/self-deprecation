@@ -167,6 +167,30 @@ export async function completeDossierTask(
   return completed;
 }
 
+export async function failDossierTaskIfActive(
+  db: DB,
+  userId: string,
+  task: DossierTask,
+  now: number,
+) {
+  const failed: DossierTask = {
+    ...task,
+    status: "error",
+    progress: { stage: "done", done: 0, total: 1 },
+  };
+  const result = await db
+    .update(userState)
+    .set({ value: failed, updatedAt: now })
+    .where(
+      and(
+        eq(userState.userId, userId),
+        eq(userState.key, `task.${task.taskId}`),
+        sql`json_extract(${userState.value}, '$.status') in ('pending', 'running')`,
+      ),
+    );
+  return result.meta.changes === 1;
+}
+
 export async function getDossierTask(db: DB, userId: string, taskId: string) {
   const row = await db
     .select({ value: userState.value })
