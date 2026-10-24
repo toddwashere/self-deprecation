@@ -371,3 +371,55 @@ it("returns partial progress when D1 persistence stalls and starts no later writ
   }
   expect(batches).toBe(1);
 });
+
+it("does not claim Adzuna work when hashing resumes after the refresh deadline", async () => {
+  const { refreshJobsWithinBudget } = await import("../../features/jobs/service");
+  await db.insert(users).values({ id: "hash-deadline", createdAt: now, updatedAt: now });
+  await db.insert(profiles).values({
+    userId: "hash-deadline",
+    targetTitles: ["Engineer"],
+    locations: ["Utah"],
+    updatedAt: now,
+  });
+  const originalCrypto = globalThis.crypto;
+  let release: () => void = () => {};
+  let entered: () => void = () => {};
+  const hashingStarted = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const subtle = new Proxy(originalCrypto.subtle, {
+    get(target, property) {
+      if (property === "digest")
+        return (...args: Parameters<SubtleCrypto["digest"]>) => {
+          entered();
+          return new Promise<ArrayBuffer>((resolve, reject) => {
+            release = () => {
+              target.digest(...args).then(resolve, reject);
+            };
+          });
+        };
+      const value = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  vi.stubGlobal(
+    "crypto",
+    new Proxy(originalCrypto, {
+      get(target, property) {
+        if (property === "subtle") return subtle;
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    }),
+  );
+  const request = vi.fn(async () => new Response("{}"));
+  vi.stubGlobal("fetch", request);
+  const pending = refreshJobsWithinBudget(ctx("hash-deadline"), { timeoutMs: 100 });
+  await hashingStarted;
+  const result = await pending;
+  expect(result.partial).toBe(true);
+  release();
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  expect(await db.select().from(fetchRuns)).toEqual([]);
+  expect(request).not.toHaveBeenCalled();
+});
