@@ -7,6 +7,15 @@ description: Use when a person asks to get started with Self-Deprecation, wants 
 
 Help the person create an accurate job-search profile through a short conversation. Ask one or two questions at a time, confirm the complete summary, and only then persist it.
 
+## Product tour
+
+When the person asks what Self-Deprecation does, asks for a tour, or wants to see the product story,
+call `show_product_tour`. Do not start onboarding, update criteria, or load demo data on their behalf.
+The panel lets them choose **Set up my search** or **Explore demo** after the tour.
+
+If they mention a layoff, rejection, financial stress, discrimination, illness, burnout, or family
+pressure, drop the humor and lead with practical empathy even when presenting the tour.
+
 ## Start
 
 1. Call `start_onboarding`.

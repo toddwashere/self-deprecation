@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
+import type { TabId } from "../../../web/src/tabs";
 import { Button, Card, Chip, ErrorBanner, FormRow, Loading } from "../../../web/src/ui";
 import { CRITERIA_COPY } from "./copy";
+import { JourneyCard } from "./journey";
 import type { CriteriaOutput } from "./tools";
+import { TourPanel } from "./tour";
 
 type ActionState =
   | { kind: "idle" }
@@ -67,6 +70,9 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
   const [form, setForm] = useState<CriteriaForm>();
   const [error, setError] = useState<string>();
   const [action, setAction] = useState<ActionState>({ kind: "idle" });
+  const [showTour, setShowTour] = useState(
+    () => bridge.initialToolOutput<{ mode?: string }>()?.mode === "tour",
+  );
 
   const loadCriteria = useCallback(async () => {
     setError(undefined);
@@ -82,6 +88,14 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
     void loadCriteria();
   }, [loadCriteria]);
 
+  useEffect(
+    () =>
+      bridge.onToolOutput((output) => {
+        if ((output as { mode?: string } | undefined)?.mode === "tour") setShowTour(true);
+      }),
+    [bridge],
+  );
+
   const startChat = async (prompt: string) => {
     setAction({ kind: "busy", message: CRITERIA_COPY.starting });
     try {
@@ -95,15 +109,21 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
     }
   };
 
-  const loadDemo = async () => {
+  const loadDemo = async (): Promise<boolean> => {
     setAction({ kind: "busy", message: CRITERIA_COPY.loadingDemo });
     const result = await bridge.callTool<{ message?: string }>("load_demo_data");
     if (result.error) {
       setAction({ kind: "error", message: result.error.message });
-      return;
+      return false;
     }
     await loadCriteria();
     setAction({ kind: "done", message: CRITERIA_COPY.demoLoaded });
+    return true;
+  };
+
+  const openTab = async (tab: TabId) => {
+    const result = await bridge.callTool<{ tab: TabId }>("open_dashboard", { tab });
+    if (result.error) setAction({ kind: "error", message: result.error.message });
   };
 
   const saveForm = async () => {
@@ -141,8 +161,42 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
   if (!criteria) return null;
 
   const configured = isConfigured(criteria);
+  const feedback = (
+    <>
+      {action.kind === "busy" ? <Loading line={action.message} /> : null}
+      {action.kind === "done" ? <p className="success">{action.message}</p> : null}
+      {action.kind === "error" ? <ErrorBanner message={action.message} /> : null}
+    </>
+  );
+
+  if (showTour) {
+    return (
+      <div className="stack">
+        <TourPanel
+          configured={configured}
+          onClose={() => setShowTour(false)}
+          onDemo={async () => {
+            if (await loadDemo()) setShowTour(false);
+          }}
+          onGetStarted={async () => {
+            setShowTour(false);
+            await startChat(configured ? CRITERIA_COPY.updatePrompt : CRITERIA_COPY.startPrompt);
+          }}
+        />
+        {feedback}
+      </div>
+    );
+  }
+
   return (
     <div className="stack">
+      {configured ? (
+        <JourneyCard
+          criteria={criteria}
+          onOpenTab={openTab}
+          onReview={() => startChat(CRITERIA_COPY.reviewPrompt)}
+        />
+      ) : null}
       <Card>
         <div className="card-heading">
           <div>
@@ -260,26 +314,35 @@ export function ProfilePanel({ bridge }: { bridge: Bridge }) {
             </div>
           </>
         ) : (
-          <div className="actions">
-            <Button
-              disabled={action.kind === "busy"}
-              onClick={() => void startChat(CRITERIA_COPY.startPrompt)}
-            >
-              {CRITERIA_COPY.getStarted}
-            </Button>
-            <Button
-              className="secondary"
-              disabled={action.kind === "busy"}
-              onClick={() => void loadDemo()}
-            >
-              {CRITERIA_COPY.seeDemo}
-            </Button>
-          </div>
+          <>
+            <p className="success">{CRITERIA_COPY.loopPreview}</p>
+            <div className="actions">
+              <Button
+                disabled={action.kind === "busy"}
+                onClick={() => void startChat(CRITERIA_COPY.startPrompt)}
+              >
+                {CRITERIA_COPY.getStarted}
+              </Button>
+              <Button
+                className="secondary"
+                disabled={action.kind === "busy"}
+                onClick={() => void loadDemo()}
+              >
+                {CRITERIA_COPY.seeDemo}
+              </Button>
+              <Button
+                className="secondary"
+                disabled={action.kind === "busy"}
+                onClick={() => setShowTour(true)}
+              >
+                {CRITERIA_COPY.quickTour}
+              </Button>
+            </div>
+            <p className="muted">{CRITERIA_COPY.demoWarning}</p>
+          </>
         )}
 
-        {action.kind === "busy" ? <Loading line={action.message} /> : null}
-        {action.kind === "done" ? <p className="success">{action.message}</p> : null}
-        {action.kind === "error" ? <ErrorBanner message={action.message} /> : null}
+        {feedback}
       </Card>
     </div>
   );
