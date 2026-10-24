@@ -194,6 +194,48 @@ describe("run_company_dossier", () => {
     expect(JSON.stringify(taskStatus)).not.toContain("private upstream detail");
   });
 
+  it("does not let a stale failed poll overwrite a concurrent successful completion", async () => {
+    let pollCount = 0;
+    let releaseFailure: (() => void) | undefined;
+    const failureGate = new Promise<void>((resolve) => {
+      releaseFailure = resolve;
+    });
+    const operations = {
+      start: vi.fn(async () => ({ sessionId: "session-1", status: "in_progress" as const })),
+      poll: vi.fn(async () => {
+        pollCount += 1;
+        if (pollCount === 1) return { status: "complete" as const, dossier };
+        await failureGate;
+        throw new Error("stale poll failed");
+      }),
+    };
+    const tool = createDossierTools(operations)[0];
+    const started = await tool.handler({ company: "Example Labs" }, context());
+    const taskId = (started.structuredContent as { taskId: string }).taskId;
+
+    const successfulPoll = tool.handler({ taskId }, context());
+    const stalePoll = tool.handler({ taskId }, context());
+    const completed = await successfulPoll;
+    releaseFailure?.();
+    await stalePoll;
+
+    const taskStatus = await (
+      coreTools.find((item) => item.name === "get_task_status") as NonNullable<
+        (typeof coreTools)[number]
+      >
+    ).handler({ taskId }, context());
+    expect(taskStatus.structuredContent).toMatchObject({
+      taskId,
+      status: "done",
+      progress: { stage: "done", done: 1, total: 1 },
+    });
+    expect(completed.structuredContent).toMatchObject({
+      status: "complete",
+      noteId: expect.any(String),
+    });
+    expect(await db.select().from(notes)).toHaveLength(1);
+  });
+
   it("does not spend quota when disabled or input is invalid", async () => {
     const operations = {
       start: vi.fn(async () => ({ sessionId: "session-1", status: "in_progress" as const })),
