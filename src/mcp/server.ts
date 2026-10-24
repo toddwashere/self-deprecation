@@ -30,7 +30,13 @@ function toolMeta(tool: ToolDef): Record<string, unknown> {
 }
 
 export function createServer(env: Env, identity: AuthProps): McpServer {
-  const server = new McpServer({ name: "Self-Deprecation", version: "0.1.0" });
+  const server = new McpServer(
+    { name: "Self-Deprecation", version: "0.1.0" },
+    {
+      instructions:
+        "Help people build a practical career migration plan. When someone asks to get started, set up a job search, or has no criteria, call start_onboarding and ask its returned questions one or two at a time. Summarize and confirm before update_criteria or save_resume. If a tool returns NEEDS_CRITERIA, begin the same onboarding flow. Never invent experience, compensation, location, or resume facts.",
+    },
+  );
   new OpenAIExtensions(server);
   registerUiResource(server);
 

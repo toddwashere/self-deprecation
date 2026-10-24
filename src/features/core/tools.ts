@@ -2,7 +2,13 @@ import { z } from "zod";
 import demoData from "../../../seed/demo-todd.json";
 import { fail, ok } from "../../mcp/result";
 import type { ToolDef } from "../../mcp/types";
-import { getDashboardCounts, getTaskState, loadDemoData, resetUserData } from "./repo";
+import {
+  getDashboardCounts,
+  getTaskState,
+  hasJobCriteria,
+  loadDemoData,
+  resetUserData,
+} from "./repo";
 
 const pingOutput = z.object({ status: z.literal("ok"), message: z.string() });
 const profileOutput = z.object({
@@ -122,7 +128,9 @@ export const coreTools: ToolDef[] = [
     },
     opensPanel: true,
     handler: async (args, ctx) => {
-      const tab = tabSchema.catch("today").parse(args.tab);
+      const requestedTab = tabSchema.optional().catch(undefined).parse(args.tab);
+      const tab =
+        requestedTab ?? ((await hasJobCriteria(ctx.db, ctx.userId)) ? "today" : "profile");
       const counts = await getDashboardCounts(ctx.db, ctx.userId);
       return ok("Opened your Self-Deprecation dashboard.", {
         tab,

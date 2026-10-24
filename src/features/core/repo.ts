@@ -76,6 +76,15 @@ export async function getDashboardCounts(db: DB, userId: string) {
   };
 }
 
+export async function hasJobCriteria(db: DB, userId: string): Promise<boolean> {
+  const row = await db
+    .select({ targetTitles: profiles.targetTitles, skills: profiles.skills })
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .get();
+  return Boolean(row && (row.targetTitles.length > 0 || row.skills.length > 0));
+}
+
 export async function resetUserData(db: DB, userId: string, now: number): Promise<void> {
   await db
     .insert(users)

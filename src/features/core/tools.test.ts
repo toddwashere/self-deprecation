@@ -115,3 +115,30 @@ describe("core destructive tools", () => {
     expect(new Set(secondContacts.map((contact) => contact.id)).size).toBe(secondContacts.length);
   });
 });
+
+describe("dashboard first-run routing", () => {
+  it("routes only an unconfigured default dashboard to Profile", async () => {
+    const now = Date.now();
+    await db.insert(users).values([
+      { id: "routing-empty", displayName: "Empty", createdAt: now, updatedAt: now },
+      { id: "routing-ready", displayName: "Ready", createdAt: now, updatedAt: now },
+    ]);
+    await db.insert(profiles).values([
+      { userId: "routing-empty", headline: "Exploring", updatedAt: now },
+      {
+        userId: "routing-ready",
+        targetTitles: ["Staff Engineer"],
+        skills: ["typescript"],
+        updatedAt: now,
+      },
+    ]);
+
+    const empty = await call("open_dashboard", {}, "routing-empty");
+    const ready = await call("open_dashboard", {}, "routing-ready");
+    const explicit = await call("open_dashboard", { tab: "settings" }, "routing-empty");
+
+    expect(empty.structuredContent).toMatchObject({ tab: "profile" });
+    expect(ready.structuredContent).toMatchObject({ tab: "today" });
+    expect(explicit.structuredContent).toMatchObject({ tab: "settings" });
+  });
+});
