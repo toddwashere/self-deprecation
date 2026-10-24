@@ -188,8 +188,13 @@ The integrator explicitly authorized the shared Decisions timeout repair and sup
 
 - Independent P1-D review found that Today could not safely continue a partial Jobs scoring task because `user_state` retained progress but not the normalized initiating filters. Calling `score_jobs` with defaults could score a different pool and spend the caller's budget without advancing the visible search.
 - New scoring tasks now persist their validated normalized filters alongside user-scoped progress. Today may pass those filters back to `score_jobs`; older task rows without filters fall back to asking the user to resume in Jobs. The existing task key and progress contract remain compatible.
+
 ## 2026-10-24 — P0-D CRM registration integration request
 
 - P0-D registers `add_contact`, `update_contact`, `list_contacts`, `add_note`, and `list_notes` through its owned `src/features/crm/index.ts`. The frozen central registry snapshot must add those names after existing criteria tools. The integrator also owns the corresponding `docs/TOOLS.md` entries and final deploy/ChatGPT natural-language check.
 - Contact writes return `{tab:'people', contact}`; note writes return `{tab:'people', note}`; paginated lists return `{tab:'people', contacts|notes, hasMore}`. Timestamps are epoch milliseconds; contact update uses `contactId`; generic notes use `subjectType`, optional `subjectId`/`subjectLabel`.
 - The feature branch passes typecheck/lint and all CRM tests. Its full suite has only the expected central registry snapshot mismatch; no frozen paths were edited.
+
+## P1-I Learning Journal integration request — 2026-10-24
+
+[contract] P1-I owns only learning feature/skill files. Foundation registry has no learning stub. Please import `learningFeature` from `src/features/learning/index.ts` in the shared MCP registry; wire exported `LearningPanel` from `src/features/learning/panel.tsx` into the approved Learn → Journal navigation (`tab: learning` in structured outputs); list the five journal tools in docs/TOOLS.md. No schema change is needed. Registry, navigation, seed learning fixtures, deployment, Inspector, and ChatGPT connection checks require integrator work; P1-I does not modify frozen paths. All five tools use existing verified ToolContext and stored D1 data only.
