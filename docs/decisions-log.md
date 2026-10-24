@@ -107,3 +107,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 - P0-B visual verification found that the bridge correctly reports `light`, but the frozen Foundation shell only sets `data-theme` and leaves `color-scheme: light dark` on `:root`; the built panel therefore follows the OS palette instead of the host palette.
 - Foundation should add explicit `.shell[data-theme="light"] { color-scheme: light; }` and `.shell[data-theme="dark"] { color-scheme: dark; }` rules in `web/src/styles.css`, verify both rendered states, rebuild the generated panel, and let P0-B rebase. No bridge or feature contract changes are required.
+
+## 2026-10-24 10:50 — Shared shell copy simplification request
+
+- Todd asked to remove generated-sounding and requirement-shaped language from the real user experience. P0-B will simplify every owned Profile, tour, onboarding, and status string, but the global subtitle `Less panic. Better queries. A path forward.`, persistent hope footer, `you@v0.1 · Foundation` label, and disabled `soon` navigation are part of the shared Foundation shell outside P0-B ownership.
+- The integrator should remove the subtitle and persistent footer, replace or hide the internal milestone version label, and hide unavailable tabs from the normal user view. This is a presentation-only shell change: no bridge, tab ID, tool, resource, or data contract changes.
+- Affected tasks: Foundation shell/integrator, P0-B presentation consistency, P0-F demo packaging.
