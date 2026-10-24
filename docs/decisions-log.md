@@ -102,3 +102,8 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Todd approved a future first-class Learning Journal for talks, courses, articles, experiments, and reflections. It is a quick-reference knowledge record with source links, takeaways, follow-up questions, and next actions; it is intentionally distinct from CRM-oriented generic notes.
 - Foundation reserves `learning_entries` before the F9 schema freeze and includes it in caller-isolated reset semantics. No journal tools or panel surface ship in this amendment.
 - P1-I owns the future `features/learning/*` implementation and `skills/learning-journal/`; its tools must keep user identity in `ToolContext` and satisfy T1 isolation.
+
+## 2026-10-24 10:36 — Foundation light-theme repair request
+
+- P0-B visual verification found that the bridge correctly reports `light`, but the frozen Foundation shell only sets `data-theme` and leaves `color-scheme: light dark` on `:root`; the built panel therefore follows the OS palette instead of the host palette.
+- Foundation should add explicit `.shell[data-theme="light"] { color-scheme: light; }` and `.shell[data-theme="dark"] { color-scheme: dark; }` rules in `web/src/styles.css`, verify both rendered states, rebuild the generated panel, and let P0-B rebase. No bridge or feature contract changes are required.

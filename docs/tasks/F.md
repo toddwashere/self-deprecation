@@ -9,6 +9,7 @@
 - F7–F8: add the capped Decisions batching/fallback wrapper, then the cron/source contracts and one Greenhouse ingestion path with `fetch_runs` observability.
 - F9 feedback: before freezing MCP contracts, make an empty workspace open the Profile onboarding surface and add server guidance so ordinary phrases such as “get started” select the onboarding tools once P0-B lands.
 - F9 approved amendment: reserve the `learning_entries` table before the Foundation schema freeze, include caller-owned entries in reset, and leave all Learning Journal tools/UI to P1-I.
+- F9 visual-gate repair: bind the shell's `data-theme` value to explicit light/dark `color-scheme` rules so host theme wins over the operating-system preference; rebuild and visually verify both modes before the tag.
 - Use strict TDD for T1–T5, commit every working slice, deploy/push at milestones, and stop before F9 for the shared gate review.
 
 ## Files
@@ -28,6 +29,7 @@
 - `load_demo_data`: `{}` → inserted/updated counts; idempotent and caller-scoped.
 - `get_task_status`: `{ taskId }` → `{ stage, done, total }`; read-only.
 - Panel has loading, empty, error, success and in-progress states; all server calls go through `web/src/bridge.ts`.
+- The shared shell applies the host-reported theme deterministically through its existing `data-theme` attribute.
 
 ## Tests and checks
 
@@ -39,6 +41,7 @@
 - F7/T5: literal fixtures cover batching, answer mapping, 0–4 normalization, cap, and per-batch fallback.
 - F8: scheduled Greenhouse fetch inserts jobs and records successful/failed `fetch_runs`; no test calls the network.
 - Every milestone runs `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`; tool/UI milestones are deployed and refreshed in a new ChatGPT conversation.
+- F9 theme repair: source and embedded CSS contain explicit light/dark shell selectors; the same panel state visibly changes palette when the mock host context changes.
 
 ## Open questions and rulings
 
