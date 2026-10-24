@@ -1120,8 +1120,8 @@ Workers + D1 with GitHub sign-in so each user's data is separate. Limits today: 
 remote-board feeds only (no LinkedIn), scores are probabilistic, one login provider. Next: skill-shift
 radar, adjacent roles, Indie mode. We're not being deprecated. We're being migrated."
 
-**Closing invite (last 10 seconds, §30):** QR code on screen → "It's live. Scan this, sign in with
-GitHub, and see where you are on the ladder. Go ahead, find out if you're deprecated."
+**Closing invite (last 10 seconds, §30):** QR code on screen titled **"Am I deprecated?"** → "It's live. Scan this,
+sign in with GitHub, and see where you are on the ladder. Go ahead, find out if you're deprecated."
 
 **Before stage:** `load_demo_data`, open a fresh chat, keep `wrangler tail` running on the laptop,
 hotspot ready, backup video queued.
@@ -1620,8 +1620,13 @@ under 10 seconds, all in vitest (Worker/D1 ones via `@cloudflare/vitest-pool-wor
 At the end of the demo Todd invites the room to use it live. That's a wow moment only if it works
 for 50 people at once, so plan for it.
 
-**Landing page (P0-F):** `GET /` on the Worker serves a single static page (no auth):
-- Name, tagline, the `@deprecated` joke, a one-paragraph pitch.
+**Landing page (P0-F):** `GET /` on the Worker serves a single static page (no auth), titled
+**"Am I deprecated?"** (the QR code's call to action, too):
+- Headline "Am I deprecated?", subhead "Find out, then fix it.", the `@deprecated` joke, a
+  one-paragraph pitch.
+- URL: `https://self-deprecation.<account-subdomain>.workers.dev` (the subdomain is shown in the
+  Cloudflare dashboard under Workers & Pages). Optional later: a custom domain (e.g. an
+  "amideprecated" domain) via Cloudflare.
 - **"Add to ChatGPT" steps** with the MCP URL (`https://<worker>/mcp`) and a copy button: ChatGPT
   desktop → Plugins → **+** → Add custom MCP server → paste URL → OAuth → Create as plugin → sign in
   with GitHub. **VERIFY** what audience accounts need (paid plan? custom MCP servers allowed on their
