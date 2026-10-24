@@ -1,36 +1,45 @@
-# F1 task brief — platform spike
+# Foundation task brief — F1–F8
 
 ## Approach
 
-- Scaffold strict TypeScript for Cloudflare Workers with pinned dependencies, Biome, Vitest, and every npm script named in PLAN §15 (later-phase scripts may be explicit placeholders until their owners land).
-- Use Cloudflare's current stateless Streamable HTTP path (`createMcpHandler` + MCP SDK v2); do not introduce a Durable Object for transport.
-- Register one `ping` MCP App tool and one `ui://self-deprecation/hello` HTML resource. Advertise both `{ type: "thread" }` and `{ type: "global" }` through `_meta["openai/ui"].entrypoints`.
-- Import and initialize the OpenAI extensions server SDK in the Worker so typecheck, bundle, local invocation, and production deployment test actual Workers compatibility.
-- Create real D1 and KV resources, deploy to `workers.dev`, test the public `/mcp` endpoint, and record VERIFY findings plus fallback triggers in `docs/decisions-log.md`.
+- Keep the proven stateless Streamable HTTP Worker transport and MCP Apps resource from F1.
+- F2: wrap `/mcp` with `workers-oauth-provider`, GitHub login, protected-resource and authorization-server discovery, PKCE/resource enforcement, verified grant props, a guarded local bypass, and `get_profile`.
+- F3–F4: define the complete Drizzle/D1 schema, migrations and isolation helper, then move MCP registration behind frozen feature/result/registry contracts with shared HTTP/log/error utilities.
+- F5–F6: replace the spike HTML with a single-file React panel and host bridge, then implement core profile/dashboard/demo/reset tools through the core repository.
+- F7–F8: add the capped Decisions batching/fallback wrapper, then the cron/source contracts and one Greenhouse ingestion path with `fetch_runs` observability.
+- Use strict TDD for T1–T5, commit every working slice, deploy/push at milestones, and stop before F9 for the shared gate review.
 
 ## Files
 
-- Create/edit: `package.json`, `package-lock.json`, `tsconfig.json`, `biome.json`, `vitest.config.ts`, `wrangler.jsonc`.
-- Create/edit: `src/index.ts`, `src/env.ts`, `src/ping.test.ts`.
-- Create/edit: `docs/tasks/F.md`, `docs/decisions-log.md`.
+- Auth/runtime: `src/index.ts`, `src/env.ts`, `src/auth/*`, `src/mcp/*`, `wrangler.jsonc`, `.dev.vars.example`.
+- Data: `src/db/*`, `migrations/*`, `drizzle.config.ts`, `scripts/{db-reset,seed}.ts`, test helpers.
+- Contracts/sources: `src/lib/*`, `src/sources/*`, `src/cron/*`, feature stubs under `src/features/*`.
+- Product shell: `web/*`, `src/features/core/*`, `seed/demo-todd.json`, `docs/TOOLS.md`.
+- Decisions/smoke: `src/lib/decisions.ts`, `scripts/smoke-decisions.ts`; package/config/docs updates required by those files.
 
-## Tool and panel contract
+## Tool and panel contracts
 
-- `ping` input: `z.object({})`.
-- `ping` structured output: `z.object({ status: z.literal("ok"), message: z.string() })`.
-- Result text is a short model-readable connection confirmation; structured output drives the hello panel.
-- Required annotations: read-only `true`, destructive `false`, open-world `false`; status strings remain at most 64 characters.
-- Panel states: initial/loading copy while connecting, success from `structuredContent`, and a visible error fallback. Static F1 UI has no empty-data state.
+- `get_profile`: `{}` → `{ id, name, email?, nickname? }`; read-only; `openai/profile` metadata.
+- `open_dashboard`: `{ tab? }` → dashboard state; read-only; opens the shared panel.
+- `reset_my_data`: `{ confirm: literal("RESET") }` → `{ reset: true }`; destructive and caller-scoped.
+- `load_demo_data`: `{}` → inserted/updated counts; idempotent and caller-scoped.
+- `get_task_status`: `{ taskId }` → `{ stage, done, total }`; read-only.
+- Panel has loading, empty, error, success and in-progress states; all server calls go through `web/src/bridge.ts`.
 
 ## Tests and checks
 
-- TDD contract test: list tools/resources through the real MCP handler; assert `ping` metadata, annotations, status, output schema/result, UI URI, entrypoints, and exact MCP App MIME type.
-- Assert `GET /` health response, `/mcp` CORS preflight, and unknown-route `404`.
-- Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`; call local and deployed `ping` with an MCP client.
+- F2/T3: verified grant is the only user-ID source; forged `userId` input is rejected/ignored; production bypass fails closed; anonymous production `/mcp` returns a PRM challenge; local bypass works.
+- F3/T1: real D1 fixtures prove user A data is unreadable/unmodifiable/undeletable by user B; local and remote migrations apply.
+- F4/T4: snapshot every tool contract, annotations, security scheme, status length, unique snake_case name, and output validation.
+- F6/T2: reset affects only the caller and leaves global rows; demo load is idempotent.
+- F7/T5: literal fixtures cover batching, answer mapping, 0–4 normalization, cap, and per-batch fallback.
+- F8: scheduled Greenhouse fetch inserts jobs and records successful/failed `fetch_runs`; no test calls the network.
+- Every milestone runs `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`; tool/UI milestones are deployed and refreshed in a new ChatGPT conversation.
 
-## Open questions
+## Open questions and rulings
 
-- `[local]` Transport: choose stateless `createMcpHandler`; current Cloudflare docs deprecate and feature-freeze `McpAgent` for new servers.
-- `[local]` OpenAI SDK compatibility: prove by importing/initializing `@openai/mcp-extensions/server`, bundling for Workers, invoking locally, and deploying; fall back to protocol metadata only if the package itself is incompatible.
-- `[local]` OAuth template: assess it against PLAN §9 now, but defer implementation to F2.
-- No `[contract]` or `[product]` questions block F1.
+- `[local]` F2 needs `users` and `auth_identities` before F3. Bootstrap those two tables/schema in F2; F3 extends the same migration series with every remaining §7 table.
+- `[local]` F5 precedes the F6 implementations used by its Settings buttons. Ship the bridge/button states in F5; the actions become live and satisfy the combined done condition in F6.
+- `[local]` §8.5 labels `decisions.ts` as F8, while §17 and §29 assign it to F7. Follow the explicit work breakdown/testing ownership: F7.
+- `[local]` OAuth uses the current provider API with S256, PRM, exact `resource` propagation, DCR/CIMD compatibility, and the ChatGPT management page's redirect URI; trigger R2 only after the 90-minute F2 timebox.
+- No `[contract]` or `[product]` question blocks implementation.
