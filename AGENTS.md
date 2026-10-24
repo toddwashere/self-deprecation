@@ -64,6 +64,8 @@ feature's strings in `src/features/<f>/copy.ts`.
 ## Definition of done (every task)
 
 - `npm run typecheck`, `npm run lint`, and `npm test` pass.
+- You added the tests PLAN §29 assigns to your task (keep it minimal; T1 isolation is mandatory if
+  you touch user data). Don't add tests outside §29 unless fixing a regression there.
 - New tools are callable in MCP Inspector locally (`DEV_AUTH_BYPASS=1`) with valid and invalid input.
 - Tool descriptions say what the tool does, when to use it, when not to, and the next step.
 - Your panel tab renders with `seed/demo-todd.json` data, including empty and error states.

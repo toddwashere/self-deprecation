@@ -45,6 +45,7 @@ confirmed while planning and must be checked against current docs before relying
 26. Planning protocol and decisions that need Todd
 27. Progress and status UX
 28. Company interview intel ("know the gauntlet")
+29. Testing strategy (minimal, high-value)
 
 ---
 
@@ -1570,3 +1571,39 @@ confidence instead of guessing.
 **Later (P2):** practice tracker per pattern (done/struggled), spaced repetition, pairing intel
 with the user's ladder level ("Level 4 tip: ask an agent to generate 10 interval problems, solve 3
 without it").
+
+---
+
+## 29. Testing strategy (minimal, high-value)
+
+**Yes, test, but only where a silent break would hurt users or kill the demo.** Prompts and skills
+aren't unit-testable; deterministic code around them is. Target: ~25 fast tests total, run in
+under 10 seconds, all in vitest (Worker/D1 ones via `@cloudflare/vitest-pool-workers`).
+
+### 29.1 The must-have tests (in priority order)
+
+| # | What | Why it matters | Owner |
+|---|---|---|---|
+| T1 | **User isolation:** for every user-scoped repo, user B can't read, update, or delete user A's rows (incl. update/delete by ID). One shared helper, one test per repo. | A cross-user data leak is the worst possible bug in a public multi-user app. | F3 helper; each feature adds one |
+| T2 | **Reset scope:** `reset_my_data` deletes only the caller's personal rows; other users and global tables untouched; requires `confirm: "RESET"`. | Destructive tool on a public server. | F6 |
+| T3 | **Auth guards:** user ID comes only from OAuth props (a `userId` tool arg is rejected/ignored); `DEV_AUTH_BYPASS` refuses to run when `ENVIRONMENT=production`; unauthenticated `/mcp` returns 401 with `WWW-Authenticate`. | Prevents impersonation and accidental open access. | F2 |
+| T4 | **Tool contract check:** every registered tool has a unique snake_case name, description, all three required annotations, `status` strings ≤ 64 chars, `securitySchemes`, and (if it declares one) results that validate against its output schema. Snapshot the tool list. | Bad metadata breaks ChatGPT tool selection or plugin review, silently. | F4 |
+| T5 | **Decisions wrapper:** batches split at `DECISIONS_BATCH_SIZE`; answer names map back to the right `jobId`; score 0–4 → 0–100; refusal, timeout, or HTTP error on one batch → heuristic for that batch only; daily cap enforced. API mocked. | Mis-mapped scores would put the wrong jobs at the top in the main demo moment. | F7 |
+| T6 | **Candidate filters:** salary floor rules (listed below floor hidden; unlisted kept and labeled; toggle hides unlisted), remote/hybrid/onsite + location, avoid lists, employment type. Pure functions, table-driven. | "Why is this job here?" is the first thing a user checks. | P0-C |
+| T7 | **Source normalization:** one recorded-fixture test per adapter (input JSON → `NormalizedJob`), HTML stripping + truncation, HN comment first-line parser, and "one adapter throws → others still upsert, `fetch_runs` records the error." | Feeds change shape; fixtures catch it immediately. | P0-A, P1-A, P1-C |
+| T8 | **Pure math:** rate and runway calculators (P1-E), ladder heuristic level from answers (P1-H). | Cheap, and wrong money math is embarrassing. | P1-E, P1-H |
+
+### 29.2 Deliberately not unit-tested
+
+- **Skills/prompts and tool descriptions:** covered by the manual eval set in `docs/DEMO.md` (P0-F):
+  ~15 prompts (direct, indirect, negative) run in ChatGPT after metadata changes.
+- **Panel UI components:** verified by rendering with seed data during dry runs. No component tests.
+- **Live third-party APIs:** only `scripts/smoke-decisions.ts` and `scripts/smoke-prod.ts`, run by
+  hand, never in the test suite.
+- **End-to-end ChatGPT flows:** the demo dry runs are the E2E test.
+
+### 29.3 Rules
+
+- Tests live next to code (`*.test.ts`), use the seed helpers, and never call the network.
+- A failing T1–T5 blocks merge. T6–T8 failures are fixed before the next deploy.
+- Bug found in a dry run → add one regression test only if it's in T1–T8 territory.
