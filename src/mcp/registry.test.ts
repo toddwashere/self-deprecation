@@ -27,6 +27,9 @@ describe("tool registry contract", () => {
         "ping",
         "get_profile",
         "get_task_status",
+        "open_dashboard",
+        "reset_my_data",
+        "load_demo_data",
       ]
     `);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);

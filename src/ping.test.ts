@@ -73,7 +73,7 @@ describe("F1 Worker", () => {
       }>;
     }>(1, "tools/list", {});
 
-    expect(result.tools).toHaveLength(3);
+    expect(result.tools).toHaveLength(6);
     for (const tool of result.tools) {
       expect(tool.name).toMatch(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/);
       expect(tool.description).toContain("Do not");

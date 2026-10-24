@@ -60,3 +60,9 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 - Vite produces one self-contained HTML resource and `scripts/embed-panel.mjs` converts that exact artifact into the Worker module. The measured panel is 233,852 bytes raw / 74.37 KB gzip, below the 400 KB target, with no external script or network dependency.
 - `web/src/bridge.ts` is the only host boundary. It implements the MCP Apps 2026-01-26 view handshake and JSON-RPC methods directly, then falls back to `window.openai` for ChatGPT-specific widget state and legacy host calls. Using the full view SDK was tested but rejected locally because it expanded the panel to 686.95 KB; the server-side MCP Apps packages remain unchanged.
 - The visual browser check passed for the shell, ten-tab navigation, disabled P1 states, Today empty state, Settings loading/error states, responsive labels, and hope-line footer. F6 activates the already-wired Reset and Load Demo buttons.
+
+## 2026-10-24 00:58 — F6 core data lifecycle
+
+- `reset_my_data` requires the exact `RESET` confirmation and deletes only the caller's user-scoped rows. It preserves internal users, auth identities, other users, and global catalogs; the profile becomes an empty row with an incremented criteria version.
+- `load_demo_data` always resets first, then inserts deterministic public-safe profile, contacts, note, and event IDs. Repeated tool calls and `npm run seed:local` converge to the same row counts.
+- Local auth bypass now idempotently creates its internal development user before user-scoped writes. Production still derives the ID exclusively from verified OAuth props. The central registrar catches unexpected tool errors, emits only an error type plus tool name to logs, and returns a sanitized `INTERNAL` result.

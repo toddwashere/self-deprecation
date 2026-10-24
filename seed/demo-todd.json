@@ -1,0 +1,52 @@
+{
+  "profile": {
+    "headline": "Senior software engineer building reliable AI products",
+    "summary": "Backend and product-minded engineer looking for an AI-native team.",
+    "targetTitles": ["Senior Software Engineer", "Staff Software Engineer", "AI Product Engineer"],
+    "seniority": "senior",
+    "locations": ["Salt Lake City, UT", "Remote US"],
+    "remotePref": "remote",
+    "salaryMin": 175000,
+    "hourlyMin": 120,
+    "employmentTypes": ["full_time", "contract"],
+    "skills": ["typescript", "node", "postgres", "react", "ai"],
+    "timezone": "America/Denver"
+  },
+  "contacts": [
+    {
+      "id": "demo-contact-alex",
+      "name": "Alex Rivera",
+      "company": "Migration Labs",
+      "title": "Engineering Manager",
+      "whereMet": "AI builders meetup",
+      "tags": ["mentor", "ai"]
+    },
+    {
+      "id": "demo-contact-sam",
+      "name": "Sam Chen",
+      "company": "Remote Systems",
+      "title": "Staff Engineer",
+      "whereMet": "Open-source project",
+      "tags": ["peer", "backend"]
+    }
+  ],
+  "notes": [
+    {
+      "id": "demo-note-plan",
+      "subjectType": "general",
+      "subjectLabel": "Migration plan",
+      "title": "This week's focus",
+      "body": "Refresh the portfolio story, save three strong matches, and ask one human for context."
+    }
+  ],
+  "events": [
+    {
+      "id": "demo-event-ai-builders",
+      "title": "AI Builders Community Night",
+      "url": "https://example.com/ai-builders",
+      "city": "Salt Lake City",
+      "source": "manual",
+      "status": "interested"
+    }
+  ]
+}

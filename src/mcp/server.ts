@@ -6,6 +6,7 @@ import { createDb } from "../db/client";
 import type { Env } from "../env";
 import { createLogger } from "../lib/log";
 import { listTools } from "./registry";
+import { fail } from "./result";
 import type { ToolContext, ToolDef } from "./types";
 import { registerUiResource, UI_RESOURCE_URI } from "./ui-resource";
 
@@ -54,7 +55,21 @@ export function createServer(env: Env, identity: AuthProps): McpServer {
     server.registerTool(
       tool.name,
       config as never,
-      (async (args: Record<string, unknown>) => tool.handler(args as never, context)) as never,
+      (async (args: Record<string, unknown>) => {
+        try {
+          return await tool.handler(args as never, context);
+        } catch (error) {
+          context.log.error("tool_failed", {
+            tool: tool.name,
+            errorType: error instanceof Error ? error.name : "unknown",
+          });
+          return fail(
+            "INTERNAL",
+            "Self-Deprecation hit an internal error.",
+            "Try again in a moment.",
+          );
+        }
+      }) as never,
     );
   }
 
