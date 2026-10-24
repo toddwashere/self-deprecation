@@ -1,11 +1,14 @@
 import type { Env } from "../../env";
 import {
   type Decide,
+  DecisionExecutionError,
   type DecisionRequest,
   type DecisionResponse,
   runBoundedDecision,
 } from "../../lib/decisions";
 import { DIMENSIONS, type LadderDimension } from "./quests";
+
+const CLEANUP_TIMEOUT_MS = 250;
 
 export interface LadderAnswers {
   tooling: number;
@@ -118,6 +121,22 @@ function mapDecision(response: DecisionResponse): LadderAssessmentResult | undef
   return { level, levelP, dimensionScores, source: "decisions" };
 }
 
+async function releaseWithinBudget(release: () => Promise<void>): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      release(),
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, CLEANUP_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    // The reservation remains conservative when cleanup fails.
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function assessLadder(
   env: Env,
   answers: LadderAnswers,
@@ -148,13 +167,11 @@ export async function assessLadder(
       recordUsage: reservation.complete,
     });
     return mapDecision(response) ?? fallback;
-  } catch {
-    // Failed or timed-out transports do not consume the daily allowance.
-    // Completion is update-only, so a late persistence attempt cannot recreate this row.
-    try {
-      await reservation.release();
-    } catch {
-      // A stale reservation is conservative: it can reduce spend, never exceed the cap.
+  } catch (error) {
+    // Only a known pre-response failure is safe to release. Once a response exists,
+    // metering failure must retain the reservation so paid calls cannot escape the cap.
+    if (error instanceof DecisionExecutionError && error.phase === "request") {
+      await releaseWithinBudget(reservation.release);
     }
     return fallback;
   }

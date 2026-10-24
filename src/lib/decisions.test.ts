@@ -122,7 +122,7 @@ describe("Decisions scoring", () => {
     expect(decide).not.toHaveBeenCalled();
     await expect(
       runBoundedDecision(scoringEnv(), request, { decide, recordUsage }),
-    ).rejects.toThrow("outage");
+    ).rejects.toMatchObject({ message: "outage", phase: "request" });
     expect(recordUsage).not.toHaveBeenCalled();
   });
 
@@ -159,7 +159,10 @@ describe("Decisions scoring", () => {
       timeoutMs: 1_000,
       recordUsage,
     });
-    const rejection = expect(result).rejects.toThrow("Decisions timed out");
+    const rejection = expect(result).rejects.toMatchObject({
+      message: "Decisions timed out",
+      phase: "usage",
+    });
     await vi.advanceTimersByTimeAsync(1_000);
     await rejection;
     expect(decide).toHaveBeenCalledTimes(1);

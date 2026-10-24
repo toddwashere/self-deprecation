@@ -83,6 +83,16 @@ export interface DecisionResponse {
 
 export type Decide = (request: DecisionRequest, signal: AbortSignal) => Promise<DecisionResponse>;
 
+export class DecisionExecutionError extends Error {
+  readonly phase: "request" | "usage";
+
+  constructor(phase: "request" | "usage", message: string, cause?: unknown) {
+    super(message, { cause });
+    this.name = "DecisionExecutionError";
+    this.phase = phase;
+  }
+}
+
 interface BoundedDecisionOptions {
   decide?: Decide;
   timeoutMs?: number;
@@ -266,16 +276,23 @@ export async function runBoundedDecision(
   const decide =
     options.decide ?? ((input, signal) => defaultDecide(env.OPENAI_API_KEY, input, signal));
   const signal = AbortSignal.timeout(timeoutMs);
+  let phase: DecisionExecutionError["phase"] = "request";
   let rejectTimeout: (() => void) | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    rejectTimeout = () => reject(new Error("Decisions timed out"));
+    rejectTimeout = () => reject(new DecisionExecutionError(phase, "Decisions timed out"));
     if (signal.aborted) rejectTimeout();
     else signal.addEventListener("abort", rejectTimeout, { once: true });
   });
   const operation = (async () => {
-    const response = await decide(request, signal);
-    await options.recordUsage?.(response.usage.input_tokens);
-    return response;
+    try {
+      const response = await decide(request, signal);
+      phase = "usage";
+      await options.recordUsage?.(response.usage.input_tokens);
+      return response;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Decisions failed";
+      throw new DecisionExecutionError(phase, message, error);
+    }
   })();
   try {
     return await Promise.race([operation, timeout]);
