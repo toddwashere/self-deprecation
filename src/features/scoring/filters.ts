@@ -32,10 +32,17 @@ function locationMatches(profile: ScoringProfile, job: CandidateJob): boolean {
   return profile.locations.some((preferred) => {
     const target = normalized(preferred);
     if (job.remote) {
-      if (!target.includes("remote")) return false;
-      const region = target.replace(/\bremote\b/g, "").trim();
+      const geography = target.replace(/\bremote\b/g, "").trim();
+      const usStates = new Set(
+        "al ak az ar ca co ct de dc fl ga hi id il in ia ks ky la me md ma mi mn ms mo mt ne nv nh nj nm ny nc nd oh ok or pa ri sc sd tn tx ut vt va wa wv wi wy".split(
+          " ",
+        ),
+      );
+      const state = geography.split(" ").at(-1) ?? "";
+      const region = usStates.has(state) ? "us" : geography;
       return (
         !region ||
+        hasTerm(location, geography) ||
         location === "remote" ||
         location.includes("worldwide") ||
         location.includes("anywhere") ||

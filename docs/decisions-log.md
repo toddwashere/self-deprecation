@@ -175,3 +175,6 @@ Format: `## YYYY-MM-DD HH:MM — <title>` · who · what · why · affected task
 
 ## P0-C · Jobs tool registration contract (2026-10-24)
 `src/features/jobs/index.ts` is a Foundation stub with `tools: []`, but P0-C owns only jobs tools/panel and scoring. Integrator: import `jobsTools` from `./tools` and register it alongside P0-A catalog tools. P0-C will export the four user-facing tools cleanly. Catalog reads and user match writes stay behind `scoring/repo.ts`; bounded scoring returns progress for subsequent `score_jobs` calls, with no waitUntil dependency (integrator ruling).
+
+## P0-C · Review fixes and wrapper authorization (2026-10-24)
+The integrator explicitly authorized the shared Decisions timeout repair and supplied commit `08d54ed`; P0-C integrated that approved repair as `9ae1382`. This review milestone changes only owned Jobs/scoring files and this log. JobsOutput now includes normalized initiating filters for panel refresh/continuation; remote geography no longer requires a literal work-mode keyword; batch-size zero follows the wrapper's clamp to one.

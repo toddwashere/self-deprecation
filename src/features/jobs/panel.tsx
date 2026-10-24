@@ -1,23 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Bridge } from "../../../web/src/bridge";
 import { Button, Card, Chip, Empty, ErrorBanner, Loading } from "../../../web/src/ui";
+import { normalizeSearchFilters, searchArgs } from "../scoring/search-state";
 import { JOBS_COPY as copy } from "./copy";
-import type { JobCard, JobOutput, JobsOutput } from "./tools";
+import type { JobCard, JobOutput, JobSearchFilters, JobsOutput } from "./tools";
 
-type Filters = {
-  query: string;
-  status: string;
-  employmentType: string;
-  remoteOnly: boolean;
-  hideUnlistedSalary: boolean;
-};
-const defaults: Filters = {
-  query: "",
-  status: "",
-  employmentType: "",
-  remoteOnly: false,
-  hideUnlistedSalary: false,
-};
+type Filters = JobSearchFilters;
 const fieldStyle = {
   border: "1px solid var(--border)",
   borderRadius: 8,
@@ -29,15 +17,6 @@ const fieldStyle = {
 } as const;
 const controlsStyle = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 } as const;
 
-function searchArgs(filters: Filters) {
-  return {
-    query: filters.query || undefined,
-    status: filters.status || undefined,
-    employmentType: filters.employmentType || undefined,
-    remoteOnly: filters.remoteOnly,
-    hideUnlistedSalary: filters.hideUnlistedSalary,
-  };
-}
 function isSearch(value: unknown): value is JobsOutput {
   return Boolean(
     value &&
@@ -45,7 +24,8 @@ function isSearch(value: unknown): value is JobsOutput {
       "jobs" in value &&
       Array.isArray(value.jobs) &&
       "progress" in value &&
-      "sources" in value,
+      "sources" in value &&
+      "filters" in value,
   );
 }
 function compensation(job: JobCard) {
@@ -73,8 +53,8 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
     const output = bridge.initialToolOutput<unknown>();
     return isSearch(output) ? output : undefined;
   });
-  const [filters, setFilters] = useState<Filters>(defaults);
-  const [draft, setDraft] = useState<Filters>(defaults);
+  const [filters, setFilters] = useState<Filters>(() => normalizeSearchFilters(data?.filters));
+  const [draft, setDraft] = useState<Filters>(filters);
   const [error, setError] = useState<string>();
   const [needsCriteria, setNeedsCriteria] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -110,12 +90,18 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
     () =>
       bridge.onToolOutput((output) => {
         if (isSearch(output)) {
+          const incomingFilters = normalizeSearchFilters(output.filters);
+          if (JSON.stringify(incomingFilters) !== JSON.stringify(filters)) {
+            generation.current++;
+            setFilters(incomingFilters);
+            setDraft(incomingFilters);
+          }
           setData(output);
           setError(undefined);
         } else if (output && typeof output === "object" && "job" in output)
           setDetail((output as JobOutput).job);
       }),
-    [bridge],
+    [bridge, filters],
   );
 
   useEffect(() => {
@@ -131,7 +117,7 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
         setError(status.error.message);
         return;
       }
-      const next = await bridge.callTool<JobsOutput>("score_jobs", searchArgs(filters));
+      const next = await bridge.callTool<JobsOutput>("score_jobs", searchArgs(data.filters));
       if (cancelled || current !== generation.current) return;
       if (next.error) setError(next.error.message);
       else if (next.data && isSearch(next.data)) setData(next.data);
@@ -141,7 +127,7 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [bridge, data, busy, error, filters]);
+  }, [bridge, data, busy, error]);
 
   const update = async (job: JobCard, status: JobCard["status"]) => {
     setPending(job.id);
@@ -299,7 +285,9 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
               <select
                 aria-label={copy.status}
                 value={draft.status}
-                onChange={(e) => setDraft({ ...draft, status: e.target.value })}
+                onChange={(e) =>
+                  setDraft({ ...draft, status: e.target.value as Filters["status"] })
+                }
                 style={fieldStyle}
               >
                 <option value="">Active jobs</option>
@@ -317,7 +305,12 @@ export function JobsPanel({ bridge }: { bridge: Bridge }) {
               <select
                 aria-label={copy.employment}
                 value={draft.employmentType}
-                onChange={(e) => setDraft({ ...draft, employmentType: e.target.value })}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    employmentType: e.target.value as Filters["employmentType"],
+                  })
+                }
                 style={fieldStyle}
               >
                 <option value="">All types</option>

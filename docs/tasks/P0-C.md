@@ -7,7 +7,7 @@
 
 Files: `src/features/scoring/{repo,service,filters,index}.ts`, owned tests; `src/features/jobs/{tools.ts,panel.tsx,copy.ts}`; this brief. No catalog ingestion or shared-module changes.
 
-Tools (all inputs omit user ID): `search_jobs({query?,status?,employmentType?,remoteOnly?,hideUnlistedSalary?,limit?})` → `{tab:'jobs',jobs:JobCard[],criteriaVersion,fallback,progress,taskId?,sources}`; `get_job({jobId})` → `{tab:'jobs',job:JobCard}`; `update_job_status({jobId,status})` → same detail; `score_jobs({limit?})` → same search result. `JobCard` includes public job data, current fit score/source/reasons, user status, and scored time. All output shapes use zod in tools.ts. Loading skeleton, empty onboarding CTA, retryable error, and in-progress state render in panel.
+Tools (all inputs omit user ID): `search_jobs({query?,status?,employmentType?,remoteOnly?,hideUnlistedSalary?,limit?})` → `{tab:'jobs',filters,jobs:JobCard[],criteriaVersion,fallback,progress,taskId?,sources}`; `get_job({jobId})` → `{tab:'jobs',job:JobCard}`; `update_job_status({jobId,status})` → same detail; `score_jobs({limit?})` → same search result. `JobCard` includes public job data, current fit score/source/reasons, user status, and scored time. All output shapes use zod in tools.ts. Loading skeleton, empty onboarding CTA, retryable error, and in-progress state render in panel.
 
 Tests: T6 table-driven pure filters (pay/unknown pay/location/remote/avoid/employment/age); T1 cross-user match read/update isolation and cache/status preservation; T4 owned tool valid/invalid inputs and result schemas; T5 wrapper remains existing coverage. Panel verified by seed render, per §29 no component tests.
 

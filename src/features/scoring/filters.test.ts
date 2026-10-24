@@ -109,3 +109,13 @@ describe("T6 candidate filtering", () => {
     );
   });
 });
+
+it("matches remote geography independently of the work-mode preference", () => {
+  const localRemote = { ...profile, remotePref: "remote", locations: ["Salt Lake City, UT"] };
+  expect(candidateJobs(localRemote, [job], now).map((item) => item.id)).toEqual(["good"]);
+  expect(candidateJobs({ ...localRemote, remotePref: "any" }, [job], now)).toHaveLength(1);
+  expect(candidateJobs(localRemote, [{ ...job, location: "Remote Europe" }], now)).toHaveLength(0);
+  expect(
+    candidateJobs(localRemote, [{ ...job, remote: false, location: "Salt Lake City, UT" }], now),
+  ).toHaveLength(0);
+});

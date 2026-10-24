@@ -10,6 +10,7 @@ import {
   saveJobScores,
   writeScoringProgress,
 } from "./repo";
+import { normalizeSearchFilters, searchArgs } from "./search-state";
 import type { CandidateJob, JobFilters, ScoringProfile } from "./types";
 
 type Match = Awaited<ReturnType<typeof getMatches>>[number];
@@ -55,6 +56,12 @@ export async function runJobSearch(
 ): Promise<JobsOutput | undefined> {
   const profile = await getScoringProfile(ctx.db, ctx.userId);
   if (!profile || (!profile.targetTitles.length && !profile.skills.length)) return undefined;
+  const normalizedFilters = normalizeSearchFilters({
+    ...filters,
+    limit: options.limit,
+    hideUnlistedSalary: filters.hideUnlistedSalary ?? profile.extra?.hideUnlistedSalary === true,
+  });
+  const activeFilters = searchArgs(normalizedFilters);
   const [catalog, matches, sources] = await Promise.all([
     getCatalogJobs(ctx.db),
     getMatches(ctx.db, ctx.userId),
@@ -63,17 +70,17 @@ export async function runJobSearch(
   const byJob = new Map(matches.map((match) => [match.jobId, match]));
   const visible = catalog.filter((job) => {
     const status = byJob.get(job.id)?.status ?? "new";
-    return filters.status ? status === filters.status : status !== "dismissed";
+    return activeFilters.status ? status === activeFilters.status : status !== "dismissed";
   });
-  const selected = candidateJobs(profile, visible, ctx.now().getTime(), filters);
+  const selected = candidateJobs(profile, visible, ctx.now().getTime(), activeFilters);
   const pending = selected.filter((job) => {
     const match = byJob.get(job.id);
     return !match || match.criteriaVersion !== profile.criteriaVersion || match.fitScore === null;
   });
-  const batchSize = Math.max(
-    1,
-    Math.min(20, Number.parseInt(ctx.env.DECISIONS_BATCH_SIZE ?? "20", 10) || 20),
-  );
+  const configuredBatchSize = Number.parseInt(ctx.env.DECISIONS_BATCH_SIZE ?? "", 10);
+  const batchSize = Number.isFinite(configuredBatchSize)
+    ? Math.min(20, Math.max(1, configuredBatchSize))
+    : 20;
   const batch = pending.slice(0, batchSize);
   if (batch.length) {
     const profileText = JSON.stringify({
@@ -116,7 +123,8 @@ export async function runJobSearch(
   await writeScoringProgress(ctx.db, ctx.userId, taskId, progress, ctx.now().getTime());
   return {
     tab: "jobs",
-    jobs: ranked.slice(0, options.limit ?? 60),
+    jobs: ranked.slice(0, normalizedFilters.limit),
+    filters: normalizedFilters,
     criteriaVersion: profile.criteriaVersion,
     fallback: ranked.some((job) => job.scoreSource === "heuristic"),
     progress,
