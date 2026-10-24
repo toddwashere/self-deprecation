@@ -135,7 +135,7 @@ describe("job catalog pipeline", () => {
     const forged = await tool.handler({ userId: "a" }, ctx("b"));
     expect(forged).toMatchObject({
       isError: true,
-      structuredContent: { error: { code: "NEEDS_CRITERIA" } },
+      _meta: { "self-deprecation/error": { code: "NEEDS_CRITERIA" } },
     });
     expect(requests).toHaveLength(0);
     const result = await refreshJobs(ctx("a"));
