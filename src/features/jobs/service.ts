@@ -32,7 +32,8 @@ export interface CatalogRefresh {
   tab: "jobs";
   itemsUpserted: number;
   sources: SourceOutcome[];
-  progress: { stage: "done"; done: number; total: number };
+  progress: { stage: "fetching" | "done"; done: number; total: number };
+  partial?: boolean;
   fallback: boolean;
   snapshotCapturedAt?: number;
   skipped: { source: string; reason: string }[];
@@ -74,15 +75,34 @@ export async function fetchJobSources(
     maxSources?: number;
     limit?: number;
     runIds?: ReadonlyMap<string, string>;
+    signal?: AbortSignal;
+    onProgress?: (result: CatalogRefresh) => void;
   } = {},
 ): Promise<CatalogRefresh> {
   const now = options.now ?? Date.now;
   const chosen = adapters.slice(0, Math.min(options.maxSources ?? 3, 10));
+  const sources: SourceOutcome[] = [];
+  const report = (): CatalogRefresh => ({
+    tab: "jobs",
+    itemsUpserted: sources.reduce((sum, source) => sum + source.itemsUpserted, 0),
+    sources: [...sources],
+    progress: {
+      stage: sources.length === chosen.length ? "done" : "fetching",
+      done: sources.length,
+      total: chosen.length,
+    },
+    fallback: false,
+    skipped: [],
+    ...(options.signal?.aborted ? { partial: true } : {}),
+  });
+  options.onProgress?.(report());
   const fetched = await Promise.all(
     chosen.map(async (adapter) => {
+      options.signal?.throwIfAborted();
       const id =
         options.runIds?.get(adapter.id) ?? (await startFetchRun(db, adapter.id, "jobs", now()));
       try {
+        options.signal?.throwIfAborted();
         const items = await bounded(
           adapter.fetch(env, { limit: options.limit ?? 100 }),
           Math.max(1, Math.min(options.budgetMs ?? 4_800, 5_000)),
@@ -93,14 +113,16 @@ export async function fetchJobSources(
       }
     }),
   );
-  const sources: SourceOutcome[] = [];
   for (const result of fetched) {
+    if (options.signal?.aborted) break;
     try {
       if (result.error) throw new Error(result.error);
-      const count = await upsertJobs(db, result.items ?? [], now());
+      const count = await upsertJobs(db, result.items ?? [], now(), { signal: options.signal });
+      options.signal?.throwIfAborted();
       await finishFetchRun(db, result.id, { status: "ok", itemsUpserted: count }, now());
       sources.push({ source: result.adapter.id, status: "ok", itemsUpserted: count });
     } catch (error) {
+      if (options.signal?.aborted) break;
       const reason = result.error ?? safeFailure(error);
       await finishFetchRun(
         db,
@@ -110,15 +132,9 @@ export async function fetchJobSources(
       );
       sources.push({ source: result.adapter.id, status: "error", itemsUpserted: 0, reason });
     }
+    options.onProgress?.(report());
   }
-  return {
-    tab: "jobs",
-    itemsUpserted: sources.reduce((sum, source) => sum + source.itemsUpserted, 0),
-    sources,
-    progress: { stage: "done", done: chosen.length, total: chosen.length },
-    fallback: false,
-    skipped: [],
-  };
+  return report();
 }
 
 function boardAdapter(
@@ -144,14 +160,19 @@ async function queryKey(query: string, location: string): Promise<string> {
   return `adzuna_${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
-export async function refreshJobs(ctx: ToolContext): Promise<CatalogRefresh> {
+export async function refreshJobs(
+  ctx: ToolContext,
+  options: { signal?: AbortSignal; onProgress?: (result: CatalogRefresh) => void } = {},
+): Promise<CatalogRefresh> {
+  options.signal?.throwIfAborted();
   const criteria = await getCriteria(ctx.db, ctx.userId);
+  options.signal?.throwIfAborted();
   if (!criteria.targetTitles.length) throw new MissingCriteriaError("Set up job criteria first");
   const now = ctx.now().getTime();
   const fastBoards = boards.filter((board) =>
     ["lucidsoftware", "wealthfront"].includes(board.token),
   );
-  const adapters = fastBoards.map((board) => boardAdapter(board));
+  const adapters = fastBoards.map((board) => boardAdapter(board, 2_500));
   const cached: SourceOutcome[] = [];
   const runIds = new Map<string, string>();
   const skipped: CatalogRefresh["skipped"] = [];
@@ -170,7 +191,7 @@ export async function refreshJobs(ctx: ToolContext): Promise<CatalogRefresh> {
       });
     } else {
       runIds.set(key, claimed);
-      adapters.push({ ...createAdzunaAdapter({ query, location, timeoutMs: 4_500 }), id: key });
+      adapters.push({ ...createAdzunaAdapter({ query, location, timeoutMs: 2_500 }), id: key });
     }
   } else {
     skipped.push({
@@ -178,19 +199,26 @@ export async function refreshJobs(ctx: ToolContext): Promise<CatalogRefresh> {
       reason: criteria.locations.length ? "NOT_CONFIGURED" : "NO_LOCATION",
     });
     const backup = boards.find((board) => board.token === "linear");
-    if (backup) adapters.push(boardAdapter(backup));
+    if (backup) adapters.push(boardAdapter(backup, 2_500));
   }
+  options.signal?.throwIfAborted();
   const result = await fetchJobSources(ctx.db, ctx.env, adapters, {
     now: () => now,
     maxSources: 3,
+    budgetMs: 2_800,
+    signal: options.signal,
+    onProgress: options.onProgress,
     runIds,
   });
+  options.signal?.throwIfAborted();
   result.sources.push(...cached);
   result.skipped = skipped;
   if ((await getCatalogStats(ctx.db)).total === 0) {
     const seeded = await fetchJobSources(ctx.db, ctx.env, [seedJobsAdapter], {
       now: () => SNAPSHOT_CAPTURED_AT,
       limit: 100,
+      signal: options.signal,
+      onProgress: options.onProgress,
     });
     result.itemsUpserted += seeded.itemsUpserted;
     result.sources.push(...seeded.sources);
@@ -241,4 +269,48 @@ export async function runRotatingJobBatch(
     ...freshFeeds,
   ];
   return result;
+}
+
+export const REFRESH_DEADLINE_MS = 6_000;
+
+export async function refreshJobsWithinBudget(
+  ctx: ToolContext,
+  options: { timeoutMs?: number } = {},
+): Promise<CatalogRefresh> {
+  const controller = new AbortController();
+  let latest: CatalogRefresh = {
+    tab: "jobs",
+    itemsUpserted: 0,
+    sources: [],
+    progress: { stage: "fetching", done: 0, total: 3 },
+    fallback: false,
+    skipped: [],
+  };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      refreshJobs(ctx, {
+        signal: controller.signal,
+        onProgress: (result) => {
+          latest = result;
+        },
+      }),
+      new Promise<CatalogRefresh>((resolve) => {
+        timer = setTimeout(
+          () => {
+            controller.abort();
+            resolve({
+              ...latest,
+              partial: true,
+              progress: { ...latest.progress, stage: "fetching" },
+              skipped: [...latest.skipped, { source: "refresh", reason: "TIME_BUDGET" }],
+            });
+          },
+          Math.max(1, Math.min(options.timeoutMs ?? REFRESH_DEADLINE_MS, REFRESH_DEADLINE_MS)),
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
